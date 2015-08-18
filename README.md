@@ -7,7 +7,7 @@ This is still experimental.
 
 ## Requirements
 
-* SuperCollider > v3.7
+* SuperCollider > v3.7: https://github.com/supercollider/supercollider
 * The Vowel Quark: https://github.com/supercollider-quarks/Vowel
 * For proper usage you need https://github.com/tidalcycles/Tidal
 
