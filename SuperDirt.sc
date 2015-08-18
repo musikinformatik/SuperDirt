@@ -64,6 +64,7 @@ SuperDirt {
 
 	free {
 		this.freeSoundFiles;
+		ServerTree.remove(this, server);
 	}
 
 	loadSoundFiles { |path, fileExtension = "wav"|
