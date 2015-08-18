@@ -1,0 +1,7 @@
+(
+	\name: 			"SuperDirt",
+	\summary:		"SuperCollider implementation of the Dirt sampler for the Tidal programming language",
+	\author: 		"Alex McLean and Julian Rohrhuber",
+	\since: 		"2015",
+	\dependencies:  ["Vowel"]
+)
