@@ -12,7 +12,9 @@ This is still experimental.
 * For proper usage you need https://github.com/tidalcycles/Tidal
 
 ## Installation from SuperCollider
-```Quarks.install("https://github.com/telephon/SuperDirt/")```
+```
+Quarks.install("https://github.com/telephon/SuperDirt/")
+```
 
 ## Setup
 ```
