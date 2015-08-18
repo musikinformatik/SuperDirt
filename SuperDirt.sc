@@ -10,7 +10,6 @@ Options:
 
 * network port (default: 57120)
 * vowelRegister (default: \tenor)
-* numVowelPartials (default: 42)
 
 
 
