@@ -3,8 +3,8 @@ SuperCollider implementation of the Dirt sampler for the Tidal programming langu
 
 ## Requirements
 
-SuperCollider > v3.7
-The Vowel Quark: https://github.com/supercollider-quarks/Vowel
+* SuperCollider > v3.7
+* The Vowel Quark: https://github.com/supercollider-quarks/Vowel
 
 ## Setup
 ```
