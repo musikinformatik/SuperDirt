@@ -11,6 +11,9 @@ This is still experimental.
 * The Vowel Quark: https://github.com/supercollider-quarks/Vowel
 * For proper usage you need https://github.com/tidalcycles/Tidal
 
+## Installation from SuperCollider
+```Quarks.install("https://github.com/telephon/SuperDirt/")```
+
 ## Setup
 ```
 (
