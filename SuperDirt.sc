@@ -93,7 +93,7 @@ SuperDirt {
 		path = path ?? { "synths".resolveRelative };
 		filePaths = pathMatch(path +/+ "*");
 		filePaths.do { |filepath|
-			if(filepath.extension == "scd") {
+			if(filepath.splitext.last == "scd") {
 				try { (dirt:this).use { filepath.load }; "loading synthdefs in %\n".postf(filepath) } { |err| err.postln };
 			}
 		}
