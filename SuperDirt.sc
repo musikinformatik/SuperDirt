@@ -323,30 +323,32 @@ SuperDirt {
 		allbufs = this.buffers[key];
 		index = (index ? 0).asInteger;
 
-		if(allbufs.notNil) {
-			instrument = \dirt;
-			buffer = allbufs.wrapAt(index);
-			numFrames = buffer.numFrames;
-			bufferDuration = buffer.duration;
-			sampleRate = buffer.sampleRate;
-			sample = name.identityHash;
-		} {
-			instrument = key;
-			sampleRate = server.sampleRate;
-			numFrames = sampleRate; // assume one second
-			bufferDuration = 1.0;
-		};
-
-		if(end >= start) {
-			if(speed < 0) { temp = end; end = start; start = temp };
-			length = end - start;
-		} {
-			// backwards
-			length = start - end;
-			speed = speed.neg;
-		};
 
 		if(allbufs.notNil or: { SynthDescLib.at(key).notNil }) {
+
+			if(allbufs.notNil) {
+				instrument = \dirt;
+				buffer = allbufs.wrapAt(index);
+				numFrames = buffer.numFrames;
+				bufferDuration = buffer.duration;
+				sampleRate = buffer.sampleRate;
+				sample = name.identityHash;
+			} {
+				instrument = key;
+				sampleRate = server.sampleRate;
+				numFrames = sampleRate; // assume one second
+				bufferDuration = 1.0;
+			};
+
+			if(end >= start) {
+				if(speed < 0) { temp = end; end = start; start = temp };
+				length = end - start;
+			} {
+				// backwards
+				length = start - end;
+				speed = speed.neg;
+			};
+
 
 			unit = unit ? \r;
 			amp = pow(gain, 4);
