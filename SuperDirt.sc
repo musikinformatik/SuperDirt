@@ -41,13 +41,21 @@ SuperDirt {
 	}
 
 	init {
+		var register;
 		ServerTree.add(this, server); // synth node tree init
 		globalEffects = ();
 		buffers = ();
 		this.initSynthDefs;
 		vowels = ();
+		register = options[\vowelRegister] ? \tenor;
+		if(Vowel.formLib.at(\a).at(register).isNil) {
+			"This voice register (%) isn't avaliable. Using tenor instead".format(register).warn;
+			"Available registers are: %".format(Vowel.formLib.at(\a).keys).postln;
+			register = \tenor;
+		};
+
 		[\a, \e, \i, \o, \u].collect { |x|
-			vowels[x] = Vowel(x, register:options[\vowelRegister] ? \tenor)
+			vowels[x] = Vowel(x, register)
 		};
 	}
 

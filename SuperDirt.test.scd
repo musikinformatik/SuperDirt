@@ -3,14 +3,16 @@
 (
 s.options.numBuffers = 1024 * 16;
 s.options.memSize = 8192 * 16;
+~dirt.free; // free old instance
 s.waitForBoot {
-	~dirt = SuperDirt(2, s);
+	~dirt = SuperDirt(2, s, (vowelRegister: \bass));
 	~dirt.loadSynthDefs;
 	~dirt.loadSoundFiles;
 	~dirt.start;
 }
 )
-
+Vowel
+s.reboot;
 
 (
 Tdef(\x, {
@@ -61,11 +63,22 @@ Tdef(\x, {
 (
 Tdef(\x, {
 	loop {
-		~dirt.(nil, 1, 'SD:8', start: 0, end: 1, speed: 1.5, vowel: "aeiou".choose.asSymbol, resonance: 0.2, cutoff: 202);
-		0.2.wait;
+		~dirt.(nil, 1, 'SD:8', start: 0, end: 1.0.rand, speed: 2.5, vowel: "aeiou".choose.asSymbol, resonance: 0.5, cutoff: 202);
+		0.1.wait;
 	}
 }).play;
 )
+
+// tough test
+(
+Tdef(\x, {
+	loop {
+		~dirt.(nil, 1, 'SD:8', start: 0, end: 1.0.rand, speed: 12.5, vowel: "aeiou".choose.asSymbol, resonance: 1, cutoff: 202);
+		0.02.wait;
+	}
+}).play;
+)
+
 
 d.vowels.freqs.flat.maxItem
 d.vowels.amps.flat.maxItem
