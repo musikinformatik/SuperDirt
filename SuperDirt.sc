@@ -375,6 +375,11 @@ SuperDirt {
 
 			//[\end_start, endFrame - startFrame / sampleRate, \sustain, sustain].postln;
 
+			if(accelerate != 0) {
+				// assumes linear acceleration
+				sustain = sustain + (accelerate * sustain * 0.5 * speed.sign.neg);
+			};
+
 
 			server.makeBundle(latency, { // use this to build a bundle
 
