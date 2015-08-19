@@ -353,11 +353,13 @@ SuperDirt {
 					endFrame = numFrames * end;
 				},
 				\s, {
-					sustain = length * sampleRate;
+					sustain = length;
 					startFrame = sampleRate * start;
 					endFrame = sampleRate * end;
 				}
 			);
+
+			//[\end_start, endFrame - startFrame / sampleRate, \sustain, sustain].postln;
 
 
 			server.makeBundle(latency, { // use this to build a bundle
