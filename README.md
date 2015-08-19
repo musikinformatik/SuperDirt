@@ -13,7 +13,8 @@ This is still experimental.
 
 ## Installation from SuperCollider
 ```
-Quarks.install("https://github.com/musikinformatik/SuperDirt.git")
+Quarks.install("https://github.com/musikinformatik/SuperDirt.git");
+Quarks.install("Vowel");
 ```
 
 ## Setup
