@@ -203,6 +203,14 @@ SuperDirt {
 			ReplaceOut.ar(out, signal)
 		}).add;
 
+
+		SynthDef(\dirt_coarse, { |out, coarse = 0, bandq = 10|
+			var signal = In.ar(out, numChannels);
+			this.releaseWhenSilent(signal);
+			signal = Latch.ar(signal, Impulse.ar(SampleRate.ir / coarse));
+			ReplaceOut.ar(out, signal)
+		}).add;
+
 		SynthDef(\dirt_hpf, { |out, hcutoff = 440, hresonance = 0|
 			var signal = In.ar(out, numChannels);
 			signal = RHPF.ar(signal, hcutoff, hresonance.linexp(0, 1, 1, 0.001));
@@ -214,13 +222,6 @@ SuperDirt {
 			var signal = In.ar(out, numChannels);
 			signal = BPF.ar(signal, bandqf, 1/bandq) * max(bandq, 1.0);
 			this.releaseWhenSilent(signal);
-			ReplaceOut.ar(out, signal)
-		}).add;
-
-		SynthDef(\dirt_coarse, { |out, coarse = 0, bandq = 10|
-			var signal = In.ar(out, numChannels);
-			this.releaseWhenSilent(signal);
-			signal = (signal * coarse).tanh * (coarse.reciprocal.max(1));
 			ReplaceOut.ar(out, signal)
 		}).add;
 
@@ -432,15 +433,6 @@ SuperDirt {
 
 				};
 
-				if(crush != 0) {
-					this.sendSynth(\dirt_crush,
-						[
-							crush: crush,
-							out: bus
-						]
-					)
-				};
-
 				if(hcutoff != 0) {
 					this.sendSynth(\dirt_hpf,
 						[
@@ -461,7 +453,16 @@ SuperDirt {
 					)
 				};
 
-				if(coarse != 0) {
+				if(crush != 0) {
+					this.sendSynth(\dirt_crush,
+						[
+							crush: crush,
+							out: bus
+						]
+					)
+				};
+
+				if(coarse > 1) { // coarse == 1 => full rate
 					this.sendSynth(\dirt_coarse,
 						[
 							coarse: coarse,
@@ -469,6 +470,7 @@ SuperDirt {
 						]
 					)
 				};
+
 
 				this.sendSynth(\dirt_monitor,
 					[

@@ -34,6 +34,9 @@ Tdef(\x, {
 
 // test effects:
 ~dirt.(nil, 1, 'CY:10', speed: 0.2, crush: 4);
+~dirt.(nil, 1, 'CY:10', speed: 0.2, coarse: 8);
+
+~dirt.(nil, 1, 'CY:10', speed: 0.2, crush: 4, coarse: 38);
 ~dirt.(nil, 1, 'CY:10', speed: 1, crush: 4);
 ~dirt.(nil, 1, 'CY:10', speed: 1, hcutoff: 1000, hresonance: 20);
 ~dirt.(nil, 1, 'CY:10', speed: 1, hcutoff: 3000, hresonance: 10);
