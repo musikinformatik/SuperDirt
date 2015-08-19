@@ -189,7 +189,7 @@ SuperDirt {
 			vowelAmps = \vowelAmps.ir(0 ! 5) * resonance.linlin(0, 1, 50, 350);
 			vowelRqs = \vowelRqs.ir(0 ! 5) * resonance.linlin(0, 1, 1, 0.1);
 			signal = BPF.ar(signal, vowelFreqs, vowelRqs, vowelAmps).sum;
-			DetectSilence.ar(LeakDC.ar(signal.asArray.sum), doneAction:2);
+			this.releaseWhenSilent(signal);
 			ReplaceOut.ar(out, signal);
 
 		}).add;
@@ -198,7 +198,7 @@ SuperDirt {
 
 		SynthDef(\dirt_crush, { |out, crush = 4|
 			var signal = In.ar(out, numChannels);
-			DetectSilence.ar(LeakDC.ar(signal.asArray.sum), doneAction:2);
+			this.releaseWhenSilent(signal);
 			signal = signal.round(0.5 ** crush);
 			ReplaceOut.ar(out, signal)
 		}).add;
@@ -206,20 +206,20 @@ SuperDirt {
 		SynthDef(\dirt_hpf, { |out, hcutoff = 440, hresonance = 0|
 			var signal = In.ar(out, numChannels);
 			signal = RHPF.ar(signal, hcutoff, hresonance.linexp(0, 1, 1, 0.001));
-			DetectSilence.ar(LeakDC.ar(signal.asArray.sum), doneAction:2);
+			this.releaseWhenSilent(signal);
 			ReplaceOut.ar(out, signal)
 		}).add;
 
 		SynthDef(\dirt_bpf, { |out, bandqf = 440, bandq = 10|
 			var signal = In.ar(out, numChannels);
 			signal = BPF.ar(signal, bandqf, 1/bandq) * max(bandq, 1.0);
-			DetectSilence.ar(LeakDC.ar(signal.asArray.sum), doneAction:2);
+			this.releaseWhenSilent(signal);
 			ReplaceOut.ar(out, signal)
 		}).add;
 
 		SynthDef(\dirt_coarse, { |out, coarse = 0, bandq = 10|
 			var signal = In.ar(out, numChannels);
-			DetectSilence.ar(LeakDC.ar(signal.asArray.sum), doneAction:2);
+			this.releaseWhenSilent(signal);
 			signal = (signal * coarse).tanh * (coarse.reciprocal.max(1));
 			ReplaceOut.ar(out, signal)
 		}).add;
@@ -228,7 +228,7 @@ SuperDirt {
 
 		SynthDef(\dirt_monitor, { |out, in, delayBus, delay = 0|
 			var signal = In.ar(in, numChannels);
-			DetectSilence.ar(LeakDC.ar(signal.asArray.sum), doneAction:2);
+			this.releaseWhenSilent(signal);
 			Out.ar(out, signal);
 			Out.ar(delayBus, signal * delay);
 			ReplaceOut.ar(in, Silent.ar(numChannels)) // clears bus signal for subsequent synths
@@ -238,7 +238,7 @@ SuperDirt {
 
 
 	/*
-	convenience method for panning
+	convenience methods for panning and releasing
 	*/
 
 	panOut { |signal, pan = 0.0, mul = 1.0|
@@ -252,6 +252,10 @@ SuperDirt {
 		if(signal.size > 1) { output = output.sum };
 
 		^OffsetOut.ar(\out.kr, output); // we create an out control argument in a different way here.
+	}
+
+	releaseWhenSilent { |signal|
+		DetectSilence.ar(LeakDC.ar(signal.asArray.sum), doneAction:2);
 	}
 
 
