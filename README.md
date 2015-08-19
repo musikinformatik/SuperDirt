@@ -20,8 +20,11 @@ Quarks.install("Vowel");
 ## Setup
 ```
 (
-s.options.numBuffers = 1024 * 16;
+// configure the sound server: here you could add hardware specific options
+// see http://doc.sccode.org/Classes/ServerOptions.html
+s.options.numBuffers = 1024 * 16; 
 s.options.memSize = 8192 * 16;
+// boot the server and start SuperDirt
 s.waitForBoot {
 	~dirt = SuperDirt(2, s); // two output channels
 	~dirt.loadSynthDefs; 	// load user defined synthdefs
