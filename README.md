@@ -13,7 +13,7 @@ This is still experimental.
 
 ## Installation from SuperCollider
 ```
-Quarks.install("https://github.com/musikinformatik/SuperDirt/")
+Quarks.install("https://github.com/musikinformatik/SuperDirt.git")
 ```
 
 ## Setup
