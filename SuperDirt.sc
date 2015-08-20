@@ -79,16 +79,19 @@ SuperDirt {
 		var folderPaths;
 		path = path ?? { "samples".resolveRelative };
 		folderPaths = pathMatch(path +/+ "**");
+		"loading sample banks:".postln;
 		folderPaths.do { |folderPath|
 			PathName(folderPath).filesDo { |filepath|
 				var buf, name;
 				if(filepath.extension.find(fileExtension, true).notNil) {
 					buf = Buffer.read(server, filepath.fullPath);
-					name = filepath.folderName;
+					name = filepath.folderName.toLower;
 					buffers[name.asSymbol] = buffers[name.asSymbol].add(buf)
 				}
-			}
-		}
+			};
+			folderPath.basename.post; " ".post;
+		};
+		"\n".post;
 	}
 
 	freeSoundFiles {

@@ -11,8 +11,7 @@ s.waitForBoot {
 	~dirt.start;
 }
 )
-Vowel
-s.reboot;
+
 
 (
 Tdef(\x, {
