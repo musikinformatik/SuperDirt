@@ -35,6 +35,15 @@ s.waitForBoot {
 // now you should be able to send from tidal via port 57120
 ```
 
+## Setup from Tidal
+```
+d1 <- stream "127.0.0.1" 57120 dirt {timestamp = BundleStamp}
+```
+Now you can run a pattern, e.g.
+```
+d1 $ sound "bd [cy:1 cy:2] bd"
+```
+
 ##Options on startup
 - numChannels can be set to anything your soundcard supports
 - you can pass the udp port on which superdirt is listenting: ```SuperDirt(2, s, (port: 60777));```
