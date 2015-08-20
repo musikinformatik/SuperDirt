@@ -41,22 +41,16 @@ SuperDirt {
 	}
 
 	init {
-		var register;
 		ServerTree.add(this, server); // synth node tree init
 		globalEffects = ();
 		buffers = ();
 		this.initSynthDefs;
-		vowels = ();
-		register = options[\vowelRegister] ? \tenor;
-		if(Vowel.formLib.at(\a).at(register).isNil) {
-			"This voice register (%) isn't avaliable. Using tenor instead".format(register).warn;
-			"Available registers are: %".format(Vowel.formLib.at(\a).keys).postln;
-			register = \tenor;
-		};
+		this.initVowels(options[\vowelRegister] ? \tenor);
+	}
 
-		[\a, \e, \i, \o, \u].collect { |x|
-			vowels[x] = Vowel(x, register)
-		};
+	doOnServerTree {
+		// on node tree init:
+		this.initGlobalEffects
 	}
 
 	start {
@@ -64,8 +58,7 @@ SuperDirt {
 			Error("SuperColldier server '%' not running. Couldn't start SuperDirt".format(server.name)).warn;
 			^this
 		};
-		bus = Bus.audio(server, numChannels);
-		globalEffectBus = Bus.audio(server, numChannels);
+		this.initBusses;
 		this.initGlobalEffects;
 		this.openNetworkConnection(options[\port] ? 57120);
 	}
@@ -73,7 +66,18 @@ SuperDirt {
 	free {
 		this.freeSoundFiles;
 		this.closeNetworkConnection;
+		this.freeBusses;
 		ServerTree.remove(this, server);
+	}
+
+	initBusses {
+		bus = Bus.audio(server, numChannels);
+		globalEffectBus = Bus.audio(server, numChannels);
+	}
+
+	freeBusses {
+		bus.free;
+		globalEffectBus.free;
 	}
 
 	loadSoundFiles { |path, fileExtension = "wav"|
@@ -109,12 +113,19 @@ SuperDirt {
 				try { (dirt:this).use { filepath.load }; "loading synthdefs in %\n".postf(filepath) } { |err| err.postln };
 			}
 		}
-
 	}
 
-	doOnServerTree {
-		// on node tree init:
-		this.initGlobalEffects
+	initVowels { |register = \tenor|
+		vowels = ();
+		if(Vowel.formLib.at(\a).at(register).isNil) {
+			"This voice register (%) isn't avaliable. Using tenor instead".format(register).warn;
+			"Available registers are: %".format(Vowel.formLib.at(\a).keys).postln;
+			register = \tenor;
+		};
+
+		[\a, \e, \i, \o, \u].collect { |x|
+			vowels[x] = Vowel(x, register)
+		};
 	}
 
 	initGlobalEffects {
