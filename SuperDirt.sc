@@ -34,7 +34,7 @@ SuperDirt {
 	var <buffers;
 	var <globalEffects;
 	var <vowels;
-	var <replyAddr;
+	var <netResponders, <replyAddr;
 
 	*new { |numChannels = 2, server, options|
 		^super.newCopyArgs(numChannels, server ? Server.default, options ? ()).init
@@ -67,11 +67,12 @@ SuperDirt {
 		bus = Bus.audio(server, numChannels);
 		globalEffectBus = Bus.audio(server, numChannels);
 		this.initGlobalEffects;
-		this.openNetworkConnection;
+		this.openNetworkConnection(options[\port] ? 57120);
 	}
 
 	free {
 		this.freeSoundFiles;
+		this.closeNetworkConnection;
 		ServerTree.remove(this, server);
 	}
 
@@ -91,7 +92,7 @@ SuperDirt {
 			};
 			folderPath.basename.post; " ".post;
 		};
-		"\n".post;
+		"\n\n".post;
 	}
 
 	freeSoundFiles {
@@ -492,40 +493,52 @@ SuperDirt {
 		}
 	}
 
-	openNetworkConnection {
+	openNetworkConnection { |port = 57120|
 
-		var port = options[\port] ? 57120;
+		this.closeNetworkConnection;
 
 		// current standard protocol
 
-		OSCdef(\dirt, { |msg, time, tidalAddr|
-			var latency = time - Main.elapsedTime;
-			if(latency > 2) {
-				"The scheduling delay is too long. Your networks clocks may not be in sync".warn;
-				latency = 0.2;
-			};
-			replyAddr = tidalAddr; // collect tidal reply address
-			this.value(latency, *msg[1..]);
-		}, '/play', recvPort: port).fix;
+		netResponders.add(
 
+			OSCFunc({ |msg, time, tidalAddr|
+				var latency = time - Main.elapsedTime;
+				if(latency > 2) {
+					"The scheduling delay is too long. Your networks clocks may not be in sync".warn;
+					latency = 0.2;
+				};
+				replyAddr = tidalAddr; // collect tidal reply address
+				this.value(latency, *msg[1..]);
+			}, '/play', recvPort: port).fix
 
-		// an alternative protocol, uses pairs of parameter names and values in arbitrary order
-		OSCdef(\dirt2, { |msg, time, tidalAddr|
-			var latency = time - Main.elapsedTime;
-			if(latency > 2) {
-				"The scheduling delay is too long. Your networks clocks may not be in sync".warn;
-				latency = 0.2;
-			};
-			replyAddr = tidalAddr; // collect tidal reply address
-			this.value2([\latency, latency] ++ msg[1..]);
-		}, '/play2', recvPort: port).fix;
+		);
+
+		netResponders.add(
+			// an alternative protocol, uses pairs of parameter names and values in arbitrary order
+			OSCFunc({ |msg, time, tidalAddr|
+				var latency = time - Main.elapsedTime;
+				if(latency > 2) {
+					"The scheduling delay is too long. Your networks clocks may not be in sync".warn;
+					latency = 0.2;
+				};
+				replyAddr = tidalAddr; // collect tidal reply address
+				this.value2([\latency, latency] ++ msg[1..]);
+			}, '/play2', recvPort: port).fix
+		);
 
 		"SuperDirt: listening to Tidal on port %".format(port).postln;
+	}
+
+	closeNetworkConnection {
+		netResponders.do { |x| x.free };
+		netResponders = List.new;
 	}
 
 	sendToTidal { |args|
 		if(replyAddr.notNil) {
 			replyAddr.sendMsg(*args);
+		} {
+			"Currently no connection to tidal".warn;
 		}
 	}
 
