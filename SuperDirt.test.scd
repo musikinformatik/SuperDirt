@@ -79,9 +79,12 @@ Tdef(\x, {
 
 ~d1.(nil, 1, 'cy:10', speed: 1);
 ~d1.(nil, 1, 'cy:10', speed: -1);
+~d1.(nil, 1, 'cy:10', speed: 2, accelerate: -1);
+~d1.(nil, 1, 'cy:10', speed: -2, accelerate: 1);
 
 ~d1.(nil, 1, 'cy:10', speed: 1, accelerate: -0.2);
-~d1.(nil, 1, 'cy:10', speed: 1, accelerate: -3);
+~d1.(nil, 1, 'cy:10', speed: 0.5, accelerate: -0.3);
+
 ~d1.(nil, 1, 'sd:8', speed: 1);
 ~d1.(nil, 1, 'cy:10', speed: 2);
 

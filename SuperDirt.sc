@@ -118,7 +118,7 @@ SuperDirt {
 
 
 		SynthDef("dirt_sample" ++ numChannels, { |bufnum, startFrame, endFrame,
-			pan = 0, amp = 0.1, speed = 1, accelerate = 0, keepRunning = 0|
+			pan = 0, amp = 0.1, speed = 1, accelerate = 0, keepRunning = 0, sustain = 1|
 
 			var sound, rate, phase, krPhase, endGate;
 
@@ -128,13 +128,17 @@ SuperDirt {
 			// sample phase
 			phase =  Sweep.ar(1, rate * BufSampleRate.kr(bufnum)) + startFrame;
 
+			/*
 			// release synth when end position is reached (or when backwards, start position)
 			krPhase = A2K.kr(phase); // more efficient
 			endGate = Select.kr(startFrame > endFrame, [
 				InRange.kr(phase, startFrame, endFrame), // workaround
 				InRange.kr(phase, endFrame, startFrame)
 			]);
-			endGate = endGate * (rate.abs > 0.0); // yes?
+			endGate = endGate * (rate.abs.poll > 0.1); // yes?
+			*/
+
+			endGate = EnvGen.kr(Env.linen(sustainTime:sustain));
 
 			sound = BufRd.ar(
 				numChannels: 1, // mono samples only
@@ -145,7 +149,7 @@ SuperDirt {
 			);
 
 
-			this.panOut(sound, pan, amp * this.gateCutGroup(endGate));
+			this.panOut(sound, pan, amp * this.gateCutGroup(endGate, max(0.01, sustain * 0.1)));
 		}).add;
 
 		/*
@@ -246,7 +250,7 @@ SuperDirt {
 	Before we start the new synth, we send a /set message to all synths, and those that match the specifics will be released.
 	*/
 
-	gateCutGroup { |gate = 1|
+	gateCutGroup { |gate = 1, releaseTime = 0.01|
 		// this is necessary because the message "==" tests for objects, not for signals
 		var same = { |a, b| BinaryOpUGen('==', a, b) };
 		var sameCutGroup = same.(\cutGroup.kr(0), abs(\gateCutGroup.kr(0)));
@@ -260,7 +264,7 @@ SuperDirt {
 			]
 		) * sameCutGroup; // same cut group is mandatory
 
-		^EnvGen.kr(Env.asr(0, 1, 0.01), (1 - free) * gate, doneAction:2);
+		^EnvGen.kr(Env.asr(0, 1, releaseTime), (1 - free) * gate, doneAction:2);
 	}
 
 
