@@ -2,15 +2,7 @@
 
 SuperCollider implementation of Dirt
 
-Requires: sc3-plugins
-
-Currently you can run only one instance at a time
-
-Options:
-
-* network port (default: 57120)
-* vowelRegister (default: \tenor)
-
+Requires: sc3-plugins, Vowel Quark
 
 
 Open Qustions:
@@ -29,18 +21,17 @@ Then we could map arguments to effects, and new effects could easity be added
 
 SuperDirt {
 
-	var <numChannels, <server, <options;
-	var <buffers;
-	var <vowels;
+	var <numChannels, <server;
+	var <buffers, <vowels;
 
-	*new { |numChannels = 2, server, options|
-		^super.newCopyArgs(numChannels, server ? Server.default, options ? ()).init
+	*new { |numChannels = 2, server|
+		^super.newCopyArgs(numChannels, server ? Server.default).init
 	}
 
 	init {
 		buffers = ();
 		this.initSynthDefs;
-		this.initVowels(options[\vowelRegister] ? \tenor);
+		this.initVowels(\tenor);
 	}
 
 	free {
@@ -268,7 +259,7 @@ DirtBus {
 
 	var <dirt, <port, <server;
 	var <outBus, <synthBus, <globalEffectBus;
-	var globalEffects;
+	var group, globalEffects;
 	var netResponders, <replyAddr;
 
 	*new { |dirt, port = 57120, outBus = 0|
@@ -280,23 +271,27 @@ DirtBus {
 			Error("SuperColldier server '%' not running. Couldn't start DirtBus".format(server.name)).warn;
 			^this
 		};
+		group = server.nextPermNodeID;
 		globalEffects = ();
 		synthBus = Bus.audio(server, dirt.numChannels);
 		globalEffectBus = Bus.audio(server, dirt.numChannels);
-		this.initGlobalEffects;
+		this.initNodeTree;
 		this.openNetworkConnection;
 		ServerTree.add(this, server); // synth node tree init
 	}
 
 	doOnServerTree {
 		// on node tree init:
-		this.initGlobalEffects
+		this.initNodeTree
 	}
 
-	initGlobalEffects {
+	initNodeTree {
 		server.makeBundle(nil, { // make sure they are in order
+			server.sendMsg("/g_new", group, 0, 1);
 			[\dirt_limiter, \dirt_delay].do { |name|
-				globalEffects[name] = Synth.after(1, name.asString ++ dirt.numChannels, [\out, 0, \effectBus, globalEffectBus]);
+				globalEffects[name] = Synth.after(group, name.asString ++ dirt.numChannels,
+					[\out, outBus, \effectBus, globalEffectBus]
+				);
 			}
 		})
 	}
@@ -304,6 +299,8 @@ DirtBus {
 	free {
 		this.closeNetworkConnection;
 		ServerTree.remove(this, server);
+		globalEffects.do(_.free);
+		server.freePermNodeID(group);
 		synthBus.free;
 		globalEffectBus.free;
 	}
@@ -312,19 +309,20 @@ DirtBus {
 		server.sendMsg(\s_new, instrument,
 			-1, // no id
 			1, // add action: addToTail
-			1, // send to group 1
+			group, // send to group
 			*args.asOSCArgArray // append all other args
 		)
 	}
 
 
-	/*
-	This uses the Dirt OSC API
-	*/
+	// This implements an alternative API, to be accessed via OSC by "/play2"
 
 	value2 { |args| // args are in the shape [key, val, key, val ...]
 		this.performKeyValuePairs(\value, args)
 	}
+
+
+	// This implements the Dirt OSC API, to be accessed via OSC by "/play"
 
 	value {
 		|latency, cps = 1, name, offset = 0, start = 0, end = 1, speed = 1, pan = 0, velocity,
@@ -337,7 +335,7 @@ DirtBus {
 		bandqf = 0, bandq = 0,
 		unit = \r|
 
-		var amp, allbufs, buffer, group;
+		var amp, allbufs, buffer;
 		var instrument, key, index, sample;
 		var temp;
 		var length, sampleRate, numFrames, bufferDuration;
@@ -410,8 +408,7 @@ DirtBus {
 			server.makeBundle(latency, { // use this to build a bundle
 
 				if(cutgroup != 0) {
-					// set group 1, in which all synths are living
-					server.sendMsg(\n_set, 1, \gateCutGroup, cutgroup, \gateSample, sample);
+					server.sendMsg(\n_set, group, \gateCutGroup, cutgroup, \gateSample, sample);
 				};
 
 				// set global delay synth parameters
