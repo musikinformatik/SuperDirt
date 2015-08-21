@@ -23,6 +23,7 @@ SuperDirt {
 
 	var <numChannels, <server;
 	var <buffers, <vowels;
+	var <>dirtBusses;
 
 	*new { |numChannels = 2, server|
 		^super.newCopyArgs(numChannels, server ? Server.default).init
@@ -34,8 +35,13 @@ SuperDirt {
 		this.initVowels(\tenor);
 	}
 
+	start { |ports = 57120, outBusses = 0|
+		dirtBusses = [ports, outBusses].flop.collect(DirtBus(this, *_))
+	}
+
 	free {
 		this.freeSoundFiles;
+		dirtBusses.do(_.free);
 	}
 
 	loadSoundFiles { |path, fileExtension = "wav"|

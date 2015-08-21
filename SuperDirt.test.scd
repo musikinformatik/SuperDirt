@@ -1,4 +1,20 @@
 
+(
+s.quit;
+s.options.numBuffers = 1024 * 16;
+s.options.memSize = 8192 * 16;
+~dirt.free;
+~dirtBusses.do(_.free); // free old instances
+s.waitForBoot {
+	~dirt = SuperDirt(2, s);
+	~dirt.loadSynthDefs;
+	~dirt.loadSoundFiles;
+	~dirt.start([57120, 57121]);
+	~d1 = ~dirt.dirtBusses[0];
+	~d2 = ~dirt.dirtBusses[1];
+}
+)
+
 
 (
 s.quit;
@@ -7,7 +23,7 @@ s.options.memSize = 8192 * 16;
 ~dirt.free;
 ~dirtBusses.do(_.free); // free old instances
 s.waitForBoot {
-	~dirt = SuperDirt(2, s, (vowelRegister: \tenor));
+	~dirt = SuperDirt(2, s);
 	~dirt.loadSynthDefs;
 	~dirt.loadSoundFiles;
 	// make some dirt busses
@@ -19,6 +35,7 @@ s.waitForBoot {
 // to stop listening, just free the dirt busses
 ~dirtBusses.do(_.free);
 
+[1, 0].flop
 
 (
 Tdef(\x, {
@@ -111,6 +128,10 @@ Tdef(\x).stop;
 ~d1.(nil, 1, 'cy:10', speed: 0.02, cutgroup: -8); // really slow, to keep it on: see synth reading
 ~d1.(nil, 1, 'cy:10', speed: 0.02, cutgroup: -8); // cut the old one: number stays the same
 ~d1.(nil, 1, 'cy:10', speed: 0.02, cutgroup: -8); // ... again
+
+ // this should add another one, as the cutgroups are independent between ~d1 and ~d2
+~d2.(nil, 1, 'cy:10', speed: 0.02, cutgroup: -8);
+~d2.(nil, 1, 'cy:10', speed: 0.02, cutgroup: -8); // cut the old one, add the new one, same synth count
 
 
 //  With negative, only stop the same sample from playing in the same cutgroup
