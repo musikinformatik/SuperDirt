@@ -1,41 +1,45 @@
+/*
+
+INIT SUPERDIRT
+
+*/
 
 (
 s.quit;
 s.options.numBuffers = 1024 * 16;
 s.options.memSize = 8192 * 16;
-~dirt.free;
-~dirtBusses.do(_.free); // free old instances
+~dirt.free; // free old instance
 s.waitForBoot {
 	~dirt = SuperDirt(2, s);
 	~dirt.loadSynthDefs;
 	~dirt.loadSoundFiles;
-	~dirt.start([57120, 57121]);
-	~d1 = ~dirt.dirtBusses[0];
-	~d2 = ~dirt.dirtBusses[1];
+	~dirt.start([57120, 57121]); // listen on two different ports
 }
 )
 
 
+
+
+/*
+The rest can be done from tidal, but here are some tests that call the function directly from sclang.
+-----------------------------------------------------------------------------------------------------
+*/
+
+
+// access separate dirt busses directly
 (
-s.quit;
-s.options.numBuffers = 1024 * 16;
-s.options.memSize = 8192 * 16;
-~dirt.free;
-~dirtBusses.do(_.free); // free old instances
-s.waitForBoot {
-	~dirt = SuperDirt(2, s);
-	~dirt.loadSynthDefs;
-	~dirt.loadSoundFiles;
-	// make some dirt busses
-	~dirtBusses = { |i| DirtBus(~dirt, 57120 + i) } ! 8;
-	~d1 = ~dirtBusses[0]; // use first one for the tests below
-}
+
+~d1 = ~dirt.dirtBusses[0]; // one port
+~d2 = ~dirt.dirtBusses[1]; // the other
+
 )
 
-// to stop listening, just free the dirt busses
-~dirtBusses.do(_.free);
 
-[1, 0].flop
+/*
+
+TEST SPEED/START/END
+
+*/
 
 (
 Tdef(\x, {
@@ -55,7 +59,13 @@ Tdef(\x, {
 ~d1.(nil, 1, 'cy:10', speed: 2);
 
 
-// test effects:
+/*
+
+TEST EFFECTS
+
+*/
+
+
 ~d1.(nil, 1, 'cy:10', speed: 0.2, crush: 4);
 ~d1.(nil, 1, 'cy:10', speed: 0.2, coarse: 8);
 
@@ -105,14 +115,7 @@ Tdef(\x, {
 }).play;
 )
 
-
-d.vowels.freqs.flat.maxItem
-d.vowels.amps.flat.maxItem
-
-s.reboot
 Tdef(\x).stop;
-
-
 
 // test delay:
 
@@ -122,6 +125,11 @@ Tdef(\x).stop;
 
 
 
+/*
+
+TEST CUTGROUPS
+
+*/
 
 
 // cutgroup tests
@@ -141,7 +149,16 @@ Tdef(\x).stop;
 //  with positive integers, stop samples playing that are in the same cutgroup.
 ~d1.(nil, 1, 'cy:10', speed: 0.02, cutgroup: 8); // should free all others
 
-// test unit
+
+
+
+
+/*
+
+TEST UNIT
+
+*/
+
 
 /*
 s unit -
@@ -197,32 +214,22 @@ Tdef(\x, {
 )
 
 
-// test replacement:
+/*
+
+TEST LIVE CODING SYNTHS
+
+*/
 
 
-// you can livecode this while running tidal.
-(
-SynthDef(\imp, { |speed = 1, start=0, end=1, pan, accelerate, amp = 1, offset|
-	var env, sound, dur, rate, phase;
-	dur = (end - start) / speed;
-	env = EnvGen.ar(Env.linen(0, 0.2, 0.8, amp * 0.1, -4), timeScale:dur, doneAction:2);
-	phase = Line.ar(start, end, dur);
-	rate = (start + 1) * (speed + Sweep.kr(1, accelerate));
-	sound = Blip.ar(rate.linexp(0, 1, 15 * [1, 2, 5], 200), 200 * phase).sum;
-	env = env * ~dirt.gateCutGroup; // this synth can be freed by cutgroup mechanism
-	~dirt.panOut(sound, pan, env)
-}).add;
-)
-
+// this is a default synth def
 
 ~d1.(nil, 1, 'imp', speed: 1, start: 0, end: 1);
-
-
 ~d1.(nil, 1, 'imp', speed: 1, start: 0.5, end: 1);
 ~d1.(nil, 1, 'imp', speed: 0.1, start: 0, end: 1, accelerate: 3);
 
 ~d1.(nil, 1, 'imp', speed: 1, start: 0, end: 0.3.rand, delay: 1, delaytime: 3);
-
+~d1.(nil, 1, 'imp', speed: 1, start: 0, end: 0.3.rand, delay: 1, delaytime: 3);
+~d1.(nil, 1, 'imp', speed: 1, start: 0, end: 0.3.rand, delay: 1, delaytime: 3);
 
 
 (
@@ -262,13 +269,34 @@ Tdef(\x, {
 )
 
 
-~buffers[\cy][0].duration;
-~buffers[\cy][0].samplerate;
+// rewrite this at runtime
+(
+SynthDef(\imp, { |speed = 1, start=0, end=1, pan, accelerate, amp = 1, offset|
+	var env, sound, dur, rate, phase;
+	dur = (end - start) / speed;
+	env = EnvGen.ar(Env.linen(0, 0.2, 0.8, amp * 0.1, -4), timeScale:dur, doneAction:2);
+	phase = Line.ar(start + 0.0001, end, dur);
+	rate = (start + 1) * (speed + Sweep.kr(1, accelerate));
+	sound = Saw.ar(rate.linexp(0, 1, 1/[1, 3, 7], [1, 2, 5]) * 200).sum;
+	sound = RHPF.ar(sound, phase.linexp(start, end, 300, 9000));
+	env = env * ~dirt.gateCutGroup; // this synth can be freed by cutgroup mechanism
+	~dirt.panOut(sound, pan, env)
+}).add;
+)
 
-NetAddr.langPort == 57120; // hope it's true
+
+
+
+/*
+
+NETWORK TEST
+
+*/
+
 
 // network test
 n = NetAddr("127.0.0.1", 57120);
+
 // Should pan left and right?
 n.sendMsg(\play, 1, 'cy:10',0,0,1,1,0);
 n.sendMsg(\play, 1, 'cy:10',0,0,1,1,1);
