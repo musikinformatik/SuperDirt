@@ -267,12 +267,12 @@ SuperDirt {
 DirtBus {
 
 	var <dirt, <port, <server;
-	var <bus, <globalEffectBus;
+	var <outBus, <synthBus, <globalEffectBus;
 	var globalEffects;
 	var netResponders, <replyAddr;
 
-	*new { |dirt, port = 57120|
-		^super.newCopyArgs(dirt, port, dirt.server).init
+	*new { |dirt, port = 57120, outBus = 0|
+		^super.newCopyArgs(dirt, port, dirt.server, outBus).init
 	}
 
 	init {
@@ -281,7 +281,7 @@ DirtBus {
 			^this
 		};
 		globalEffects = ();
-		bus = Bus.audio(server, dirt.numChannels);
+		synthBus = Bus.audio(server, dirt.numChannels);
 		globalEffectBus = Bus.audio(server, dirt.numChannels);
 		this.initGlobalEffects;
 		this.openNetworkConnection;
@@ -304,7 +304,7 @@ DirtBus {
 	free {
 		this.closeNetworkConnection;
 		ServerTree.remove(this, server);
-		bus.free;
+		synthBus.free;
 		globalEffectBus.free;
 	}
 
@@ -437,7 +437,7 @@ DirtBus {
 					cutGroup: cutgroup.abs, // ignore negatives here!
 					sample: sample,
 					cps: cps,
-					out: bus]
+					out: synthBus]
 				);
 
 				if(vowel.notNil) {
@@ -445,7 +445,7 @@ DirtBus {
 					if(vowel.notNil) {
 						this.sendSynth("dirt_vowel" ++ numChannels,
 							[
-								out: bus,
+								out: synthBus,
 								vowelFreqs: vowel.freqs,
 								vowelAmps: vowel.amps,
 								vowelRqs: vowel.rqs,
@@ -463,7 +463,7 @@ DirtBus {
 						[
 							hcutoff: hcutoff,
 							hresonance: hresonance,
-							out: bus
+							out: synthBus
 						]
 					)
 				};
@@ -473,7 +473,7 @@ DirtBus {
 						[
 							bandqf: bandqf,
 							bandq: bandq,
-							out: bus
+							out: synthBus
 						]
 					)
 				};
@@ -482,7 +482,7 @@ DirtBus {
 					this.sendSynth("dirt_crush" ++ numChannels,
 						[
 							crush: crush,
-							out: bus
+							out: synthBus
 						]
 					)
 				};
@@ -491,7 +491,7 @@ DirtBus {
 					this.sendSynth("dirt_coarse" ++ numChannels,
 						[
 							coarse: coarse,
-							out: bus
+							out: synthBus
 						]
 					)
 				};
@@ -499,8 +499,8 @@ DirtBus {
 
 				this.sendSynth("dirt_monitor" ++ numChannels,
 					[
-						in: bus,  // read from private
-						out: 0,     // write to public,
+						in: synthBus,  // read from private
+						out: outBus,     // write to outBus,
 						delayBus: globalEffectBus,
 						delay: delay
 					]
