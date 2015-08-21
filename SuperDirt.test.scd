@@ -13,9 +13,17 @@ s.waitForBoot {
 	~dirt = SuperDirt(2, s);
 	~dirt.loadSynthDefs;
 	~dirt.loadSoundFiles;
+	s.sync; // wait until all soundfiles are really loaded
 	~dirt.start([57120, 57121]); // listen on two different ports
 }
 )
+
+
+/*
+In theory, it should now receive tidal messages ...
+---------------------------------------------------
+*/
+
 
 
 OSCFunc.trace(true, true); // see if network messages are coming in from tidal
@@ -23,8 +31,9 @@ OSCFunc.trace(false); // stop tracing
 
 
 /*
-The rest can be done from tidal, but here are some tests that call the function directly from sclang.
------------------------------------------------------------------------------------------------------
+
+SOME CONTROL
+
 */
 
 
@@ -36,8 +45,21 @@ The rest can be done from tidal, but here are some tests that call the function 
 
 )
 
+// stop temporarily
+~dirt.stop;
+
+// start again
+~dirt.start([57120, 57121]); // listen on two different ports: you can add any number of ports here
+
 // finally, after the tests, you can free everything again:
 ~dirt.free;
+
+
+
+/*
+The rest can be done from tidal, but here are some tests that call the function directly from sclang.
+-----------------------------------------------------------------------------------------------------
+*/
 
 
 /*
