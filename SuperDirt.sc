@@ -35,8 +35,8 @@ SuperDirt {
 		this.initVowels(\tenor);
 	}
 
-	start { |ports = 57120, outBusses = 0|
-		dirtBusses = [ports, outBusses].flop.collect(DirtBus(this, *_))
+	start { |ports = 57120, outBusses = 0, senderAddrs = (NetAddr("127.0.0.1"))|
+		dirtBusses = [ports, outBusses, senderAddrs].flop.collect(DirtBus(this, *_))
 	}
 
 	free {
@@ -266,12 +266,12 @@ SuperDirt {
 DirtBus {
 
 	var <dirt, <port, <server;
-	var <outBus, <synthBus, <globalEffectBus;
-	var group, globalEffects;
-	var netResponders, <replyAddr;
+	var <outBus, <senderAddr, <replyAddr;
+	var <synthBus, <globalEffectBus;
+	var group, globalEffects, netResponders;
 
-	*new { |dirt, port = 57120, outBus = 0|
-		^super.newCopyArgs(dirt, port, dirt.server, outBus).init
+	*new { |dirt, port = 57120, outBus = 0, senderAddr|
+		^super.newCopyArgs(dirt, port, dirt.server, outBus, senderAddr).init
 	}
 
 	init {
@@ -535,7 +535,7 @@ DirtBus {
 				};
 				replyAddr = tidalAddr; // collect tidal reply address
 				this.value(latency, *msg[1..]);
-			}, '/play', recvPort: port).fix
+			}, '/play', senderAddr, recvPort: port).fix
 
 		);
 
@@ -549,7 +549,7 @@ DirtBus {
 				};
 				replyAddr = tidalAddr; // collect tidal reply address
 				this.value2([\latency, latency] ++ msg[1..]);
-			}, '/play2', recvPort: port).fix
+			}, '/play2', senderAddr, recvPort: port).fix
 		);
 
 		"SuperDirt: listening to Tidal on port %".format(port).postln;
