@@ -39,9 +39,13 @@ SuperDirt {
 		dirtBusses = [ports, outBusses, senderAddrs].flop.collect(DirtBus(this, *_))
 	}
 
+	stop {
+		dirtBusses.do(_.free);
+	}
+
 	free {
 		this.freeSoundFiles;
-		dirtBusses.do(_.free);
+		this.stop;
 	}
 
 	loadSoundFiles { |path, fileExtension = "wav"|

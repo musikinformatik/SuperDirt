@@ -18,6 +18,8 @@ s.waitForBoot {
 )
 
 
+OSCFunc.trace(true, true); // see if network messages are coming in from tidal
+OSCFunc.trace(false); // stop tracing
 
 
 /*
@@ -33,6 +35,9 @@ The rest can be done from tidal, but here are some tests that call the function 
 ~d2 = ~dirt.dirtBusses[1]; // the other
 
 )
+
+// finally, after the tests, you can free everything again:
+~dirt.free;
 
 
 /*
