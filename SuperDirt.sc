@@ -30,61 +30,31 @@ Then we could map arguments to effects, and new effects could easity be added
 SuperDirt {
 
 	var <numChannels, <server, <options;
-	var <bus, <globalEffectBus;
 	var <buffers;
-	var <globalEffects;
 	var <vowels;
-	var <netResponders, <replyAddr;
 
 	*new { |numChannels = 2, server, options|
 		^super.newCopyArgs(numChannels, server ? Server.default, options ? ()).init
 	}
 
 	init {
-		ServerTree.add(this, server); // synth node tree init
-		globalEffects = ();
 		buffers = ();
 		this.initSynthDefs;
 		this.initVowels(options[\vowelRegister] ? \tenor);
 	}
 
-	doOnServerTree {
-		// on node tree init:
-		this.initGlobalEffects
-	}
-
-	start {
-		if(server.serverRunning.not) {
-			Error("SuperColldier server '%' not running. Couldn't start SuperDirt".format(server.name)).warn;
-			^this
-		};
-		this.initBusses;
-		this.initGlobalEffects;
-		this.openNetworkConnection(options[\port] ? 57120);
-	}
-
 	free {
 		this.freeSoundFiles;
-		this.closeNetworkConnection;
-		this.freeBusses;
-		ServerTree.remove(this, server);
-	}
-
-	initBusses {
-		bus = Bus.audio(server, numChannels);
-		globalEffectBus = Bus.audio(server, numChannels);
-	}
-
-	freeBusses {
-		bus.free;
-		globalEffectBus.free;
 	}
 
 	loadSoundFiles { |path, fileExtension = "wav"|
 		var folderPaths;
+		if(server.serverRunning.not) {
+			"Superdirt: server not running - cannot load sound files.".warn; ^this
+		};
 		path = path ?? { "samples".resolveRelative };
 		folderPaths = pathMatch(path +/+ "**");
-		"loading sample banks:".postln;
+		"\nloading sample banks:\n".post;
 		folderPaths.do { |folderPath|
 			PathName(folderPath).filesDo { |filepath|
 				var buf, name;
@@ -125,14 +95,6 @@ SuperDirt {
 
 		[\a, \e, \i, \o, \u].collect { |x|
 			vowels[x] = Vowel(x, register)
-		};
-	}
-
-	initGlobalEffects {
-		server.bind { // make sure they are in order
-			[\dirt_limiter, \dirt_delay].do { |name|
-				globalEffects[name] = Synth.after(1, name, [\out, 0, \effectBus, globalEffectBus]);
-			}
 		};
 	}
 
@@ -299,6 +261,53 @@ SuperDirt {
 	}
 
 
+}
+
+
+DirtBus {
+
+	var <dirt, <port, <server;
+	var <bus, <globalEffectBus;
+	var globalEffects;
+	var netResponders, <replyAddr;
+
+	*new { |dirt, port = 57120|
+		^super.newCopyArgs(dirt, port, dirt.server).init
+	}
+
+	init {
+		if(server.serverRunning.not) {
+			Error("SuperColldier server '%' not running. Couldn't start DirtBus".format(server.name)).warn;
+			^this
+		};
+		globalEffects = ();
+		bus = Bus.audio(server, dirt.numChannels);
+		globalEffectBus = Bus.audio(server, dirt.numChannels);
+		this.initGlobalEffects;
+		this.openNetworkConnection;
+		ServerTree.add(this, server); // synth node tree init
+	}
+
+	doOnServerTree {
+		// on node tree init:
+		this.initGlobalEffects
+	}
+
+	initGlobalEffects {
+		server.makeBundle(nil, { // make sure they are in order
+			[\dirt_limiter, \dirt_delay].do { |name|
+				globalEffects[name] = Synth.after(1, name, [\out, 0, \effectBus, globalEffectBus]);
+			}
+		})
+	}
+
+	free {
+		this.closeNetworkConnection;
+		ServerTree.remove(this, server);
+		bus.free;
+		globalEffectBus.free;
+	}
+
 	sendSynth { |instrument, args|
 		server.sendMsg(\s_new, instrument,
 			-1, // no id
@@ -336,7 +345,7 @@ SuperDirt {
 
 		#key, index = name.asString.split($:);
 		key = key.asSymbol;
-		allbufs = this.buffers[key];
+		allbufs = dirt.buffers[key];
 		index = (index ? 0).asInteger;
 
 
@@ -431,7 +440,7 @@ SuperDirt {
 				);
 
 				if(vowel.notNil) {
-					vowel = vowels[vowel];
+					vowel = dirt.vowels[vowel];
 					if(vowel.notNil) {
 						this.sendSynth(\dirt_vowel,
 							[
@@ -504,7 +513,7 @@ SuperDirt {
 		}
 	}
 
-	openNetworkConnection { |port = 57120|
+	openNetworkConnection {
 
 		this.closeNetworkConnection;
 
@@ -549,9 +558,8 @@ SuperDirt {
 		if(replyAddr.notNil) {
 			replyAddr.sendMsg(*args);
 		} {
-			"Currently no connection to tidal".warn;
+			"Currently no connection back to tidal".warn;
 		}
 	}
-
 
 }
