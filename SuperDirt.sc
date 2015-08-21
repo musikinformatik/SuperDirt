@@ -99,14 +99,16 @@ SuperDirt {
 
 		// global synth defs
 
-		SynthDef("dirt_delay" ++ numChannels, { |out, effectBus, delaytime, delayfeedback|
+		SynthDef("dirt_delay" ++ numChannels, { |out, gate = 1, effectBus, delaytime, delayfeedback|
 			var signal = In.ar(effectBus, numChannels);
 			signal = SwitchDelay.ar(signal, 1, 1, delaytime, delayfeedback); // from sc3-plugins
+			signal = signal * EnvGen.kr(Env.asr, gate, doneAction:2);
 			Out.ar(out, signal);
 		}).add;
 
-		SynthDef("dirt_limiter" ++ numChannels, { |out|
+		SynthDef("dirt_limiter" ++ numChannels, { |out, gate = 1|
 			var signal = In.ar(out, numChannels);
+			signal = signal * EnvGen.kr(Env.asr, gate, doneAction:2);
 			ReplaceOut.ar(signal, Limiter.ar(signal))
 		}).add;
 
@@ -305,7 +307,7 @@ DirtBus {
 	free {
 		this.closeNetworkConnection;
 		ServerTree.remove(this, server);
-		globalEffects.do(_.free);
+		globalEffects.do(_.release);
 		server.freePermNodeID(group);
 		synthBus.free;
 		globalEffectBus.free;
