@@ -1,6 +1,7 @@
 
 
 (
+s.quit;
 s.options.numBuffers = 1024 * 16;
 s.options.memSize = 8192 * 16;
 ~dirt.free;

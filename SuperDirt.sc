@@ -98,23 +98,23 @@ SuperDirt {
 		};
 	}
 
-	initSynthDefs {
+	initSynthDefs { |numChannels = 2|
 
 		// global synth defs
 
-		SynthDef(\dirt_delay, { |out, effectBus, delaytime, delayfeedback|
+		SynthDef("dirt_delay" ++ numChannels, { |out, effectBus, delaytime, delayfeedback|
 			var signal = In.ar(effectBus, numChannels);
 			signal = SwitchDelay.ar(signal, 1, 1, delaytime, delayfeedback); // from sc3-plugins
 			Out.ar(out, signal);
 		}).add;
 
-		SynthDef(\dirt_limiter, { |out|
+		SynthDef("dirt_limiter" ++ numChannels, { |out|
 			var signal = In.ar(out, numChannels);
 			ReplaceOut.ar(signal, Limiter.ar(signal))
 		}).add;
 
 
-		SynthDef(\dirt, { |bufnum, startFrame, endFrame,
+		SynthDef("dirt_sample" ++ numChannels, { |bufnum, startFrame, endFrame,
 			pan = 0, amp = 0.1, speed = 1, accelerate = 0, keepRunning = 0|
 
 			var sound, rate, phase, krPhase, endGate;
@@ -159,7 +159,7 @@ SuperDirt {
 		*/
 
 
-		SynthDef(\dirt_vowel, { |out, cutoff = 440, resonance = 0.5, vowel, sustain = 1|
+		SynthDef("dirt_vowel" ++ numChannels, { |out, cutoff = 440, resonance = 0.5, vowel, sustain = 1|
 			var signal, vowelFreqs, vowelAmps, vowelRqs;
 			signal = In.ar(out, numChannels);
 			vowelFreqs = \vowelFreqs.ir(1000 ! 5) * (cutoff / 440);
@@ -173,7 +173,7 @@ SuperDirt {
 
 		// would be nice to have some more parameters in some cases
 
-		SynthDef(\dirt_crush, { |out, crush = 4|
+		SynthDef("dirt_crush" ++ numChannels, { |out, crush = 4|
 			var signal = In.ar(out, numChannels);
 			this.releaseWhenSilent(signal);
 			signal = signal.round(0.5 ** crush);
@@ -181,21 +181,21 @@ SuperDirt {
 		}).add;
 
 
-		SynthDef(\dirt_coarse, { |out, coarse = 0, bandq = 10|
+		SynthDef("dirt_coarse" ++ numChannels, { |out, coarse = 0, bandq = 10|
 			var signal = In.ar(out, numChannels);
 			this.releaseWhenSilent(signal);
 			signal = Latch.ar(signal, Impulse.ar(SampleRate.ir / coarse));
 			ReplaceOut.ar(out, signal)
 		}).add;
 
-		SynthDef(\dirt_hpf, { |out, hcutoff = 440, hresonance = 0|
+		SynthDef("dirt_hpf" ++ numChannels, { |out, hcutoff = 440, hresonance = 0|
 			var signal = In.ar(out, numChannels);
 			signal = RHPF.ar(signal, hcutoff, hresonance.linexp(0, 1, 1, 0.001));
 			this.releaseWhenSilent(signal);
 			ReplaceOut.ar(out, signal)
 		}).add;
 
-		SynthDef(\dirt_bpf, { |out, bandqf = 440, bandq = 10|
+		SynthDef("dirt_bpf" ++ numChannels, { |out, bandqf = 440, bandq = 10|
 			var signal = In.ar(out, numChannels);
 			signal = BPF.ar(signal, bandqf, 1/bandq) * max(bandq, 1.0);
 			this.releaseWhenSilent(signal);
@@ -204,7 +204,7 @@ SuperDirt {
 
 		// the monitor does the mixing and zeroing of the busses for each sample grain
 
-		SynthDef(\dirt_monitor, { |out, in, delayBus, delay = 0|
+		SynthDef("dirt_monitor" ++ numChannels, { |out, in, delayBus, delay = 0|
 			var signal = In.ar(in, numChannels);
 			this.releaseWhenSilent(signal);
 			Out.ar(out, signal);
@@ -296,7 +296,7 @@ DirtBus {
 	initGlobalEffects {
 		server.makeBundle(nil, { // make sure they are in order
 			[\dirt_limiter, \dirt_delay].do { |name|
-				globalEffects[name] = Synth.after(1, name, [\out, 0, \effectBus, globalEffectBus]);
+				globalEffects[name] = Synth.after(1, name.asString ++ dirt.numChannels, [\out, 0, \effectBus, globalEffectBus]);
 			}
 		})
 	}
@@ -342,6 +342,7 @@ DirtBus {
 		var temp;
 		var length, sampleRate, numFrames, bufferDuration;
 		var sustain, startFrame, endFrame;
+		var numChannels = dirt.numChannels;
 
 		#key, index = name.asString.split($:);
 		key = key.asSymbol;
@@ -352,7 +353,7 @@ DirtBus {
 		if(allbufs.notNil or: { SynthDescLib.at(key).notNil }) {
 
 			if(allbufs.notNil) {
-				instrument = \dirt;
+				instrument = "dirt_sample" ++ numChannels;
 				buffer = allbufs.wrapAt(index);
 				numFrames = buffer.numFrames;
 				bufferDuration = buffer.duration;
@@ -442,7 +443,7 @@ DirtBus {
 				if(vowel.notNil) {
 					vowel = dirt.vowels[vowel];
 					if(vowel.notNil) {
-						this.sendSynth(\dirt_vowel,
+						this.sendSynth("dirt_vowel" ++ numChannels,
 							[
 								out: bus,
 								vowelFreqs: vowel.freqs,
@@ -458,7 +459,7 @@ DirtBus {
 				};
 
 				if(hcutoff != 0) {
-					this.sendSynth(\dirt_hpf,
+					this.sendSynth("dirt_hpf" ++ numChannels,
 						[
 							hcutoff: hcutoff,
 							hresonance: hresonance,
@@ -468,7 +469,7 @@ DirtBus {
 				};
 
 				if(bandqf != 0) {
-					this.sendSynth(\dirt_bpf,
+					this.sendSynth("dirt_bpf" ++ numChannels,
 						[
 							bandqf: bandqf,
 							bandq: bandq,
@@ -478,7 +479,7 @@ DirtBus {
 				};
 
 				if(crush != 0) {
-					this.sendSynth(\dirt_crush,
+					this.sendSynth("dirt_crush" ++ numChannels,
 						[
 							crush: crush,
 							out: bus
@@ -487,7 +488,7 @@ DirtBus {
 				};
 
 				if(coarse > 1) { // coarse == 1 => full rate
-					this.sendSynth(\dirt_coarse,
+					this.sendSynth("dirt_coarse" ++ numChannels,
 						[
 							coarse: coarse,
 							out: bus
@@ -496,7 +497,7 @@ DirtBus {
 				};
 
 
-				this.sendSynth(\dirt_monitor,
+				this.sendSynth("dirt_monitor" ++ numChannels,
 					[
 						in: bus,  // read from private
 						out: 0,     // write to public,
