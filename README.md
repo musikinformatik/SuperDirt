@@ -48,5 +48,6 @@ d1 $ sound "bd [cy:1 cy:2] bd"
 
 ##Options on startup
 - numChannels can be set to anything your soundcard supports
-- you can pass the udp port on which superdirt is listenting: ```SuperDirt(2, s, (port: 60777));```
+- you can pass the udp port on which superdirt is listenting (```.start(ports, channels)```)
 - you can edit the SynthDef file to add your own synthesis methods to be called from tidal: https://github.com/telephon/SuperDirt/blob/master/synths/default-synths.scd
+- for server options, see ServerOptions helpfile
