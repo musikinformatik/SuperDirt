@@ -204,7 +204,9 @@ SuperDirt {
 
 		SynthDef("dirt_monitor" ++ numChannels, { |out, in, delayBus, delay = 0, sustain = 1|
 			var signal = In.ar(in, numChannels);
-			signal = signal * this.releaseAfter(sustain);
+			 //  doneAction:13 = must release all other synths in group.
+			// ideally, 14 but it doesn't work.
+			signal = signal * this.releaseAfter(sustain, doneAction:2);
 			Out.ar(out, signal);
 			Out.ar(delayBus, signal * delay);
 			ReplaceOut.ar(in, Silent.ar(numChannels)) // clears bus signal for subsequent synths
@@ -251,6 +253,9 @@ SuperDirt {
 			]
 		) * sameCutGroup; // same cut group is mandatory
 		//Poll.kr(Impulse.kr(0), doneAction, "doneAction");
+
+		// this is a fix for a weird behaviour of the doneAction 13
+		EnvGen.kr(Env.asr(0, 1, releaseTime), (1 - free), doneAction:13);
 
 		^EnvGen.ar(Env.asr(0, 1, releaseTime), (1 - free) * gate, doneAction:doneAction);
 	}
@@ -448,7 +453,7 @@ DirtBus {
 					);
 				};
 
-				server.sendMsg(\g_new, synthGroup, group, 1); // make new group. it is freed from the monitor.
+				server.sendMsg(\g_new, synthGroup, 1, group); // make new group. it is freed from the monitor.
 
 
 				this.sendSynth(instrument, [
