@@ -125,7 +125,7 @@ SuperDirt {
 			var name = format("dirt_sample_%_%", sampleNumChannels, numChannels);
 
 			SynthDef(name, { |bufnum, startFrame, endFrame,
-				pan = 0, amp = 0.1, speed = 1, accelerate = 0, keepRunning = 0, sustain = 1|
+				pan = 0, amp = 0.1, speed = 1, accelerate = 0, keepRunning = 0|
 
 				var sound, rate, phase, krPhase, endGate;
 
@@ -145,7 +145,7 @@ SuperDirt {
 				endGate = endGate * (rate.abs.poll > 0.1); // yes?
 				*/
 
-				endGate = EnvGen.kr(Env.linen(sustainTime:sustain));
+				//endGate = EnvGen.kr(Env.linen(sustainTime:sustain));
 
 				sound = BufRd.ar(
 					numChannels: sampleNumChannels,
@@ -156,7 +156,8 @@ SuperDirt {
 				);
 
 
-				this.panOut(sound, pan, amp * this.gateCutGroup(endGate, max(0.01, sustain * 0.1)));
+				//this.panOut(sound, pan, amp * this.gateCutGroup(endGate, max(0.01, sustain * 0.1)));
+				this.panOut(sound, pan, amp);
 			}).add;
 		};
 
@@ -174,7 +175,7 @@ SuperDirt {
 		*/
 
 
-		SynthDef("dirt_vowel" ++ numChannels, { |out, cutoff = 440, resonance = 0.5, vowel, sustain = 1|
+		SynthDef("dirt_vowel" ++ numChannels, { |out, cutoff = 440, resonance = 0.5, vowel|
 			var signal, vowelFreqs, vowelAmps, vowelRqs;
 			signal = In.ar(out, numChannels);
 			vowelFreqs = \vowelFreqs.ir(1000 ! 5) * (cutoff / 440);
@@ -182,7 +183,7 @@ SuperDirt {
 			vowelRqs = \vowelRqs.ir(0 ! 5) * resonance.linlin(0, 1, 1, 0.1);
 			signal = BPF.ar(signal, vowelFreqs, vowelRqs, vowelAmps).sum;
 			//this.releaseWhenSilent(signal + Line.ar(1, 0, sustain));
-			signal = signal * this.releaseAfter(sustain);
+			//signal = signal * this.releaseAfter(sustain);
 			ReplaceOut.ar(out, signal);
 
 		}).add;
@@ -191,7 +192,7 @@ SuperDirt {
 
 		SynthDef("dirt_crush" ++ numChannels, { |out, crush = 4|
 			var signal = In.ar(out, numChannels);
-			this.releaseWhenSilent(signal);
+			//this.releaseWhenSilent(signal);
 			signal = signal.round(0.5 ** crush);
 			ReplaceOut.ar(out, signal)
 		}).add;
@@ -199,7 +200,7 @@ SuperDirt {
 
 		SynthDef("dirt_coarse" ++ numChannels, { |out, coarse = 0, bandq = 10|
 			var signal = In.ar(out, numChannels);
-			this.releaseWhenSilent(signal);
+			//this.releaseWhenSilent(signal);
 			signal = Latch.ar(signal, Impulse.ar(SampleRate.ir / coarse));
 			ReplaceOut.ar(out, signal)
 		}).add;
@@ -207,14 +208,14 @@ SuperDirt {
 		SynthDef("dirt_hpf" ++ numChannels, { |out, hcutoff = 440, hresonance = 0|
 			var signal = In.ar(out, numChannels);
 			signal = RHPF.ar(signal, hcutoff, hresonance.linexp(0, 1, 1, 0.001));
-			this.releaseWhenSilent(signal);
+			//this.releaseWhenSilent(signal);
 			ReplaceOut.ar(out, signal)
 		}).add;
 
 		SynthDef("dirt_bpf" ++ numChannels, { |out, bandqf = 440, bandq = 10|
 			var signal = In.ar(out, numChannels);
 			signal = BPF.ar(signal, bandqf, 1/bandq) * max(bandq, 1.0);
-			this.releaseWhenSilent(signal);
+			//this.releaseWhenSilent(signal);
 			ReplaceOut.ar(out, signal)
 		}).add;
 
@@ -223,7 +224,7 @@ SuperDirt {
 		SynthDef("dirt_monitor" ++ numChannels, { |out, in, delayBus, delay = 0, sustain = 1|
 			var signal = In.ar(in, numChannels);
 			//this.releaseWhenSilent(signal);
-			signal = signal * this.releaseAfter(sustain);
+			signal = signal * this.releaseAfter(sustain, 13); // doneAction 14: free group and all preceding nodes
 			Out.ar(out, signal);
 			Out.ar(delayBus, signal * delay);
 			ReplaceOut.ar(in, Silent.ar(numChannels)) // clears bus signal for subsequent synths
@@ -253,9 +254,9 @@ SuperDirt {
 		DetectSilence.ar(LeakDC.ar(signal.asArray.sum), doneAction:2);
 	}
 
-	releaseAfter { |sustain|
+	releaseAfter { |sustain, doneAction = 2|
 		var releaseTime = max(0.01, sustain * 0.1);
-		^this.gateCutGroup(EnvGen.kr(Env.linen(sustainTime:sustain)), releaseTime)
+		^this.gateCutGroup(EnvGen.kr(Env.linen(sustainTime:sustain)), releaseTime, doneAction)
 	}
 
 
@@ -265,7 +266,7 @@ SuperDirt {
 	Before we start the new synth, we send a /set message to all synths, and those that match the specifics will be released.
 	*/
 
-	gateCutGroup { |gate = 1, releaseTime = 0.01|
+	gateCutGroup { |gate = 1, releaseTime = 0.01, doneAction = 2|
 		// this is necessary because the message "==" tests for objects, not for signals
 		var same = { |a, b| BinaryOpUGen('==', a, b) };
 		var sameCutGroup = same.(\cutGroup.kr(0), abs(\gateCutGroup.kr(0)));
@@ -278,8 +279,9 @@ SuperDirt {
 				1.0
 			]
 		) * sameCutGroup; // same cut group is mandatory
+		Poll.kr(Impulse.kr(0), doneAction, "doneAction");
 
-		^EnvGen.kr(Env.asr(0, 1, releaseTime), (1 - free) * gate, doneAction:2);
+		^EnvGen.ar(Env.asr(0, 1, releaseTime), (1 - free) * gate, doneAction:doneAction);
 	}
 
 
@@ -336,12 +338,12 @@ DirtBus {
 		globalEffectBus.free;
 	}
 
-	sendSynth { |instrument, args|
+	sendSynth { |instrument, args, synthGroup = -1|
 		//args.asOSCArgArray.postln; "--------------".postln;
 		server.sendMsg(\s_new, instrument,
 			-1, // no id
 			1, // add action: addToTail
-			group, // send to group
+			synthGroup, // send to group
 			*args.asOSCArgArray // append all other args
 		)
 	}
@@ -373,6 +375,7 @@ DirtBus {
 		var length, sampleRate, numFrames, bufferDuration;
 		var sustain, startFrame, endFrame;
 		var numChannels = dirt.numChannels;
+		var synthGroup;
 
 		#key, index = name.asString.split($:);
 		key = key.asSymbol;
@@ -393,6 +396,7 @@ DirtBus {
 		*/
 
 		if(allbufs.notNil or: { SynthDescLib.at(key).notNil }) {
+
 
 			if(allbufs.notNil) {
 				buffer = allbufs.wrapAt(index);
@@ -449,6 +453,7 @@ DirtBus {
 				sustain = sustain + (accelerate * sustain * 0.5 * speed.sign.neg);
 			};
 
+			synthGroup = server.nextNodeID;
 
 			server.makeBundle(latency, { // use this to build a bundle
 
@@ -463,6 +468,9 @@ DirtBus {
 						\delayfeedback, delayfeedback
 					);
 				};
+
+				server.sendMsg(\g_new, synthGroup, group, 1); // make new group. it is freed from the monitor.
+
 
 				this.sendSynth(instrument, [
 					sustain: sustain,
@@ -479,7 +487,8 @@ DirtBus {
 					cutGroup: cutgroup.abs, // ignore negatives here!
 					sample: sample,
 					cps: cps,
-					out: synthBus]
+					out: synthBus],
+				synthGroup
 				);
 
 				if(vowel.notNil) {
@@ -494,7 +503,8 @@ DirtBus {
 								cutoff: cutoff,
 								resonance: resonance,
 								sustain: sustain
-							]
+							],
+							synthGroup
 						);
 					}
 
@@ -506,7 +516,8 @@ DirtBus {
 							hcutoff: hcutoff,
 							hresonance: hresonance,
 							out: synthBus
-						]
+						],
+						synthGroup
 					)
 				};
 
@@ -516,7 +527,8 @@ DirtBus {
 							bandqf: bandqf,
 							bandq: bandq,
 							out: synthBus
-						]
+						],
+						synthGroup
 					)
 				};
 
@@ -525,7 +537,8 @@ DirtBus {
 						[
 							crush: crush,
 							out: synthBus
-						]
+						],
+						synthGroup
 					)
 				};
 
@@ -534,7 +547,8 @@ DirtBus {
 						[
 							coarse: coarse,
 							out: synthBus
-						]
+						],
+						synthGroup
 					)
 				};
 
@@ -545,12 +559,16 @@ DirtBus {
 						out: outBus,     // write to outBus,
 						delayBus: globalEffectBus,
 						delay: delay,
-						sustain: sustain
-					]
+						sustain: sustain // after sustain, free all synths and group.
+					],
+					synthGroup
 				);
 
 
 			});
+
+			// free group after sustain
+			//server.sendBundle(latency ? 0 + sustain + 0.02, ["/n_free", synthGroup]);
 
 		} {
 			"Dirt: no sample or instrument found for this name: %\n".postf(name);
