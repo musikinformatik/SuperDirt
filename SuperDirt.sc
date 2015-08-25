@@ -181,7 +181,8 @@ SuperDirt {
 			vowelAmps = \vowelAmps.ir(0 ! 5) * resonance.linlin(0, 1, 50, 350);
 			vowelRqs = \vowelRqs.ir(0 ! 5) * resonance.linlin(0, 1, 1, 0.1);
 			signal = BPF.ar(signal, vowelFreqs, vowelRqs, vowelAmps).sum;
-			this.releaseWhenSilent(signal);
+			//this.releaseWhenSilent(signal + Line.ar(1, 0, sustain));
+			signal = signal * this.releaseAfter(sustain);
 			ReplaceOut.ar(out, signal);
 
 		}).add;
@@ -219,9 +220,10 @@ SuperDirt {
 
 		// the monitor does the mixing and zeroing of the busses for each sample grain
 
-		SynthDef("dirt_monitor" ++ numChannels, { |out, in, delayBus, delay = 0|
+		SynthDef("dirt_monitor" ++ numChannels, { |out, in, delayBus, delay = 0, sustain = 1|
 			var signal = In.ar(in, numChannels);
-			this.releaseWhenSilent(signal);
+			//this.releaseWhenSilent(signal);
+			signal = signal * this.releaseAfter(sustain);
 			Out.ar(out, signal);
 			Out.ar(delayBus, signal * delay);
 			ReplaceOut.ar(in, Silent.ar(numChannels)) // clears bus signal for subsequent synths
@@ -249,6 +251,11 @@ SuperDirt {
 
 	releaseWhenSilent { |signal|
 		DetectSilence.ar(LeakDC.ar(signal.asArray.sum), doneAction:2);
+	}
+
+	releaseAfter { |sustain|
+		var releaseTime = max(0.01, sustain * 0.1);
+		^this.gateCutGroup(EnvGen.kr(Env.linen(sustainTime:sustain)), releaseTime)
 	}
 
 
@@ -330,6 +337,7 @@ DirtBus {
 	}
 
 	sendSynth { |instrument, args|
+		//args.asOSCArgArray.postln; "--------------".postln;
 		server.sendMsg(\s_new, instrument,
 			-1, // no id
 			1, // add action: addToTail
@@ -371,6 +379,18 @@ DirtBus {
 		allbufs = dirt.buffers[key];
 		index = (index ? 0).asInteger;
 
+		/*
+		"cps: %, name: %, offset: %, start: %, end: %, speed: %, pan: %, velocity: %, vowel: %, cutoff: %, resonance: %, accelerate: %, shape: %, krio: %, gain: %, cutgroup: %, delay: %, delaytime: %, delayfeedback: %, crush: %, coarse: %, hcutoff: %, hresonance: %, bandqf: %, bandq: %,unit: %"
+		.format(cps, name, offset, start, end, speed, pan, velocity,
+			vowel, cutoff, resonance,
+			accelerate, shape, krio, gain, cutgroup,
+			delay, delaytime, delayfeedback,
+			crush,
+			coarse,
+			hcutoff, hresonance,
+			bandqf, bandq,
+			unit).postln;
+		*/
 
 		if(allbufs.notNil or: { SynthDescLib.at(key).notNil }) {
 
@@ -397,7 +417,7 @@ DirtBus {
 				speed = speed.neg;
 			};
 
-
+			if(unit == \rate) { unit = \r }; // API adaption to tidal output
 			unit = unit ? \r;
 			amp = pow(gain, 4);
 
@@ -421,6 +441,7 @@ DirtBus {
 				}
 			);
 
+			//unit.postln;
 			//[\end_start, endFrame - startFrame / sampleRate, \sustain, sustain].postln;
 
 			if(accelerate != 0) {
@@ -523,7 +544,8 @@ DirtBus {
 						in: synthBus,  // read from private
 						out: outBus,     // write to outBus,
 						delayBus: globalEffectBus,
-						delay: delay
+						delay: delay,
+						sustain: sustain
 					]
 				);
 
