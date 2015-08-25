@@ -135,18 +135,6 @@ SuperDirt {
 				// sample phase
 				phase =  Sweep.ar(1, rate * BufSampleRate.kr(bufnum)) + startFrame;
 
-				/*
-				// release synth when end position is reached (or when backwards, start position)
-				krPhase = A2K.kr(phase); // more efficient
-				endGate = Select.kr(startFrame > endFrame, [
-				InRange.kr(phase, startFrame, endFrame), // workaround
-				InRange.kr(phase, endFrame, startFrame)
-				]);
-				endGate = endGate * (rate.abs.poll > 0.1); // yes?
-				*/
-
-				//endGate = EnvGen.kr(Env.linen(sustainTime:sustain));
-
 				sound = BufRd.ar(
 					numChannels: sampleNumChannels,
 					bufnum: bufnum,
@@ -155,8 +143,6 @@ SuperDirt {
 					interpolation: 4 // cubic interpolation
 				);
 
-
-				//this.panOut(sound, pan, amp * this.gateCutGroup(endGate, max(0.01, sustain * 0.1)));
 				this.panOut(sound, pan, amp);
 			}).add;
 		};
@@ -182,8 +168,6 @@ SuperDirt {
 			vowelAmps = \vowelAmps.ir(0 ! 5) * resonance.linlin(0, 1, 50, 350);
 			vowelRqs = \vowelRqs.ir(0 ! 5) * resonance.linlin(0, 1, 1, 0.1);
 			signal = BPF.ar(signal, vowelFreqs, vowelRqs, vowelAmps).sum;
-			//this.releaseWhenSilent(signal + Line.ar(1, 0, sustain));
-			//signal = signal * this.releaseAfter(sustain);
 			ReplaceOut.ar(out, signal);
 
 		}).add;
@@ -200,7 +184,6 @@ SuperDirt {
 
 		SynthDef("dirt_coarse" ++ numChannels, { |out, coarse = 0, bandq = 10|
 			var signal = In.ar(out, numChannels);
-			//this.releaseWhenSilent(signal);
 			signal = Latch.ar(signal, Impulse.ar(SampleRate.ir / coarse));
 			ReplaceOut.ar(out, signal)
 		}).add;
@@ -208,14 +191,12 @@ SuperDirt {
 		SynthDef("dirt_hpf" ++ numChannels, { |out, hcutoff = 440, hresonance = 0|
 			var signal = In.ar(out, numChannels);
 			signal = RHPF.ar(signal, hcutoff, hresonance.linexp(0, 1, 1, 0.001));
-			//this.releaseWhenSilent(signal);
 			ReplaceOut.ar(out, signal)
 		}).add;
 
 		SynthDef("dirt_bpf" ++ numChannels, { |out, bandqf = 440, bandq = 10|
 			var signal = In.ar(out, numChannels);
 			signal = BPF.ar(signal, bandqf, 1/bandq) * max(bandq, 1.0);
-			//this.releaseWhenSilent(signal);
 			ReplaceOut.ar(out, signal)
 		}).add;
 
@@ -223,8 +204,7 @@ SuperDirt {
 
 		SynthDef("dirt_monitor" ++ numChannels, { |out, in, delayBus, delay = 0, sustain = 1|
 			var signal = In.ar(in, numChannels);
-			//this.releaseWhenSilent(signal);
-			signal = signal * this.releaseAfter(sustain, 2); // doneAction 14: free group and all preceding nodes
+			signal = signal * this.releaseAfter(sustain);
 			Out.ar(out, signal);
 			Out.ar(delayBus, signal * delay);
 			ReplaceOut.ar(in, Silent.ar(numChannels)) // clears bus signal for subsequent synths
@@ -250,15 +230,6 @@ SuperDirt {
 		^OffsetOut.ar(\out.kr, output); // we create an out control argument in a different way here.
 	}
 
-	releaseWhenSilent { |signal|
-		DetectSilence.ar(LeakDC.ar(signal.asArray.sum), doneAction:2);
-	}
-
-	releaseAfter { |sustain, doneAction = 2|
-		var releaseTime = max(0.01, sustain * 0.1);
-		^this.gateCutGroup(EnvGen.kr(Env.linen(sustainTime:sustain)), releaseTime, doneAction)
-	}
-
 
 	/*
 	In order to avoid bookkeeping on the language side, we implement cutgroups as follows:
@@ -266,7 +237,7 @@ SuperDirt {
 	Before we start the new synth, we send a /set message to all synths, and those that match the specifics will be released.
 	*/
 
-	gateCutGroup { |gate = 1, releaseTime = 0.01, doneAction = 2|
+	gateCutGroup { |gate = 1, releaseTime = 0.02, doneAction = 2|
 		// this is necessary because the message "==" tests for objects, not for signals
 		var same = { |a, b| BinaryOpUGen('==', a, b) };
 		var sameCutGroup = same.(\cutGroup.kr(0), abs(\gateCutGroup.kr(0)));
@@ -282,6 +253,14 @@ SuperDirt {
 		//Poll.kr(Impulse.kr(0), doneAction, "doneAction");
 
 		^EnvGen.ar(Env.asr(0, 1, releaseTime), (1 - free) * gate, doneAction:doneAction);
+	}
+
+	releaseWhenSilent { |signal|
+		DetectSilence.ar(LeakDC.ar(signal.asArray.sum), doneAction:2);
+	}
+
+	releaseAfter { |sustain, releaseTime = 0.02, doneAction = 2|
+		^this.gateCutGroup(EnvGen.kr(Env.linen(0, sustain, 0)), releaseTime, doneAction)
 	}
 
 
