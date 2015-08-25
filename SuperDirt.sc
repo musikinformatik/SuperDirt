@@ -224,7 +224,7 @@ SuperDirt {
 		SynthDef("dirt_monitor" ++ numChannels, { |out, in, delayBus, delay = 0, sustain = 1|
 			var signal = In.ar(in, numChannels);
 			//this.releaseWhenSilent(signal);
-			signal = signal * this.releaseAfter(sustain, 13); // doneAction 14: free group and all preceding nodes
+			signal = signal * this.releaseAfter(sustain, 2); // doneAction 14: free group and all preceding nodes
 			Out.ar(out, signal);
 			Out.ar(delayBus, signal * delay);
 			ReplaceOut.ar(in, Silent.ar(numChannels)) // clears bus signal for subsequent synths
@@ -279,7 +279,7 @@ SuperDirt {
 				1.0
 			]
 		) * sameCutGroup; // same cut group is mandatory
-		Poll.kr(Impulse.kr(0), doneAction, "doneAction");
+		//Poll.kr(Impulse.kr(0), doneAction, "doneAction");
 
 		^EnvGen.ar(Env.asr(0, 1, releaseTime), (1 - free) * gate, doneAction:doneAction);
 	}
@@ -568,7 +568,7 @@ DirtBus {
 			});
 
 			// free group after sustain
-			//server.sendBundle(latency ? 0 + sustain + 0.02, ["/n_free", synthGroup]);
+			server.sendBundle(latency ? 0 + sustain + 0.02, ["/n_free", synthGroup]);
 
 		} {
 			"Dirt: no sample or instrument found for this name: %\n".postf(name);
