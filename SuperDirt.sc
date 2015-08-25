@@ -252,7 +252,6 @@ SuperDirt {
 				1.0
 			]
 		) * sameCutGroup; // same cut group is mandatory
-		//Poll.kr(Impulse.kr(0), doneAction, "doneAction");
 
 		// this is a fix for a weird behaviour of the doneAction 13
 		EnvGen.kr(Env.asr(0, 1, releaseTime), (1 - free), doneAction:13);
@@ -468,8 +467,6 @@ DirtBus {
 					accelerate: accelerate,
 					amp: amp,
 					offset: offset,
-					cutGroup: cutgroup.abs, // ignore negatives here!
-					sample: sample,
 					cps: cps,
 					out: synthBus],
 				synthGroup
@@ -543,6 +540,8 @@ DirtBus {
 						out: outBus,     // write to outBus,
 						delayBus: globalEffectBus,
 						delay: delay,
+						cutGroup: cutgroup.abs, // ignore negatives here!
+						sample: sample, // required for the cutgroup mechanism
 						sustain: sustain // after sustain, free all synths and group.
 					],
 					synthGroup
