@@ -25,13 +25,15 @@ SuperDirt {
 	var <buffers, <vowels;
 	var <>dirtBusses;
 
+	classvar <>maxSampleNumChannels = 2;
+
 	*new { |numChannels = 2, server|
 		^super.newCopyArgs(numChannels, server ? Server.default).init
 	}
 
 	init {
 		buffers = ();
-		this.initSynthDefs;
+		this.initSynthDefs(numChannels, maxSampleNumChannels);
 		this.initVowels(\tenor);
 	}
 
@@ -99,7 +101,7 @@ SuperDirt {
 		};
 	}
 
-	initSynthDefs { |numChannels = 2|
+	initSynthDefs { |numChannels = 2, maxSampleNumChannels = 2|
 
 		// global synth defs
 
@@ -117,40 +119,46 @@ SuperDirt {
 		}).add;
 
 
-		SynthDef("dirt_sample" ++ numChannels, { |bufnum, startFrame, endFrame,
-			pan = 0, amp = 0.1, speed = 1, accelerate = 0, keepRunning = 0, sustain = 1|
+		// write variants for different sample buffer sizes
+		(1..maxSampleNumChannels).do { |sampleNumChannels|
 
-			var sound, rate, phase, krPhase, endGate;
+			var name = format("dirt_sample_%_%", sampleNumChannels, numChannels);
 
-			// bufratescale adjusts the rate if sample doesn't have the same rate as soundcard
-			rate = speed + Sweep.kr(rate: accelerate);
+			SynthDef(name, { |bufnum, startFrame, endFrame,
+				pan = 0, amp = 0.1, speed = 1, accelerate = 0, keepRunning = 0, sustain = 1|
 
-			// sample phase
-			phase =  Sweep.ar(1, rate * BufSampleRate.kr(bufnum)) + startFrame;
+				var sound, rate, phase, krPhase, endGate;
 
-			/*
-			// release synth when end position is reached (or when backwards, start position)
-			krPhase = A2K.kr(phase); // more efficient
-			endGate = Select.kr(startFrame > endFrame, [
+				// bufratescale adjusts the rate if sample doesn't have the same rate as soundcard
+				rate = speed + Sweep.kr(rate: accelerate);
+
+				// sample phase
+				phase =  Sweep.ar(1, rate * BufSampleRate.kr(bufnum)) + startFrame;
+
+				/*
+				// release synth when end position is reached (or when backwards, start position)
+				krPhase = A2K.kr(phase); // more efficient
+				endGate = Select.kr(startFrame > endFrame, [
 				InRange.kr(phase, startFrame, endFrame), // workaround
 				InRange.kr(phase, endFrame, startFrame)
-			]);
-			endGate = endGate * (rate.abs.poll > 0.1); // yes?
-			*/
+				]);
+				endGate = endGate * (rate.abs.poll > 0.1); // yes?
+				*/
 
-			endGate = EnvGen.kr(Env.linen(sustainTime:sustain));
+				endGate = EnvGen.kr(Env.linen(sustainTime:sustain));
 
-			sound = BufRd.ar(
-				numChannels: 1, // mono samples only
-				bufnum: bufnum,
-				phase: phase,
-				loop: 0, // should we loop?
-				interpolation: 4 // cubic interpolation
-			);
+				sound = BufRd.ar(
+					numChannels: sampleNumChannels,
+					bufnum: bufnum,
+					phase: phase,
+					loop: 0, // should we loop?
+					interpolation: 4 // cubic interpolation
+				);
 
 
-			this.panOut(sound, pan, amp * this.gateCutGroup(endGate, max(0.01, sustain * 0.1)));
-		}).add;
+				this.panOut(sound, pan, amp * this.gateCutGroup(endGate, max(0.01, sustain * 0.1)));
+			}).add;
+		};
 
 		/*
 		Add Effect SynthDefs
@@ -367,12 +375,12 @@ DirtBus {
 		if(allbufs.notNil or: { SynthDescLib.at(key).notNil }) {
 
 			if(allbufs.notNil) {
-				instrument = "dirt_sample" ++ numChannels;
 				buffer = allbufs.wrapAt(index);
 				numFrames = buffer.numFrames;
 				bufferDuration = buffer.duration;
 				sampleRate = buffer.sampleRate;
 				sample = name.identityHash;
+				instrument = format("dirt_sample_%_%", buffer.numChannels, numChannels);
 			} {
 				instrument = key;
 				sampleRate = server.sampleRate;
