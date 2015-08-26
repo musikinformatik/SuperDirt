@@ -103,7 +103,7 @@ SuperDirt {
 
 	initSynthDefs { |numChannels = 2, maxSampleNumChannels = 2|
 
-		// global synth defs
+		// global synth defs: these synths run in each DirtBus and are only released when it is stopped
 
 		SynthDef("dirt_delay" ++ numChannels, { |out, gate = 1, effectBus, delaytime, delayfeedback|
 			var signal = In.ar(effectBus, numChannels);
@@ -115,7 +115,38 @@ SuperDirt {
 		SynthDef("dirt_limiter" ++ numChannels, { |out, gate = 1|
 			var signal = In.ar(out, numChannels);
 			signal = signal * EnvGen.kr(Env.asr, gate, doneAction:2);
-			ReplaceOut.ar(signal, Limiter.ar(signal))
+			ReplaceOut.ar(out, Limiter.ar(signal))
+		}).add;
+
+		// thanks to Jost Muxfeld:
+
+		SynthDef("dirt_reverb"  ++ numChannels, { |out, gate = 1, amp = 0.1, depth = 0.4|
+			var in, snd, loop;
+
+			in = In.ar(out, numChannels).asArray.sum;
+
+			4.do { in = AllpassN.ar(in, 0.03, { Rand(0.005, 0.02) }.dup(numChannels), 1) };
+
+
+			depth = depth.linlin(0, 1, 0.1, 0.98); // change depth between 0.1 and 0.98
+			loop = LocalIn.ar(numChannels) * { depth + Rand(0, 0.05) }.dup(numChannels);
+			loop = OnePole.ar(loop, 0.5);  // 0-1
+
+			loop = AllpassN.ar(loop, 0.05, { Rand(0.01, 0.05) }.dup(numChannels), 2);
+
+			loop = DelayN.ar(loop, 0.3, [0.19, 0.26] + { Rand(-0.003, 0.003) }.dup(2));
+			loop = AllpassN.ar(loop, 0.05, { Rand(0.03, 0.15) }.dup(numChannels), 2);
+
+			loop = LeakDC.ar(loop);
+			loop = loop + in;
+
+			LocalOut.ar(loop);
+
+			snd = Delay2.ar(loop);
+			snd = snd * EnvGen.kr(Env.asr, gate, doneAction:2);
+
+			ReplaceOut.ar(out, snd * amp);
+
 		}).add;
 
 
@@ -167,7 +198,9 @@ SuperDirt {
 			vowelFreqs = \vowelFreqs.ir(1000 ! 5) * (cutoff / 440);
 			vowelAmps = \vowelAmps.ir(0 ! 5) * resonance.linlin(0, 1, 50, 350);
 			vowelRqs = \vowelRqs.ir(0 ! 5) * resonance.linlin(0, 1, 1, 0.1);
+			//vowelRqs = \vowelRqs.ir(0 ! 5) * resonance.linexp(0, 1, 0.01, 0.2);
 			signal = BPF.ar(signal, vowelFreqs, vowelRqs, vowelAmps).sum;
+			//signal = Formlet.ar(signal, vowelFreqs, 0.005, vowelRqs);
 			ReplaceOut.ar(out, signal);
 
 		}).add;
@@ -199,6 +232,7 @@ SuperDirt {
 			signal = BPF.ar(signal, bandqf, 1/bandq) * max(bandq, 1.0);
 			ReplaceOut.ar(out, signal)
 		}).add;
+
 
 		// the monitor does the mixing and zeroing of the busses for each sample grain
 
