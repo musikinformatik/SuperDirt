@@ -11,11 +11,11 @@ If your SuperDirt instance is assigned to the variable ~dirt, you can livecode t
 // modulated band limited impulse
 SynthDef(\imp, { |speed = 1, start=0, end=1, pan, accelerate, amp = 1, offset|
 	var env, sound, dur, rate, phase;
-	dur = (end - start) / speed;
-	env = EnvGen.ar(Env.linen(0, 0.2, 0.8, amp * 0.1, -4), timeScale:dur, doneAction:2);
+	dur = (end - start) / speed * 0.5;
+	env = EnvGen.ar(Env.perc(0.002, dur, amp * 0.3, -1), timeScale:dur, doneAction:2);
 	phase = Line.ar(start, end, dur);
 	rate = (start + 1) * (speed + Sweep.kr(1, accelerate));
-	sound = Blip.ar(rate.linexp(0, 1, 15 * [1, 2, 5], 200), 200 * phase).sum;
+	sound = Blip.ar(rate.linexp(0, 1, 1, 220) * [1, 1.25, 1.51, 1.42], ExpRand(5, 118) * phase).sum;
 	env = env * ~dirt.gateCutGroup; // this synth can be freed by cutgroup mechanism
 	~dirt.panOut(sound, pan, env)
 }).add;
