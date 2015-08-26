@@ -180,15 +180,7 @@ SuperDirt {
 
 		/*
 		Add Effect SynthDefs
-		*/
-		/*
-
-		The local effect synths are freed when input is silent for longer than 0.1 sec (in DetectSilence).
-		This makes it unnecessary to keep track of any synths.
-		But it may cause problems with samples that contain silence.
-
-		One way to solve this involves bookkeeping of synths on the language side (haskell or sclang).
-		For now, we use the simplest possible way.
+		These per-sample-effects are freed after Monitor envelope has ended
 		*/
 
 
@@ -235,12 +227,13 @@ SuperDirt {
 
 
 		// the monitor does the mixing and zeroing of the busses for each sample grain
+		// so that they can all play in one bus
 
-		SynthDef("dirt_monitor" ++ numChannels, { |out, in, delayBus, delay = 0, sustain = 1|
+		SynthDef("dirt_monitor" ++ numChannels, { |out, in, delayBus, delay = 0, sustain = 1, release = 0.02|
 			var signal = In.ar(in, numChannels);
 			 //  doneAction:13 = must release all other synths in group.
 			// ideally, 14 but it doesn't work.
-			signal = signal * this.releaseAfter(sustain, doneAction:2);
+			signal = signal * this.releaseAfter(sustain, releaseTime: release, doneAction:2);
 			Out.ar(out, signal);
 			Out.ar(delayBus, signal * delay);
 			ReplaceOut.ar(in, Silent.ar(numChannels)) // clears bus signal for subsequent synths
@@ -287,7 +280,7 @@ SuperDirt {
 			]
 		) * sameCutGroup; // same cut group is mandatory
 
-		// this is a fix for a weird behaviour of the doneAction 13
+		// this is a workaround for a somewhat broken behaviour of the doneAction 13
 		EnvGen.kr(Env.asr(0, 1, releaseTime), (1 - free), doneAction:13);
 
 		^EnvGen.ar(Env.asr(0, 1, releaseTime), (1 - free) * gate, doneAction:doneAction);
@@ -311,6 +304,7 @@ DirtBus {
 	var <outBus, <senderAddr, <replyAddr;
 	var <synthBus, <globalEffectBus;
 	var group, globalEffects, netResponders;
+	var <>releaseTime = 0.02;
 
 	*new { |dirt, port = 57120, outBus = 0, senderAddr|
 		^super.newCopyArgs(dirt, port, dirt.server, outBus, senderAddr).init
@@ -376,7 +370,7 @@ DirtBus {
 	// This implements the Dirt OSC API, to be accessed via OSC by "/play"
 
 	value {
-		|latency, cps = 1, name, offset = 0, start = 0, end = 1, speed = 1, pan = 0, velocity,
+		|latency, cps = 1, sound, offset = 0, start = 0, end = 1, speed = 1, pan = 0, velocity,
 		vowel, cutoff = 300, resonance = 0.5,
 		accelerate = 0, shape, krio, gain = 1, cutgroup = 0,
 		delay = 0, delaytime = 0, delayfeedback = 0,
@@ -394,14 +388,14 @@ DirtBus {
 		var numChannels = dirt.numChannels;
 		var synthGroup;
 
-		#key, index = name.asString.split($:);
+		#key, index = sound.asString.split($:);
 		key = key.asSymbol;
 		allbufs = dirt.buffers[key];
 		index = (index ? 0).asInteger;
 
 		/*
-		"cps: %, name: %, offset: %, start: %, end: %, speed: %, pan: %, velocity: %, vowel: %, cutoff: %, resonance: %, accelerate: %, shape: %, krio: %, gain: %, cutgroup: %, delay: %, delaytime: %, delayfeedback: %, crush: %, coarse: %, hcutoff: %, hresonance: %, bandqf: %, bandq: %,unit: %"
-		.format(cps, name, offset, start, end, speed, pan, velocity,
+		"cps: %, sound: %, offset: %, start: %, end: %, speed: %, pan: %, velocity: %, vowel: %, cutoff: %, resonance: %, accelerate: %, shape: %, krio: %, gain: %, cutgroup: %, delay: %, delaytime: %, delayfeedback: %, crush: %, coarse: %, hcutoff: %, hresonance: %, bandqf: %, bandq: %,unit: %"
+		.format(cps, sound, offset, start, end, speed, pan, velocity,
 			vowel, cutoff, resonance,
 			accelerate, shape, krio, gain, cutgroup,
 			delay, delaytime, delayfeedback,
@@ -412,6 +406,7 @@ DirtBus {
 			unit).postln;
 		*/
 
+
 		if(allbufs.notNil or: { SynthDescLib.at(key).notNil }) {
 
 
@@ -420,7 +415,7 @@ DirtBus {
 				numFrames = buffer.numFrames;
 				bufferDuration = buffer.duration;
 				sampleRate = buffer.sampleRate;
-				sample = name.identityHash;
+				sample = sound.identityHash;
 				instrument = format("dirt_sample_%_%", buffer.numChannels, numChannels);
 			} {
 				instrument = key;
@@ -517,10 +512,9 @@ DirtBus {
 								vowelRqs: vowel.rqs,
 								cutoff: cutoff,
 								resonance: resonance,
-								sustain: sustain
 							],
 							synthGroup
-						);
+						)
 					}
 
 				};
@@ -576,7 +570,8 @@ DirtBus {
 						delay: delay,
 						cutGroup: cutgroup.abs, // ignore negatives here!
 						sample: sample, // required for the cutgroup mechanism
-						sustain: sustain // after sustain, free all synths and group.
+						sustain: sustain, // after sustain, free all synths and group
+						release: releaseTime // fade out
 					],
 					synthGroup
 				);
@@ -585,10 +580,13 @@ DirtBus {
 			});
 
 			// free group after sustain
-			server.sendBundle(latency ? 0 + sustain + 0.02, ["/n_free", synthGroup]);
+			server.sendBundle(latency ? 0 + sustain + releaseTime,
+				["/error", -1], // surpress error whe it has been freed already by a cut
+				["/n_free", synthGroup]
+			);
 
 		} {
-			"Dirt: no sample or instrument found for this name: %\n".postf(name);
+			"Dirt: no sample or instrument found for this sound: %\n".postf();
 		}
 	}
 
@@ -621,7 +619,7 @@ DirtBus {
 					latency = 0.2;
 				};
 				replyAddr = tidalAddr; // collect tidal reply address
-				this.value2([\latency, latency] ++ msg[1..]);
+				this.value2([\latency, latency] ++ msg[2..]);
 			}, '/play2', senderAddr, recvPort: port).fix
 		);
 
