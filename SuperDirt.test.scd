@@ -153,6 +153,7 @@ Tdef(\x).stop;
 ~d1.(nil, 1, 'cy:10', speed: 1, delaytime: 0.8, delay: 0);
 ~d1.(nil, 1, 'cy:10', speed: 1, delaytime: 0.2, delay: 1);
 
+fork { (0, 0.1 ..1).do { |a| ~d1.(nil, 1, 'cy:10', speed: 1, delaytime: 0.33, delay: a); 1.wait } };
 
 
 /*

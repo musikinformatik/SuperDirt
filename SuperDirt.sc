@@ -105,7 +105,7 @@ SuperDirt {
 
 		// global synth defs: these synths run in each DirtBus and are only released when it is stopped
 
-		SynthDef("dirt_delay" ++ numChannels, { |out, gate = 1, effectBus, delaytime, delayfeedback|
+		SynthDef("dirt_delay" ++ numChannels, { |out, effectBus, gate = 1, delaytime, delayfeedback|
 			var signal = In.ar(effectBus, numChannels);
 			signal = SwitchDelay.ar(signal, 1, 1, delaytime, delayfeedback); // from sc3-plugins
 			signal = signal * EnvGen.kr(Env.asr, gate, doneAction:2);
@@ -120,10 +120,10 @@ SuperDirt {
 
 		// thanks to Jost Muxfeld:
 
-		SynthDef("dirt_reverb"  ++ numChannels, { |out, gate = 1, amp = 0.1, depth = 0.4|
+		SynthDef("dirt_reverb"  ++ numChannels, { |out, effectBus, gate = 1, amp = 0.1, depth = 0.4|
 			var in, snd, loop;
 
-			in = In.ar(out, numChannels).asArray.sum;
+			in = In.ar(effectBus, numChannels).asArray.sum;
 
 			4.do { in = AllpassN.ar(in, 0.03, { Rand(0.005, 0.02) }.dup(numChannels), 1) };
 
@@ -228,13 +228,13 @@ SuperDirt {
 		// the monitor does the mixing and zeroing of the busses for each sample grain
 		// so that they can all play in one bus
 
-		SynthDef("dirt_monitor" ++ numChannels, { |out, in, delayBus, delay = 0, sustain = 1, release = 0.02|
+		SynthDef("dirt_monitor" ++ numChannels, { |out, in, globalEffectBus, effectAmp = 0, sustain = 1, release = 0.02|
 			var signal = In.ar(in, numChannels);
 			 //  doneAction:13 = must release all other synths in group.
 			// ideally, 14 but it doesn't work before 9d15cdc746627829a9598694cf4feaa6aab0bd90.
 			signal = signal * this.releaseAfter(sustain, releaseTime: release, doneAction:2);
 			Out.ar(out, signal);
-			Out.ar(delayBus, signal * delay);
+			Out.ar(globalEffectBus, signal * effectAmp);
 			ReplaceOut.ar(in, Silent.ar(numChannels)) // clears bus signal for subsequent synths
 		}).add;
 
@@ -565,8 +565,8 @@ DirtBus {
 					[
 						in: synthBus,  // read from private
 						out: outBus,     // write to outBus,
-						delayBus: globalEffectBus,
-						delay: delay,
+						globalEffectBus: globalEffectBus,
+						effectAmp: delay,
 						cutGroup: cutgroup.abs, // ignore negatives here!
 						sample: sample, // required for the cutgroup mechanism
 						sustain: sustain, // after sustain, free all synths and group
