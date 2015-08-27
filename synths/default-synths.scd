@@ -16,7 +16,6 @@ SynthDef(\imp, { |speed = 1, start=0, end=1, pan, accelerate, amp = 1, offset|
 	phase = Line.ar(start, end, dur);
 	rate = (start + 1) * (speed + Sweep.kr(1, accelerate));
 	sound = Blip.ar(rate.linexp(0, 1, 1, 220) * [1, 1.25, 1.51, 1.42], ExpRand(5, 118) * phase).sum;
-	env = env * ~dirt.gateCutGroup; // this synth can be freed by cutgroup mechanism
 	~dirt.panOut(sound, pan, env)
 }).add;
 
@@ -31,7 +30,6 @@ SynthDef(\pmsin, { |speed = 1, start=0, end=1, pan, accelerate, amp = 1, offset|
 	phase = Line.ar(start, end, dur);
 	rate = speed + Sweep.kr(1, accelerate);
 	sound = SinOsc.ar(freq, SinOsc.ar(modfreq * (1..5), 0, 1 - phase * 10 * env / (1..5), 0.5pi)).sum;
-	env = env * ~dirt.gateCutGroup; // this synth can be freed by cutgroup mechanism
 	~dirt.panOut(sound, pan, env)
 }).add;
 
@@ -43,7 +41,6 @@ SynthDef(\in, { |speed = 1, start=0, end=1, pan, accelerate, amp = 1, offset|
 	phase = Line.ar(start, end, dur);
 	rate = (start + 1) * (speed + Sweep.kr(1, accelerate));
 	sound = SoundIn.ar([0, 1]); // stereo in
-	env = env * ~dirt.gateCutGroup; // this synth can be freed by cutgroup mechanism
 	~dirt.panOut(sound, pan, env)
 }).add;
 
@@ -56,7 +53,6 @@ SynthDef(\inr, { |speed = 1, start=0, end=1, pan, accelerate, amp = 1, offset|
 	rate = (start + 1) * (speed + Sweep.kr(1, accelerate));
 	sound = SoundIn.ar([0, 1]); // stereo in
 	sound = PitchShift.ar(sound, 0.1, rate, 0.02, 0.01);
-	env = env * ~dirt.gateCutGroup; // this synth can be freed by cutgroup mechanism
 	~dirt.panOut(sound, pan, env)
 }).add;
 );

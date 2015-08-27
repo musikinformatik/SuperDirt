@@ -252,10 +252,14 @@ TEST LIVE CODING SYNTHS
 */
 
 
+
+
 // this is a default synth def
 
 ~d1.(nil, 1, 'imp', speed: 1, start: 0, end: 1);
 ~d1.(nil, 1, 'imp', speed: 1, start: 0.5, end: 1);
+
+
 ~d1.(nil, 1, 'imp', speed: 0.1, start: 0, end: 1, accelerate: 3);
 
 ~d1.(nil, 1, 'imp', speed: 1, start: 0, end: 0.3.rand, delay: 1, delaytime: 3);
