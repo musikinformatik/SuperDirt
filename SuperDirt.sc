@@ -34,7 +34,7 @@ SuperDirt {
 	init {
 		buffers = ();
 		this.initSynthDefs(numChannels, maxSampleNumChannels);
-		this.initVowels(\tenor);
+		this.initVowels(\counterTenor);
 	}
 
 	start { |ports = 57120, outBusses = 0, senderAddrs = (NetAddr("127.0.0.1"))|
@@ -88,12 +88,12 @@ SuperDirt {
 		}
 	}
 
-	initVowels { |register = \tenor|
+	initVowels { |register|
 		vowels = ();
 		if(Vowel.formLib.at(\a).at(register).isNil) {
-			"This voice register (%) isn't avaliable. Using tenor instead".format(register).warn;
+			"This voice register (%) isn't avaliable. Using counterTenor instead".format(register).warn;
 			"Available registers are: %".format(Vowel.formLib.at(\a).keys).postln;
-			register = \tenor;
+			register = \counterTenor;
 		};
 
 		[\a, \e, \i, \o, \u].collect { |x|
@@ -184,12 +184,12 @@ SuperDirt {
 		*/
 
 
-		SynthDef("dirt_vowel" ++ numChannels, { |out, cutoff = 440, resonance = 0.5, vowel|
+		SynthDef("dirt_vowel" ++ numChannels, { |out, resonance = 0.5, vowel|
 			var signal, vowelFreqs, vowelAmps, vowelRqs;
 			signal = In.ar(out, numChannels);
-			vowelFreqs = \vowelFreqs.ir(1000 ! 5) * (cutoff / 440);
+			vowelFreqs = \vowelFreqs.ir(1000 ! 5);
 			vowelAmps = \vowelAmps.ir(0 ! 5) * resonance.linlin(0, 1, 50, 350);
-			vowelRqs = \vowelRqs.ir(0 ! 5) * resonance.linlin(0, 1, 1, 0.1);
+			vowelRqs = \vowelRqs.ir(0 ! 5) * resonance.linlin(0, 1, 1, 0.1) * 2;
 			//vowelRqs = \vowelRqs.ir(0 ! 5) * resonance.linexp(0, 1, 0.01, 0.2);
 			signal = BPF.ar(signal, vowelFreqs, vowelRqs, vowelAmps).sum;
 			//signal = Formlet.ar(signal, vowelFreqs, 0.005, vowelRqs);
@@ -509,7 +509,6 @@ DirtBus {
 								vowelFreqs: vowel.freqs,
 								vowelAmps: vowel.amps,
 								vowelRqs: vowel.rqs,
-								cutoff: cutoff,
 								resonance: resonance,
 							],
 							synthGroup
