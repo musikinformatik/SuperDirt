@@ -145,7 +145,7 @@ SuperDirt {
 			snd = Delay2.ar(loop);
 			snd = snd * EnvGen.kr(Env.asr, gate, doneAction:2);
 
-			ReplaceOut.ar(out, snd * amp);
+			Out.ar(out, snd * amp);
 
 		}).add;
 
@@ -201,7 +201,6 @@ SuperDirt {
 
 		SynthDef("dirt_crush" ++ numChannels, { |out, crush = 4|
 			var signal = In.ar(out, numChannels);
-			//this.releaseWhenSilent(signal);
 			signal = signal.round(0.5 ** crush);
 			ReplaceOut.ar(out, signal)
 		}).add;
@@ -232,7 +231,7 @@ SuperDirt {
 		SynthDef("dirt_monitor" ++ numChannels, { |out, in, delayBus, delay = 0, sustain = 1, release = 0.02|
 			var signal = In.ar(in, numChannels);
 			 //  doneAction:13 = must release all other synths in group.
-			// ideally, 14 but it doesn't work.
+			// ideally, 14 but it doesn't work before 9d15cdc746627829a9598694cf4feaa6aab0bd90.
 			signal = signal * this.releaseAfter(sustain, releaseTime: release, doneAction:2);
 			Out.ar(out, signal);
 			Out.ar(delayBus, signal * delay);
@@ -579,7 +578,7 @@ DirtBus {
 
 			});
 
-			// free group after sustain
+			// free group after sustain: this won't be needed after doneAction 14 works in SC 3.7.0
 			server.sendBundle(latency ? 0 + sustain + releaseTime,
 				["/error", -1], // surpress error whe it has been freed already by a cut
 				["/n_free", synthGroup]
