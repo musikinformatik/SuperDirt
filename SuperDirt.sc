@@ -411,6 +411,9 @@ DirtBus {
 
 			if(allbufs.notNil) {
 				buffer = allbufs.wrapAt(index);
+				if(buffer.sampleRate.isNil) {
+					"Dirt: buffer '%' not loaded yet".format(sound).warn; ^this
+				};
 				numFrames = buffer.numFrames;
 				bufferDuration = buffer.duration;
 				sampleRate = buffer.sampleRate;
