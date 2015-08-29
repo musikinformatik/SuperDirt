@@ -50,7 +50,7 @@ SuperDirt {
 		this.stop;
 	}
 
-	loadSoundFiles { |path, fileExtension = "wav", sync = false|
+	loadSoundFiles { |path, fileExtension = "wav"|
 		var folderPaths;
 		if(server.serverRunning.not) {
 			"Superdirt: server not running - cannot load sound files.".warn; ^this
@@ -58,21 +58,19 @@ SuperDirt {
 		path = path ?? { "samples".resolveRelative };
 		folderPaths = pathMatch(path +/+ "**");
 		"\nloading sample banks:\n".post;
-		{
-			folderPaths.do { |folderPath|
-				PathName(folderPath).filesDo { |filepath|
-					var buf, name;
-					if(filepath.extension.find(fileExtension, true).notNil) {
-						buf = Buffer.read(server, filepath.fullPath);
-						if(sync) { server.sync };
-						name = filepath.folderName.toLower;
-						buffers[name.asSymbol] = buffers[name.asSymbol].add(buf)
-					}
-				};
-				folderPath.basename.post; " ".post;
+		folderPaths.do { |folderPath|
+			PathName(folderPath).filesDo { |filepath|
+				var buf, name;
+				if(filepath.extension.find(fileExtension, true).notNil) {
+					buf = Buffer.readNoUpdate(server, filepath.fullPath);
+					name = filepath.folderName.toLower;
+					buffers[name.asSymbol] = buffers[name.asSymbol].add(buf)
+				}
 			};
-			"\n\n".post;
-		}.fork(AppClock);
+			folderPath.basename.post; " ".post;
+		};
+		fork { buffers.do { |x| x.do { |x| x.updateInfo; server.sync } } };
+		"\n\nfile info loaded. \n\n".post;
 	}
 
 	freeSoundFiles {
@@ -233,7 +231,7 @@ SuperDirt {
 
 		SynthDef("dirt_monitor" ++ numChannels, { |out, in, globalEffectBus, effectAmp = 0, sustain = 1, release = 0.02|
 			var signal = In.ar(in, numChannels);
-			//  doneAction:13 = must release all other synths in group.
+			 //  doneAction:13 = must release all other synths in group.
 			// ideally, 14 but it doesn't work before 9d15cdc746627829a9598694cf4feaa6aab0bd90.
 			signal = signal * this.releaseAfter(sustain, releaseTime: release, doneAction:2);
 			Out.ar(out, signal);
@@ -398,14 +396,14 @@ DirtBus {
 		/*
 		"cps: %, sound: %, offset: %, start: %, end: %, speed: %, pan: %, velocity: %, vowel: %, cutoff: %, resonance: %, accelerate: %, shape: %, krio: %, gain: %, cutgroup: %, delay: %, delaytime: %, delayfeedback: %, crush: %, coarse: %, hcutoff: %, hresonance: %, bandqf: %, bandq: %,unit: %"
 		.format(cps, sound, offset, start, end, speed, pan, velocity,
-		vowel, cutoff, resonance,
-		accelerate, shape, krio, gain, cutgroup,
-		delay, delaytime, delayfeedback,
-		crush,
-		coarse,
-		hcutoff, hresonance,
-		bandqf, bandq,
-		unit).postln;
+			vowel, cutoff, resonance,
+			accelerate, shape, krio, gain, cutgroup,
+			delay, delaytime, delayfeedback,
+			crush,
+			coarse,
+			hcutoff, hresonance,
+			bandqf, bandq,
+			unit).postln;
 		*/
 
 
