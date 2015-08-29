@@ -89,6 +89,18 @@ Tdef(\x, {
 ~d1.(nil, 1, 'cy:10', speed: 2);
 
 
+
+/*
+TEST PANNING
+*/
+
+~d1.(nil, 1, 'cy:10', pan:0);
+~d1.(nil, 1, 'cy:10', pan:1);
+~d1.(nil, 1, 'cy:10', pan:0.5);
+~d1.(nil, 1, 'uxay', pan:0);
+~d1.(nil, 1, 'uxay', pan:1);
+~d1.(nil, 1, 'uxay', pan:0.5);
+
 /*
 
 TEST EFFECTS

@@ -248,15 +248,24 @@ SuperDirt {
 	convenience methods for panning and releasing
 	*/
 
-	panOut { |signal, pan = 0.0, mul = 1.0|
-		var output;
+	panOut { |signal, pan = 0.0, mul = 1.0, mix = false|
+		var output, mono;
+
+		mono = signal.size <= 1;
 
 		if(numChannels == 2) {
 			output = Pan2.ar(signal, (pan * 2) - 1, mul)
 		} {
 			output = PanAz.ar(numChannels, signal, pan, mul)
 		};
-		if(signal.size > 1) { output = output.sum };
+
+		if(mono.not) {
+			if(mix.not) {
+				// if multichannel, take only the diagonal
+				output = numChannels.collect(output[_]);
+			};
+			output = output.sum;
+		};
 
 		^OffsetOut.ar(\out.kr, output); // we create an out control argument in a different way here.
 	}
