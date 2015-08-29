@@ -13,54 +13,6 @@ live coding them requires that you have your SuperDirt instance in an environmen
 {
 	var numChannels = ~dirt.numChannels;
 
-	// global synth defs: these synths run in each DirtBus and are only released when it is stopped
-	// when you change them, to update them, hit cmd-period (i.e. stop the synths on the server) once.
-	// they'll come back automatically
-
-
-	SynthDef("dirt_delay" ++ numChannels, { |out, effectBus, gate = 1, delaytime, delayfeedback|
-		var signal = In.ar(effectBus, numChannels);
-		signal = SwitchDelay.ar(signal, 1, 1, delaytime, delayfeedback); // from sc3-plugins
-		signal = signal * EnvGen.kr(Env.asr, gate, doneAction:2);
-		Out.ar(out, signal);
-	}).add;
-
-	SynthDef("dirt_limiter" ++ numChannels, { |out, gate = 1|
-		var signal = In.ar(out, numChannels);
-		signal = signal * EnvGen.kr(Env.asr, gate, doneAction:2);
-		ReplaceOut.ar(out, Limiter.ar(signal))
-	}).add;
-
-	// thanks to Jost Muxfeld:
-
-	SynthDef("dirt_reverb" ++ numChannels, { |out, effectBus, gate = 1, amp = 0.1, depth = 0.4|
-		var in, snd, loop;
-
-		in = In.ar(effectBus, numChannels).asArray.sum;
-
-		4.do { in = AllpassN.ar(in, 0.03, { Rand(0.005, 0.02) }.dup(numChannels), 1) };
-
-
-		depth = depth.linlin(0, 1, 0.1, 0.98); // change depth between 0.1 and 0.98
-		loop = LocalIn.ar(numChannels) * { depth + Rand(0, 0.05) }.dup(numChannels);
-		loop = OnePole.ar(loop, 0.5);  // 0-1
-
-		loop = AllpassN.ar(loop, 0.05, { Rand(0.01, 0.05) }.dup(numChannels), 2);
-
-		loop = DelayN.ar(loop, 0.3, [0.19, 0.26] + { Rand(-0.003, 0.003) }.dup(2));
-		loop = AllpassN.ar(loop, 0.05, { Rand(0.03, 0.15) }.dup(numChannels), 2);
-
-		loop = LeakDC.ar(loop);
-		loop = loop + in;
-
-		LocalOut.ar(loop);
-
-		snd = Delay2.ar(loop);
-		snd = snd * EnvGen.kr(Env.asr, gate, doneAction:2);
-
-		Out.ar(out, snd * amp);
-
-	}).add;
 
 
 	// write variants for different sample buffer sizes
@@ -159,6 +111,76 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		signal = BPF.ar(signal, bandqf, 1/bandq) * max(bandq, 1.0);
 		ReplaceOut.ar(out, signal)
 	}).add;
+
+
+	// global synth defs: these synths run in each DirtBus and are only released when it is stopped
+	// when you change them, to update them, hit cmd-period (i.e. stop the synths on the server) once.
+	// they'll come back automatically
+
+	if(\SwitchDelay.asClass.notNil) {
+
+
+		SynthDef("dirt_delay" ++ numChannels, { |out, effectBus, gate = 1, delaytime, delayfeedback|
+			var signal = In.ar(effectBus, numChannels);
+
+			// from sc3-plugins
+			signal = SwitchDelay.ar(signal, 1, 1, delaytime, delayfeedback);
+
+			signal = signal * EnvGen.kr(Env.asr, gate, doneAction:2);
+			Out.ar(out, signal);
+
+		}).add;
+	} {
+		SynthDef("dirt_delay" ++ numChannels, { |out, effectBus, gate = 1, delaytime, delayfeedback|
+			var signal = In.ar(effectBus, numChannels);
+			var loop = LocalIn.ar(numChannels);
+
+			signal = signal + (loop * delayfeedback.lag(0.3));
+			signal = DelayC.ar(signal, 1, 1, delaytime.lag(1));
+			LocalOut.ar(signal);
+
+			signal = LeakDC.ar(signal) * EnvGen.kr(Env.asr, gate, doneAction:2);
+			Out.ar(out, signal);
+		}).add;
+	};
+
+	SynthDef("dirt_limiter" ++ numChannels, { |out, gate = 1|
+		var signal = In.ar(out, numChannels);
+		signal = signal * EnvGen.kr(Env.asr, gate, doneAction:2);
+		ReplaceOut.ar(out, Limiter.ar(signal))
+	}).add;
+
+	// thanks to Jost Muxfeld:
+
+	SynthDef("dirt_reverb" ++ numChannels, { |out, effectBus, gate = 1, amp = 0.1, depth = 0.4|
+		var in, snd, loop;
+
+		in = In.ar(effectBus, numChannels).asArray.sum;
+
+		4.do { in = AllpassN.ar(in, 0.03, { Rand(0.005, 0.02) }.dup(numChannels), 1) };
+
+
+		depth = depth.linlin(0, 1, 0.1, 0.98); // change depth between 0.1 and 0.98
+		loop = LocalIn.ar(numChannels) * { depth + Rand(0, 0.05) }.dup(numChannels);
+		loop = OnePole.ar(loop, 0.5);  // 0-1
+
+		loop = AllpassN.ar(loop, 0.05, { Rand(0.01, 0.05) }.dup(numChannels), 2);
+
+		loop = DelayN.ar(loop, 0.3, [0.19, 0.26] + { Rand(-0.003, 0.003) }.dup(2));
+		loop = AllpassN.ar(loop, 0.05, { Rand(0.03, 0.15) }.dup(numChannels), 2);
+
+		loop = LeakDC.ar(loop);
+		loop = loop + in;
+
+		LocalOut.ar(loop);
+
+		snd = Delay2.ar(loop);
+		snd = snd * EnvGen.kr(Env.asr, gate, doneAction:2);
+
+		Out.ar(out, snd * amp);
+
+	}).add;
+
 
 	"---- core synth defs loaded ----".postln;
 

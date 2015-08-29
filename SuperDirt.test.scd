@@ -161,6 +161,7 @@ Tdef(\x).stop;
 // test delay:
 
 ~d1.(nil, 1, 'cy:10', speed: 1, delaytime: 0.8, delay: 1);
+~d1.(nil, 1, 'cy:10', speed: 1, delaytime: 0.8, delay: 1, delayfeedback: 0.4);
 ~d1.(nil, 1, 'cy:10', speed: 1, delaytime: 0.8, delay: 0);
 ~d1.(nil, 1, 'cy:10', speed: 1, delaytime: 0.2, delay: 1);
 
