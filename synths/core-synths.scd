@@ -3,7 +3,8 @@
 CORE SYNTHDEFS FOR DIRT
 
 these synthdefs can be hacked at runtime, but they are absolutely necessary for tidal to work correctly.
-Their name shouldn't be changed.
+
+Their name and parameter names shouldn't be changed. Parameter names can be added though.
 
 live coding them requires that you have your SuperDirt instance in an environment variable called ~dirt.
 

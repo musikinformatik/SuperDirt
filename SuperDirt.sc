@@ -2,8 +2,6 @@
 
 SuperCollider implementation of Dirt
 
-Requires: sc3-plugins, Vowel Quark
-
 
 Open Qustions:
 
@@ -15,7 +13,8 @@ TODO:
 * let's make a nice protocol of how to extend it better
 
 One first step would be: Tidal sends pairs of argument names and values
-Then we could map arguments to effects, and new effects could easity be added
+If tidal sends only those that matter (omitting the defaults) this would be more efficient
+Then we could map arguments to effects, and new effects could be added easily
 
 */
 
