@@ -1,0 +1,80 @@
+
+/*
+
+A few UGen classes that build subgraphs for SuperDirt Synths
+
+*/
+
+
+
+/*
+convenience methods for panning and releasing
+*/
+
+DirtPanOut {
+
+	*ar { |signal, numChannels, pan = 0.0, mul = 1.0, mix = false|
+
+		var output, mono;
+
+		mono = signal.size <= 1;
+
+		if(numChannels == 2) {
+			output = Pan2.ar(signal, (pan * 2) - 1, mul)
+		} {
+			output = PanAz.ar(numChannels, signal, pan, mul)
+		};
+
+		if(mono.not) {
+			if(mix.not) {
+				// if multichannel, take only the diagonal
+				output = numChannels.collect(output[_]);
+			};
+			output = output.sum;
+		};
+
+		^OffsetOut.ar(\out.kr, output); // we create an out control argument in a different way here.
+	}
+}
+
+
+/*
+In order to avoid bookkeeping on the language side, we implement cutgroups as follows:
+The language initialises the synth with its sample id (some number that correlates with the sample name) and the cutgroup.
+Before we start the new synth, we send a /set message to all synths, and those that match the specifics will be released.
+*/
+
+DirtGateCutGroup {
+
+	*ar { |gate = 1, releaseTime = 0.02, doneAction = 2|
+		// this is necessary because the message "==" tests for objects, not for signals
+		var same = { |a, b| BinaryOpUGen('==', a, b) };
+		var sameCutGroup = same.(\cutGroup.kr(0), abs(\gateCutGroup.kr(0)));
+		var sameSample = same.(\sample.kr(0), \gateSample.kr(0));
+		var which = \gateCutGroup.kr(0).sign; // -1, 0, 1
+		var free = Select.kr(which + 1, // 0, 1, 2
+			[
+				sameSample,
+				0.0, // default cut group 0 doesn't ever cut
+				1.0
+			]
+		) * sameCutGroup; // same cut group is mandatory
+
+		// this is a workaround for a somewhat broken behaviour of the doneAction 13
+		EnvGen.kr(Env.asr(0, 1, releaseTime), (1 - free), doneAction:13);
+
+		^EnvGen.ar(Env.asr(0, 1, releaseTime), (1 - free) * gate, doneAction:doneAction);
+	}
+}
+
+
+DirtReleaseAfter {
+
+	*ar { |sustain, releaseTime = 0.02, doneAction = 2|
+		^DirtGateCutGroup.ar(EnvGen.kr(Env.linen(0, sustain, 0)), releaseTime, doneAction)
+	}
+}
+
+
+
+

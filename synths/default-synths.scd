@@ -12,11 +12,11 @@ If your SuperDirt instance is assigned to the variable ~dirt, you can livecode t
 SynthDef(\imp, { |speed = 1, start=0, end=1, pan, accelerate, amp = 1, offset|
 	var env, sound, dur, rate, phase;
 	dur = (end - start) / speed * 0.5;
-	env = EnvGen.ar(Env.perc(0.002, dur, amp * 0.3, -1), timeScale:dur, doneAction:2);
+	env = EnvGen.ar(Env.perc(0.001, dur, amp * 0.3, -1), timeScale:dur, doneAction:2);
 	phase = Line.ar(start, end, dur);
 	rate = (start + 1) * (speed + Sweep.kr(1, accelerate));
-	sound = Blip.ar(rate.linexp(0, 1, 1, 220) * [1, 1.25, 1.51, 1.42], ExpRand(5, 118) * phase).sum;
-	~dirt.panOut(sound, pan, env)
+	sound = Blip.ar(rate.linexp(0, 1, 1, 220) * [1, 1.25, 1.51, 1.42], ExpRand(80, 118) * phase).sum;
+	DirtPanOut.ar(sound, ~dirt.numChannels, pan, env)
 }).add;
 
 // cursor modulated phase mod sines
@@ -30,7 +30,7 @@ SynthDef(\pmsin, { |speed = 1, start=0, end=1, pan, accelerate, amp = 1, offset|
 	phase = Line.ar(start, end, dur);
 	rate = speed + Sweep.kr(1, accelerate);
 	sound = SinOsc.ar(freq, SinOsc.ar(modfreq * (1..5), 0, 1 - phase * 10 * env / (1..5), 0.5pi)).sum;
-	~dirt.panOut(sound, pan, env)
+	DirtPanOut.ar(sound, ~dirt.numChannels, pan, env)
 }).add;
 
 // live audio input
@@ -41,7 +41,7 @@ SynthDef(\in, { |speed = 1, start=0, end=1, pan, accelerate, amp = 1, offset|
 	phase = Line.ar(start, end, dur);
 	rate = (start + 1) * (speed + Sweep.kr(1, accelerate));
 	sound = SoundIn.ar([0, 1]); // stereo in
-	~dirt.panOut(sound, pan, env)
+	DirtPanOut.ar(sound, ~dirt.numChannels, pan, env)
 }).add;
 
 // pitch shifted live audio input
@@ -53,7 +53,7 @@ SynthDef(\inr, { |speed = 1, start=0, end=1, pan, accelerate, amp = 1, offset|
 	rate = (start + 1) * (speed + Sweep.kr(1, accelerate));
 	sound = SoundIn.ar([0, 1]); // stereo in
 	sound = PitchShift.ar(sound, 0.1, rate, 0.02, 0.01);
-	~dirt.panOut(sound, pan, env)
+	DirtPanOut.ar(sound, ~dirt.numChannels, pan, env)
 }).add;
 );
 

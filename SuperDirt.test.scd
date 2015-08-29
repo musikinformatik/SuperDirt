@@ -11,7 +11,6 @@ s.options.memSize = 8192 * 16;
 ~dirt.free; // free old instance
 s.waitForBoot {
 	~dirt = SuperDirt(2, s);
-	~dirt.loadSynthDefs;
 	~dirt.loadSoundFiles;
 	s.sync; // wait until all soundfiles are really loaded
 	~dirt.start([57120, 57121]); // listen on two different ports
