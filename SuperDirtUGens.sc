@@ -11,7 +11,7 @@ A few UGen classes that build subgraphs for SuperDirt Synths
 convenience methods for panning and releasing
 */
 
-DirtPanOut {
+DirtPan {
 
 	*ar { |signal, numChannels, pan = 0.0, mul = 1.0, mix = false|
 
@@ -33,7 +33,8 @@ DirtPanOut {
 			output = output.sum;
 		};
 
-		^OffsetOut.ar(\out.kr, output); // we create an out control argument in a different way here.
+		^output
+
 	}
 }
 

@@ -13,7 +13,6 @@ live coding them requires that you have your SuperDirt instance in an environmen
 {
 	var numChannels = ~dirt.numChannels;
 
-
 	// global synth defs: these synths run in each DirtBus and are only released when it is stopped
 	// when you change them, to update them, hit cmd-period (i.e. stop the synths on the server) once.
 	// they'll come back automatically
@@ -69,7 +68,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 		var name = format("dirt_sample_%_%", sampleNumChannels, numChannels);
 
-		SynthDef(name, { |bufnum, startFrame, endFrame,
+		SynthDef(name, { |out, bufnum, startFrame, endFrame,
 			pan = 0, amp = 0.1, speed = 1, accelerate = 0, keepRunning = 0|
 
 			var sound, rate, phase, krPhase, endGate;
@@ -88,7 +87,9 @@ live coding them requires that you have your SuperDirt instance in an environmen
 				interpolation: 4 // cubic interpolation
 			);
 
-			DirtPanOut.ar(sound, numChannels, pan, amp);
+			sound = DirtPan.ar(sound, numChannels, pan, amp, mix:false);
+
+			OffsetOut.ar(out, sound)
 		}).add;
 	};
 
@@ -159,7 +160,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		ReplaceOut.ar(out, signal)
 	}).add;
 
-
+	"---- core synth defs loaded ----".postln;
 
 }.value
 );
