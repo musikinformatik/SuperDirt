@@ -49,7 +49,10 @@ d2 $ sound "[sn*2 imp bd*3]" |+| speed "1"
 
 ##Options on startup
 - numChannels can be set to anything your soundcard supports
+- for server options, see ServerOptions helpfile: http://doc.sccode.org/Classes/ServerOptions.html
+
+##Options on-the-fly
+- new channels can be created on the fly
 - you can pass the udp port on which superdirt is listenting and the output channel offset (```.start(ports, channels)```)
 - add or edit SynthDef files to add your own synthesis methods to be called from tidal: https://github.com/telephon/SuperDirt/blob/master/synths/default-synths.scd
 - you can live rewrite the core synths (but take care not to break them ...): https://github.com/musikinformatik/SuperDirt/blob/master/synths/core-synths.scd
-- for server options, see ServerOptions helpfile: http://doc.sccode.org/Classes/ServerOptions.html
