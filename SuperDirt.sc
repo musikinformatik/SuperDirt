@@ -400,7 +400,7 @@ DirtBus {
 
 
 		} {
-			"Dirt: no sample or instrument found for this sound: %\n".postf();
+			"Dirt: no sample or instrument found for this sound: '%'\n".postf(sound);
 		}
 	}
 
