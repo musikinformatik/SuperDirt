@@ -80,7 +80,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		vowelAmps = \vowelAmps.ir(0 ! 5) * resonance.linlin(0, 1, 50, 350);
 		vowelRqs = \vowelRqs.ir(0 ! 5) * resonance.linlin(0, 1, 1, 0.1) * 2;
 		//vowelRqs = \vowelRqs.ir(0 ! 5) * resonance.linexp(0, 1, 0.01, 0.2);
-		signal = BPF.ar(signal, vowelFreqs, vowelRqs, vowelAmps).sum;
+		signal = BPF.ar([signal], vowelFreqs, vowelRqs, vowelAmps).sum;
 		//signal = Formlet.ar(signal, vowelFreqs, 0.005, vowelRqs);
 		ReplaceOut.ar(out, signal);
 
