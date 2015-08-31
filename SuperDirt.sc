@@ -49,6 +49,16 @@ SuperDirt {
 		this.stop;
 	}
 
+	getBuffer { |name|
+		var key, index, allbufs;
+		#key, index = name.asString.split($:);
+		key = key.asSymbol;
+		allbufs = buffers[key];
+		if(allbufs.isNil) { ^nil };
+		index = (index ? 0).asInteger;
+		^allbufs[index]
+	}
+
 	loadSoundFiles { |path, fileExtension = "wav", delay = 0.001|
 		var folderPaths;
 		if(server.serverRunning.not) {
@@ -189,18 +199,14 @@ DirtBus {
 		bandqf = 0, bandq = 0,
 		unit = \r|
 
-		var amp, allbufs, buffer;
-		var instrument, key, index, sample;
+		var amp, buffer, instrument, sample;
 		var temp;
 		var length, sampleRate, numFrames, bufferDuration;
 		var sustain, startFrame, endFrame;
 		var numChannels = dirt.numChannels;
 		var synthGroup;
 
-		#key, index = sound.asString.split($:);
-		key = key.asSymbol;
-		allbufs = dirt.buffers[key];
-		index = (index ? 0).asInteger;
+
 
 		/*
 		"cps: %, sound: %, offset: %, start: %, end: %, speed: %, pan: %, velocity: %, vowel: %, cutoff: %, resonance: %, accelerate: %, shape: %, krio: %, gain: %, cutgroup: %, delay: %, delaytime: %, delayfeedback: %, crush: %, coarse: %, hcutoff: %, hresonance: %, bandqf: %, bandq: %,unit: %"
@@ -216,193 +222,195 @@ DirtBus {
 		*/
 
 
-		if(allbufs.notNil or: { SynthDescLib.at(key).notNil }) {
+		buffer = dirt.getBuffer(sound);
 
+		if(buffer.notNil) {
+			if(buffer.sampleRate.isNil) {
+				"Dirt: buffer '%' not yet completely read".format(sound).warn; ^this
+			};
+			numFrames = buffer.numFrames;
+			bufferDuration = buffer.duration;
+			sampleRate = buffer.sampleRate;
+			sample = sound.identityHash;
+			instrument = format("dirt_sample_%_%", buffer.numChannels, numChannels);
 
-			if(allbufs.notNil) {
-				buffer = allbufs.wrapAt(index);
-				if(buffer.sampleRate.isNil) {
-					"Dirt: buffer '%' not loaded yet".format(sound).warn; ^this
-				};
-				numFrames = buffer.numFrames;
-				bufferDuration = buffer.duration;
-				sampleRate = buffer.sampleRate;
-				sample = sound.identityHash;
-				instrument = format("dirt_sample_%_%", buffer.numChannels, numChannels);
-			} {
-				instrument = key;
+		} {
+			if(SynthDescLib.at(sound).notNil) {
+				instrument = sound;
 				sampleRate = server.sampleRate;
 				numFrames = sampleRate; // assume one second
 				bufferDuration = 1.0;
-			};
-
-			if(end >= start) {
-				if(speed < 0) { temp = end; end = start; start = temp };
-				length = end - start;
 			} {
-				// backwards
-				length = start - end;
-				speed = speed.neg;
+				"Dirt: no sample or instrument found for '%'.\n".postf(sound);
+				^this
+			}
+		};
+
+		if(end >= start) {
+			if(speed < 0) { temp = end; end = start; start = temp };
+			length = end - start;
+		} {
+			// backwards
+			length = start - end;
+			speed = speed.neg;
+		};
+
+		if(unit == \rate) { unit = \r }; // API adaption to tidal output
+		unit = unit ? \r;
+		amp = pow(gain, 4);
+
+		// sustain is the duration of the sample
+		switch(unit,
+			\r, {
+				sustain = bufferDuration * length / speed;
+				startFrame = numFrames * start;
+				endFrame = numFrames * end;
+			},
+			\c, {
+				sustain = length / cps;
+				speed = speed * cps;
+				startFrame = numFrames * start;
+				endFrame = numFrames * end;
+			},
+			\s, {
+				sustain = length;
+				startFrame = sampleRate * start;
+				endFrame = sampleRate * end;
+			}
+		);
+
+		//unit.postln;
+		//[\end_start, endFrame - startFrame / sampleRate, \sustain, sustain].postln;
+
+		if(accelerate != 0) {
+			// assumes linear acceleration
+			sustain = sustain + (accelerate * sustain * 0.5 * speed.sign.neg);
+		};
+
+		synthGroup = server.nextNodeID;
+		latency = latency ? 0.0 + server.latency;
+
+		server.makeBundle(latency, { // use this to build a bundle
+
+			if(cutgroup != 0) {
+				server.sendMsg(\n_set, group, \gateCutGroup, cutgroup, \gateSample, sample);
 			};
 
-			if(unit == \rate) { unit = \r }; // API adaption to tidal output
-			unit = unit ? \r;
-			amp = pow(gain, 4);
+			// set global delay synth parameters
+			if(delaytime != 0 or: { delayfeedback != 0 }) {
+				server.sendMsg(\n_set, globalEffects[\dirt_delay].nodeID,
+					\delaytime, delaytime,
+					\delayfeedback, delayfeedback
+				);
+			};
 
-			// sustain is the duration of the sample
-			switch(unit,
-				\r, {
-					sustain = bufferDuration * length / speed;
-					startFrame = numFrames * start;
-					endFrame = numFrames * end;
-				},
-				\c, {
-					sustain = length / cps;
-					speed = speed * cps;
-					startFrame = numFrames * start;
-					endFrame = numFrames * end;
-				},
-				\s, {
-					sustain = length;
-					startFrame = sampleRate * start;
-					endFrame = sampleRate * end;
-				}
+			server.sendMsg(\g_new, synthGroup, 1, group); // make new group. it is freed from the monitor.
+
+
+			this.sendSynth(instrument, [
+				sustain: sustain,
+				speed: speed,
+				bufnum: buffer,
+				start: start,
+				end: end,
+				startFrame: startFrame,
+				endFrame: endFrame,
+				pan: pan,
+				accelerate: accelerate,
+				amp: amp,
+				offset: offset,
+				cps: cps,
+				out: synthBus],
+			synthGroup
 			);
 
-			//unit.postln;
-			//[\end_start, endFrame - startFrame / sampleRate, \sustain, sustain].postln;
+			if(vowel.notNil) {
+				vowel = dirt.vowels[vowel];
+				if(vowel.notNil) {
+					this.sendSynth("dirt_vowel" ++ numChannels,
+						[
+							out: synthBus,
+							vowelFreqs: vowel.freqs,
+							vowelAmps: vowel.amps,
+							vowelRqs: vowel.rqs,
+							resonance: resonance,
+						],
+						synthGroup
+					)
+				}
 
-			if(accelerate != 0) {
-				// assumes linear acceleration
-				sustain = sustain + (accelerate * sustain * 0.5 * speed.sign.neg);
 			};
 
-			synthGroup = server.nextNodeID;
-			latency = latency ? 0.0 + server.latency;
-
-			server.makeBundle(latency, { // use this to build a bundle
-
-				if(cutgroup != 0) {
-					server.sendMsg(\n_set, group, \gateCutGroup, cutgroup, \gateSample, sample);
-				};
-
-				// set global delay synth parameters
-				if(delaytime != 0 or: { delayfeedback != 0 }) {
-					server.sendMsg(\n_set, globalEffects[\dirt_delay].nodeID,
-						\delaytime, delaytime,
-						\delayfeedback, delayfeedback
-					);
-				};
-
-				server.sendMsg(\g_new, synthGroup, 1, group); // make new group. it is freed from the monitor.
-
-
-				this.sendSynth(instrument, [
-					sustain: sustain,
-					speed: speed,
-					bufnum: buffer,
-					start: start,
-					end: end,
-					startFrame: startFrame,
-					endFrame: endFrame,
-					pan: pan,
-					accelerate: accelerate,
-					amp: amp,
-					offset: offset,
-					cps: cps,
-					out: synthBus],
-				synthGroup
-				);
-
-				if(vowel.notNil) {
-					vowel = dirt.vowels[vowel];
-					if(vowel.notNil) {
-						this.sendSynth("dirt_vowel" ++ numChannels,
-							[
-								out: synthBus,
-								vowelFreqs: vowel.freqs,
-								vowelAmps: vowel.amps,
-								vowelRqs: vowel.rqs,
-								resonance: resonance,
-							],
-							synthGroup
-						)
-					}
-
-				};
-
-				if(hcutoff != 0) {
-					this.sendSynth("dirt_hpf" ++ numChannels,
-						[
-							hcutoff: hcutoff,
-							hresonance: hresonance,
-							out: synthBus
-						],
-						synthGroup
-					)
-				};
-
-				if(bandqf != 0) {
-					this.sendSynth("dirt_bpf" ++ numChannels,
-						[
-							bandqf: bandqf,
-							bandq: bandq,
-							out: synthBus
-						],
-						synthGroup
-					)
-				};
-
-				if(crush != 0) {
-					this.sendSynth("dirt_crush" ++ numChannels,
-						[
-							crush: crush,
-							out: synthBus
-						],
-						synthGroup
-					)
-				};
-
-				if(coarse > 1) { // coarse == 1 => full rate
-					this.sendSynth("dirt_coarse" ++ numChannels,
-						[
-							coarse: coarse,
-							out: synthBus
-						],
-						synthGroup
-					)
-				};
-
-
-				this.sendSynth("dirt_monitor" ++ numChannels,
+			if(hcutoff != 0) {
+				this.sendSynth("dirt_hpf" ++ numChannels,
 					[
-						in: synthBus,  // read from private
-						out: outBus,     // write to outBus,
-						globalEffectBus: globalEffectBus,
-						effectAmp: delay,
-						cutGroup: cutgroup.abs, // ignore negatives here!
-						sample: sample, // required for the cutgroup mechanism
-						sustain: sustain, // after sustain, free all synths and group
-						release: releaseTime // fade out
+						hcutoff: hcutoff,
+						hresonance: hresonance,
+						out: synthBus
 					],
 					synthGroup
-				);
+				)
+			};
+
+			if(bandqf != 0) {
+				this.sendSynth("dirt_bpf" ++ numChannels,
+					[
+						bandqf: bandqf,
+						bandq: bandq,
+						out: synthBus
+					],
+					synthGroup
+				)
+			};
+
+			if(crush != 0) {
+				this.sendSynth("dirt_crush" ++ numChannels,
+					[
+						crush: crush,
+						out: synthBus
+					],
+					synthGroup
+				)
+			};
+
+			if(coarse > 1) { // coarse == 1 => full rate
+				this.sendSynth("dirt_coarse" ++ numChannels,
+					[
+						coarse: coarse,
+						out: synthBus
+					],
+					synthGroup
+				)
+			};
 
 
-			});
-
-			// free group after sustain: this won't be needed after doneAction 14 works in SC 3.7.0
-
-			server.sendBundle(latency + sustain + releaseTime,
-				["/error", -1], // surpress error whe it has been freed already by a cut
-				["/n_free", synthGroup]
+			this.sendSynth("dirt_monitor" ++ numChannels,
+				[
+					in: synthBus,  // read from private
+					out: outBus,     // write to outBus,
+					globalEffectBus: globalEffectBus,
+					effectAmp: delay,
+					cutGroup: cutgroup.abs, // ignore negatives here!
+					sample: sample, // required for the cutgroup mechanism
+					sustain: sustain, // after sustain, free all synths and group
+					release: releaseTime // fade out
+				],
+				synthGroup
 			);
 
 
-		} {
-			"Dirt: no sample or instrument found for this sound: '%'\n".postf(sound);
-		}
+		});
+
+		// free group after sustain: this won't be needed after doneAction 14 works in SC 3.7.0
+
+		server.sendBundle(latency + sustain + releaseTime,
+			["/error", -1], // surpress error whe it has been freed already by a cut
+			["/n_free", synthGroup]
+		);
+
+
 	}
+
 
 	openNetworkConnection {
 
