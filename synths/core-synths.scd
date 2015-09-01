@@ -115,7 +115,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 	SynthDef("dirt_shape" ++ numChannels, { |out, shape = 0|
 		var signal = In.ar(out, numChannels);
-		signal = SinOsc.ar(0, signal * shape * 2pi);
+		signal = (1 + shape) * signal / (1 + (shape * abs(signal)));
 		ReplaceOut.ar(out, signal)
 	}).add;
 
