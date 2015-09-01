@@ -297,7 +297,7 @@ DirtBus {
 			};
 
 			// set global delay synth parameters
-			if(delaytime != 0 or: { delayfeedback != 0 }) {
+			if(delaytime > 0 or: { delayfeedback > 0 }) {
 				server.sendMsg(\n_set, globalEffects[\dirt_delay].nodeID,
 					\delaytime, delaytime,
 					\delayfeedback, delayfeedback
