@@ -191,7 +191,7 @@ DirtBus {
 	value {
 		|latency, cps = 1, sound, offset = 0, start = 0, end = 1, speed = 1, pan = 0, velocity,
 		vowel, cutoff = 300, resonance = 0.5,
-		accelerate = 0, shape, krio, gain = 1, cutgroup = 0,
+		accelerate = 0, shape = 0, krio, gain = 1, cutgroup = 0,
 		delay = 0, delaytime = 0, delayfeedback = 0,
 		crush = 0,
 		coarse = 0,
@@ -339,6 +339,16 @@ DirtBus {
 					)
 				}
 
+			};
+
+			if(shape != 0) {
+				this.sendSynth("dirt_shape" ++ numChannels,
+					[
+						shape: shape,
+						out: synthBus
+					],
+					synthGroup
+				)
 			};
 
 			if(hcutoff != 0) {

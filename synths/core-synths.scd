@@ -113,6 +113,12 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		ReplaceOut.ar(out, signal)
 	}).add;
 
+	SynthDef("dirt_shape" ++ numChannels, { |out, shape = 0|
+		var signal = In.ar(out, numChannels);
+		signal = SinOsc.ar(0, signal * shape * 2pi);
+		ReplaceOut.ar(out, signal)
+	}).add;
+
 
 	// global synth defs: these synths run in each DirtBus and are only released when it is stopped
 	// when you change them, to update them, hit cmd-period (i.e. stop the synths on the server) once.
@@ -158,8 +164,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 		in = In.ar(effectBus, numChannels).asArray.sum;
 
-		4.do { in = AllpassN.ar(in, 0.03, { Rand(0.005, 0.02) }.dup(numChannels), 1) };
-
+		4.do { in = AllpassN.ar(in, 0.02, { Rand(0.005, 0.02) }.dup(numChannels), 1) };
 
 		depth = depth.linlin(0, 1, 0.1, 0.98); // change depth between 0.1 and 0.98
 		loop = LocalIn.ar(numChannels) * { depth + Rand(0, 0.05) }.dup(numChannels);
