@@ -1,6 +1,7 @@
 /*
 
 CORE SYNTHDEFS FOR DIRT
+(REQUIRED: CORE MODULES)
 
 these synthdefs can be hacked at runtime, but they are absolutely necessary for tidal to work correctly.
 
@@ -22,7 +23,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		var name = format("dirt_sample_%_%", sampleNumChannels, numChannels);
 
 		SynthDef(name, { |out, bufnum, startFrame, endFrame,
-			pan = 0, amp = 0.1, speed = 1, accelerate = 0, keepRunning = 0|
+			pan = 0, speed = 1, accelerate = 0, keepRunning = 0|
 
 			var sound, rate, phase, krPhase, endGate;
 
@@ -40,7 +41,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 				interpolation: 4 // cubic interpolation
 			);
 
-			sound = DirtPan.ar(sound, numChannels, pan, amp, mix:false);
+			sound = DirtPan.ar(sound, numChannels, pan, mix:false);
 
 			OffsetOut.ar(out, sound)
 		}).add;
@@ -55,11 +56,11 @@ live coding them requires that you have your SuperDirt instance in an environmen
 	// the monitor does the mixing and zeroing of the busses for each sample grain
 	// so that they can all play in one bus
 
-	SynthDef("dirt_monitor" ++ numChannels, { |out, in, globalEffectBus, effectAmp = 0, sustain = 1, release = 0.02|
+	SynthDef("dirt_monitor" ++ numChannels, { |out, in, globalEffectBus, effectAmp = 0, sustain = 1, release = 0.02, amp = 0.1|
 		var signal = In.ar(in, numChannels);
 		//  doneAction:13 = must release all other synths in group.
 		// ideally, 14 but it doesn't work before 9d15cdc746627829a9598694cf4feaa6aab0bd90.
-		signal = signal * DirtReleaseAfter.ar(sustain, releaseTime: release, doneAction:2);
+		signal = signal * amp * DirtReleaseAfter.ar(sustain, releaseTime: release, doneAction:2);
 		Out.ar(out, signal);
 		Out.ar(globalEffectBus, signal * effectAmp);
 		ReplaceOut.ar(in, Silent.ar(numChannels)) // clears bus signal for subsequent synths
@@ -110,6 +111,12 @@ live coding them requires that you have your SuperDirt instance in an environmen
 	SynthDef("dirt_bpf" ++ numChannels, { |out, bandqf = 440, bandq = 10|
 		var signal = In.ar(out, numChannels);
 		signal = BPF.ar(signal, bandqf, 1/bandq) * max(bandq, 1.0);
+		ReplaceOut.ar(out, signal)
+	}).add;
+
+	SynthDef("dirt_shape" ++ numChannels, { |out, shape = 0|
+		var signal = In.ar(out, numChannels);
+		signal = (1 + shape) * signal / (1 + (shape * abs(signal)));
 		ReplaceOut.ar(out, signal)
 	}).add;
 

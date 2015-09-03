@@ -70,22 +70,25 @@ TEST SPEED/START/END
 (
 Tdef(\x, {
 	loop {
-		~d1.(nil, 1, 'cy:10', 0, 0.3.rand, 1.0.rand, 1 + 1.3.rand2, 2.rand2, accelerate:0);
+		~d1.([sound: 'cy:10', 0, 0.3.rand, 1.0.rand, 1 + 1.3.rand2, 2.rand2, accelerate:0]);
 		(0.2 * [1, 2, 1/3]).choose.wait;
 	}
 }).play;
 )
 
-~d1.(nil, 1, 'cy:10', speed: 1);
-~d1.(nil, 1, 'cy:10', speed: -1);
-~d1.(nil, 1, 'cy:10', speed: 2, accelerate: -1);
-~d1.(nil, 1, 'cy:10', speed: -2, accelerate: 1);
+~d1.([sound: 'cy:10', speed: 1]);
+~d1.([sound: 'cy:10', speed: -1]);
+~d1.([sound: 'cy:10', speed: 2, accelerate: -1]);
+~d1.([sound: 'cy:10', speed: -2, accelerate: 1]);
 
-~d1.(nil, 1, 'cy:10', speed: 1, accelerate: -0.2);
-~d1.(nil, 1, 'cy:10', speed: 0.5, accelerate: -0.3);
+~d1.([sound: 'cy:10', speed: 1, accelerate: -0.2]);
+~d1.([sound: 'cy:10', speed: 0.5, accelerate: -0.3]);
 
-~d1.(nil, 1, 'sd:8', speed: 1);
-~d1.(nil, 1, 'cy:10', speed: 2);
+~d1.(['sd:8', speed: 1]);
+~d1.([sound: 'cy:10', speed: 2]);
+
+
+~d1.value2([sound: 'cy:10', speed: 1]]);
 
 
 
@@ -93,12 +96,12 @@ Tdef(\x, {
 TEST PANNING
 */
 
-~d1.(nil, 1, 'cy:10', pan:0);
-~d1.(nil, 1, 'cy:10', pan:1);
-~d1.(nil, 1, 'cy:10', pan:0.5);
-~d1.(nil, 1, 'uxay', pan:0);
-~d1.(nil, 1, 'uxay', pan:1);
-~d1.(nil, 1, 'uxay', pan:0.5);
+~d1.([sound: 'cy:10', pan:0]);
+~d1.([sound: 'cy:10', pan:1]);
+~d1.([sound: 'cy:10', pan:0.5]);
+~d1.([sound: 'uxay', pan:0]);
+~d1.([sound: 'uxay', pan:1]);
+~d1.([sound: 'uxay', pan:0.5]);
 
 /*
 
@@ -107,36 +110,36 @@ TEST EFFECTS
 */
 
 
-~d1.(nil, 1, 'cy:10', speed: 0.2, crush: 4);
-~d1.(nil, 1, 'cy:10', speed: 0.2, coarse: 8);
+~d1.([sound: 'cy:10', speed: 0.2, crush: 4]);
+~d1.([sound: 'cy:10', speed: 0.2, coarse: 8]);
 
-~d1.(nil, 1, 'cy:10', speed: 0.2, crush: 4, coarse: 38);
-~d1.(nil, 1, 'cy:10', speed: 1, crush: 4);
-~d1.(nil, 1, 'cy:10', speed: 1, hcutoff: 1000, hresonance: 20);
-~d1.(nil, 1, 'cy:10', speed: 1, hcutoff: 3000, hresonance: 10);
-~d1.(nil, 1, 'cy:10', speed: 1, bandqf: 3000, bandq: 100);
-~d1.(nil, 1, 'cy:10', speed: 1, bandqf: 3000, bandq: 100, coarse: 13);
-~d1.(nil, 1, 'cy:10', speed: 1, bandqf: 3000, bandq: 100, crush: 1);
-~d1.(nil, 1, 'cy:10', speed: 1, hcutoff: 1000, hresonance: 20, coarse: 0.10);
+~d1.([sound: 'cy:10', speed: 0.2, crush: 4, coarse: 38]);
+~d1.([sound: 'cy:10', speed: 1, crush: 4]);
+~d1.([sound: 'cy:10', speed: 1, hcutoff: 1000, hresonance: 20]);
+~d1.([sound: 'cy:10', speed: 1, hcutoff: 3000, hresonance: 10]);
+~d1.([sound: 'cy:10', speed: 1, bandqf: 3000, bandq: 100]);
+~d1.([sound: 'cy:10', speed: 1, bandqf: 3000, bandq: 100, coarse: 13]);
+~d1.([sound: 'cy:10', speed: 1, bandqf: 3000, bandq: 100, crush: 1]);
+~d1.([sound: 'cy:10', speed: 1, hcutoff: 1000, hresonance: 20, coarse: 0.10]);
 
 
 // test vowels
-~d1.(nil, 1, 'cy:10', speed: 1, vowel: \a);
-~d1.(nil, 1, 'cy:10', speed: 1, vowel: \i, resonance: 1, cutoff: 200, gain: 2);
-~d1.(nil, 1, 'cy:10', speed: 1, vowel: \a, resonance: 0.1);
-~d1.(nil, 1, 'cy:10', speed: 1, vowel: \o, resonance: 0.1);
-~d1.(nil, 1, 'cy:10', speed: 1, vowel: \o, resonance: 0.1, coarse: 30);
+~d1.([sound: 'cy:10', speed: 1, vowel: \a]);
+~d1.([sound: 'cy:10', speed: 1, vowel: \i, resonance: 1, cutoff: 200, gain: 2]);
+~d1.([sound: 'cy:10', speed: 1, vowel: \a, resonance: 0.1]);
+~d1.([sound: 'cy:10', speed: 1, vowel: \o, resonance: 0.1]);
+~d1.([sound: 'cy:10', speed: 1, vowel: \o, resonance: 0.1, coarse: 30]);
 
 
-~d1.(nil, 1, 'cy:10', speed: 1, vowel: \a, resonance: 0.1, pan: 0);
-~d1.(nil, 1, 'cy:10', speed: 1, vowel: \a, resonance: 0.1, pan: 1);
+~d1.([sound: 'cy:10', speed: 1, vowel: \a, resonance: 0.1, pan: 0]);
+~d1.([sound: 'cy:10', speed: 1, vowel: \a, resonance: 0.1, pan: 1]);
 
 
 
 (
 Tdef(\x, {
 	loop {
-		~d1.(nil, 1, 'sd:8', start: 0, end: 1, speed: 1, vowel: "aeiou".choose.asSymbol, resonance: 0.6, cutoff: 540, gain: 1);
+		~d1.([sound: 'sd:8', start: 0, end: 1, speed: 1, vowel: "aeiou".choose.asSymbol, resonance: 0.6, cutoff: 540, gain: 1]);
 		1.wait;
 		//(0.3 * [1, 2, 1/3]).choose.wait;
 	}
@@ -146,7 +149,7 @@ Tdef(\x, {
 (
 Tdef(\x, {
 	loop {
-		~d1.(nil, 1, 'sd:8', start: 0, end: 1.0.rand, speed: 2.5, vowel: "aeiou".choose.asSymbol, resonance: 0.5, cutoff: 202);
+		~d1.([sound: 'sd:8', start: 0, end: 1.0.rand, speed: 2.5, vowel: "aeiou".choose.asSymbol, resonance: 0.5, cutoff: 202]);
 		0.1.wait;
 	}
 }).play;
@@ -156,7 +159,7 @@ Tdef(\x, {
 (
 Tdef(\x, {
 	loop {
-		~d1.(nil, 1, 'sd:8', start: 0, end: 1.0.rand, speed: 12.5, vowel: "aeiou".choose.asSymbol, resonance: 1, cutoff: 202);
+		~d1.([sound: 'sd:8', start: 0, end: 1.0.rand, speed: 12.5, vowel: "aeiou".choose.asSymbol, resonance: 1, cutoff: 202]);
 		0.02.wait;
 	}
 }).play;
@@ -164,14 +167,20 @@ Tdef(\x, {
 
 Tdef(\x).stop;
 
+/*
+
+GLOBAL EFFECTS
+
+*/
+
 // test delay:
 
-~d1.(nil, 1, 'cy:10', speed: 1, delaytime: 0.8, delay: 1);
-~d1.(nil, 1, 'cy:10', speed: 1, delaytime: 0.8, delay: 1, delayfeedback: 0.4);
-~d1.(nil, 1, 'cy:10', speed: 1, delaytime: 0.8, delay: 0);
-~d1.(nil, 1, 'cy:10', speed: 1, delaytime: 0.2, delay: 1);
+~d1.([sound: 'cy:10', speed: 1, delaytime: 0.8, delay: 1]);
+~d1.([sound: 'cy:10', speed: 1, delaytime: 0.8, delay: 1, delayfeedback: 0.4]);
+~d1.([sound: 'cy:10', speed: 1, delaytime: 0.8, delay: 0]);
+~d1.([sound: 'cy:10', speed: 1, delaytime: 0.2, delay: 1]);
 
-fork { (0, 0.1 ..1).do { |a| ~d1.(nil, 1, 'cy:10', speed: 1, delaytime: 0.33, delay: a); 1.wait } };
+fork { (0, 0.1 ..1).do { |a| ~d1.([sound: 'cy:10', speed: 1, delaytime: 0.33, delay: a]); 1.wait } };
 
 
 /*
@@ -182,23 +191,23 @@ TEST CUTGROUPS
 
 
 // cutgroup tests
-~d1.(nil, 1, 'cy:10', speed: 0.02, cutgroup: -8); // really slow, to keep it on: see synth reading
-~d1.(nil, 1, 'cy:10', speed: 0.02, cutgroup: -8); // cut the old one: number stays the same
-~d1.(nil, 1, 'cy:10', speed: 0.02, cutgroup: -8); // ... again
+~d1.([sound: 'cy:10', speed: 0.02, cutgroup: -8]); // really slow, to keep it on: see synth reading
+~d1.([sound: 'cy:10', speed: 0.02, cutgroup: -8]); // cut the old one: number stays the same
+~d1.([sound: 'cy:10', speed: 0.02, cutgroup: -8]); // ... again
 
  // this should add another one, as the cutgroups are independent between ~d1 and ~d2
-~d2.(nil, 1, 'cy:10', speed: 0.02, cutgroup: -8);
-~d2.(nil, 1, 'cy:10', speed: 0.02, cutgroup: -8); // cut the old one, add the new one, same synth count
+~d1.([sound:'cy:10', speed: 0.02, cutgroup: -8]);
+~d1.([sound:'cy:10', speed: 0.02, cutgroup: -8]); // cut the old one, add the new one, same synth count
 
 
 //  With negative, only stop the same sample from playing in the same cutgroup
-~d1.(nil, 1, 'cy:9', speed: 0.02, cutgroup: -8); // a different sample, is added
-~d1.(nil, 1, 'cy:9', speed: 0.02, cutgroup: -8); // the same sample, frees
+~d1.([sound: 'cy:9', speed: 0.02, cutgroup: -8]); // a different sample, is added
+~d1.([sound: 'cy:9', speed: 0.02, cutgroup: -8]); // the same sample, frees
 
 //  with positive integers, stop samples playing that are in the same cutgroup.
-~d1.(nil, 1, 'cy:10', speed: 0.02, cutgroup: 8); // should free all others
+~d1.([sound: 'cy:10', speed: 0.02, cutgroup: 8]); // should free all others
 
-
+~d1.releaseTime = 0.3;
 
 
 
@@ -229,7 +238,7 @@ Tdef(\x, {
 	var name = 'cy:10';
 	var cps = 2;
 	20.do {
-		~d1.(nil, cps:cps, name:name, unit: \r, start: 0, end: 1);
+		~d1.([cps:cps, sound:name, unit: \r, start: 0, end: 1]);
 		cps = cps + 0.3;
 		(1/cps).wait;
 	}
@@ -243,7 +252,7 @@ Tdef(\x, {
 	var name = 'cy:10';
 	var cps = 2;
 	20.do {
-		~d1.(nil, cps:cps, name:name, unit: \c, start: 0, end: 1);
+		~d1.([cps:cps, sound:name, unit: \c, start: 0, end: 1]);
 		cps = cps + 0.3;
 		(1/cps).wait;
 	}
@@ -256,7 +265,7 @@ Tdef(\x, {
 	var name = 'cy:10';
 	var cps = 0.2;
 	loop {
-		~d1.(nil, cps:cps, name:name, unit: \s, start: 0, end: 0.2);
+		~d1.([cps:cps, sound:name, unit: \s, start: 0, end: 0.2]);
 		0.2.wait;
 	}
 }).play
@@ -274,21 +283,21 @@ TEST LIVE CODING SYNTHS
 
 // this is a default synth def
 
-~d1.(nil, 1, 'imp', speed: 1, start: 0, end: 1);
-~d1.(nil, 1, 'imp', speed: 1, start: 0.5, end: 1);
+~d1.(['imp', speed: 1, start: 0, end: 1]);
+~d1.(['imp', speed: 1, start: 0.5, end: 1]);
 
 
-~d1.(nil, 1, 'imp', speed: 0.1, start: 0, end: 1, accelerate: 3);
+~d1.(['imp', speed: 0.1, start: 0, end: 1, accelerate: 3]);
 
-~d1.(nil, 1, 'imp', speed: 1, start: 0, end: 0.3.rand, delay: 1, delaytime: 3);
-~d1.(nil, 1, 'imp', speed: 1, start: 0, end: 0.3.rand, delay: 1, delaytime: 3);
-~d1.(nil, 1, 'imp', speed: 1, start: 0, end: 0.3.rand, delay: 1, delaytime: 3);
+~d1.(['imp', speed: 1, start: 0, end: 0.3.rand, delay: 1, delaytime: 3]);
+~d1.(['imp', speed: 1, start: 0, end: 0.3.rand, delay: 1, delaytime: 3]);
+~d1.(['imp', speed: 1, start: 0, end: 0.3.rand, delay: 1, delaytime: 3]);
 
 
 (
 Tdef(\x, {
 	loop {
-		~d1.(nil, 1, 'imp', 0,
+		~d1.(['imp', 0,
 			speed: rrand(0.1, 2.0),
 			start:1.0.rand,
 			end: 2.0.rand,
@@ -297,7 +306,7 @@ Tdef(\x, {
 			hresonance: 0.5.rand,
 			delay: 1.0.rand,
 			delaytime: 0.2
-		);
+		]);
 		0.5.wait;
 	}
 }).play;
@@ -306,7 +315,7 @@ Tdef(\x, {
 (
 Tdef(\x, {
 	loop {
-		~d1.(nil, 1, 'inr', 0,
+		~d1.(['inr', 0,
 			speed: rrand(0.5, 2.0),
 			start:1.0.rand,
 			end: 2.0.rand,
@@ -315,7 +324,7 @@ Tdef(\x, {
 			//hresonance: 0.5.rand,
 			delay: 1.0.rand,
 			//delaytime: 0.2
-		);
+		]);
 		0.15.wait;
 	}
 }).play;

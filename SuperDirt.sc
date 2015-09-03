@@ -1,6 +1,7 @@
 /*
 
 SuperCollider implementation of Dirt
+version 0.2 (event-based)
 
 
 Open Qustions:
@@ -9,12 +10,6 @@ Open Qustions:
 * should samples reverse when accelerate is negative and large? (currently: no)
 * is accelerate direction relative to rate or absolute? (currently: absolute)
 
-TODO:
-* let's make a nice protocol of how to extend it better
-
-One first step would be: Tidal sends pairs of argument names and values
-If tidal sends only those that matter (omitting the defaults) this would be more efficient
-Then we could map arguments to effects, and new effects could be added easily
 
 */
 
@@ -23,6 +18,7 @@ SuperDirt {
 	var <numChannels, <server;
 	var <buffers, <vowels;
 	var <>dirtBusses;
+	var <>modules;
 
 	classvar <>maxSampleNumChannels = 2;
 
@@ -32,6 +28,7 @@ SuperDirt {
 
 	init {
 		buffers = ();
+		modules = [];
 		this.loadSynthDefs;
 		this.initVowels(\counterTenor);
 	}
@@ -47,6 +44,19 @@ SuperDirt {
 	free {
 		this.freeSoundFiles;
 		this.stop;
+	}
+
+	addModule { |name, func, test|
+		var index, module;
+		// the order of modules determines the order of synths
+		// when replacing a module, we don't change the order
+		module = DirtModule(name, func, test);
+		index = modules.indexOfEqual(module);
+		if(index.isNil) { modules = modules.add(module) } { modules.put(index, module) };
+	}
+
+	clearModules {
+		modules = [];
 	}
 
 	getBuffer { |name|
@@ -89,6 +99,7 @@ SuperDirt {
 		buffers = ();
 	}
 
+	// SynthDefs are signal processing graph definitions
 	loadSynthDefs { |path|
 		var filePaths;
 		path = path ?? { "synths".resolveRelative };
@@ -122,8 +133,10 @@ DirtBus {
 	var <dirt, <port, <server;
 	var <outBus, <senderAddr, <replyAddr;
 	var <synthBus, <globalEffectBus;
-	var group, globalEffects, netResponders;
+	var <group, <globalEffects, netResponders;
 	var <>releaseTime = 0.02;
+
+	var <>defaultParentEvent;
 
 	*new { |dirt, port = 57120, outBus = 0, senderAddr|
 		^super.newCopyArgs(dirt, port, dirt.server, outBus, senderAddr).init
@@ -139,7 +152,9 @@ DirtBus {
 		synthBus = Bus.audio(server, dirt.numChannels);
 		globalEffectBus = Bus.audio(server, dirt.numChannels);
 		this.initNodeTree;
-		this.openNetworkConnection;
+		this.makeDefaultParentEvent;
+
+		this.openNetworkConnection; // start listen
 		ServerTree.add(this, server); // synth node tree init
 	}
 
@@ -168,269 +183,16 @@ DirtBus {
 		globalEffectBus.free;
 	}
 
-	sendSynth { |instrument, args, synthGroup = -1|
-		//args.asOSCArgArray.postln; "--------------".postln;
-		server.sendMsg(\s_new, instrument,
-			-1, // no id
-			1, // add action: addToTail
-			synthGroup, // send to group
-			*args.asOSCArgArray // append all other args
-		)
-	}
-
-
 	// This implements an alternative API, to be accessed via OSC by "/play2"
 
-	value2 { |args| // args are in the shape [key, val, key, val ...]
-		this.performKeyValuePairs(\value, args)
+	value { |args| // args are in the shape [key, val, key, val ...]
+		if(args.first.isKindOf(Symbol).not) { "wrong tidal format, please set 'namedParams = True'".warn; ^this };
+		DirtEvent(this, dirt.modules, args).play
 	}
-
-
-	// This implements the Dirt OSC API, to be accessed via OSC by "/play"
-
-	value {
-		|latency, cps = 1, sound, offset = 0, start = 0, end = 1, speed = 1, pan = 0, velocity,
-		vowel, cutoff = 300, resonance = 0.5,
-		accelerate = 0, shape, krio, gain = 1, cutgroup = 0,
-		delay = 0, delaytime = 0, delayfeedback = 0,
-		crush = 0,
-		coarse = 0,
-		hcutoff = 0, hresonance = 0,
-		bandqf = 0, bandq = 0,
-		unit = \r|
-
-		var amp, buffer, instrument, sample;
-		var temp;
-		var length, sampleRate, numFrames, bufferDuration;
-		var sustain, startFrame, endFrame;
-		var numChannels = dirt.numChannels;
-		var synthGroup;
-
-
-
-		/*
-		"cps: %, sound: %, offset: %, start: %, end: %, speed: %, pan: %, velocity: %, vowel: %, cutoff: %, resonance: %, accelerate: %, shape: %, krio: %, gain: %, cutgroup: %, delay: %, delaytime: %, delayfeedback: %, crush: %, coarse: %, hcutoff: %, hresonance: %, bandqf: %, bandq: %,unit: %"
-		.format(cps, sound, offset, start, end, speed, pan, velocity,
-		vowel, cutoff, resonance,
-		accelerate, shape, krio, gain, cutgroup,
-		delay, delaytime, delayfeedback,
-		crush,
-		coarse,
-		hcutoff, hresonance,
-		bandqf, bandq,
-		unit).postln;
-		*/
-
-
-		buffer = dirt.getBuffer(sound);
-
-		if(buffer.notNil) {
-			if(buffer.sampleRate.isNil) {
-				"Dirt: buffer '%' not yet completely read".format(sound).warn; ^this
-			};
-			numFrames = buffer.numFrames;
-			bufferDuration = buffer.duration;
-			sampleRate = buffer.sampleRate;
-			sample = sound.identityHash;
-			instrument = format("dirt_sample_%_%", buffer.numChannels, numChannels);
-
-		} {
-			if(SynthDescLib.at(sound).notNil) {
-				instrument = sound;
-				sampleRate = server.sampleRate;
-				numFrames = sampleRate; // assume one second
-				bufferDuration = 1.0;
-			} {
-				"Dirt: no sample or instrument found for '%'.\n".postf(sound);
-				^this
-			}
-		};
-
-		if(end >= start) {
-			if(speed < 0) { temp = end; end = start; start = temp };
-			length = end - start;
-		} {
-			// backwards
-			length = start - end;
-			speed = speed.neg;
-		};
-
-		if(unit == \rate) { unit = \r }; // API adaption to tidal output
-		unit = unit ? \r;
-		amp = pow(gain, 4);
-
-		// sustain is the duration of the sample
-		switch(unit,
-			\r, {
-				sustain = bufferDuration * length / speed;
-				startFrame = numFrames * start;
-				endFrame = numFrames * end;
-			},
-			\c, {
-				sustain = length / cps;
-				speed = speed * cps;
-				startFrame = numFrames * start;
-				endFrame = numFrames * end;
-			},
-			\s, {
-				sustain = length;
-				startFrame = sampleRate * start;
-				endFrame = sampleRate * end;
-			}
-		);
-
-		//unit.postln;
-		//[\end_start, endFrame - startFrame / sampleRate, \sustain, sustain].postln;
-
-		if(accelerate != 0) {
-			// assumes linear acceleration
-			sustain = sustain + (accelerate * sustain * 0.5 * speed.sign.neg);
-		};
-
-		synthGroup = server.nextNodeID;
-		latency = latency ? 0.0 + server.latency;
-
-		server.makeBundle(latency, { // use this to build a bundle
-
-			if(cutgroup != 0) {
-				server.sendMsg(\n_set, group, \gateCutGroup, cutgroup, \gateSample, sample);
-			};
-
-			// set global delay synth parameters
-			if(delaytime != 0 or: { delayfeedback != 0 }) {
-				server.sendMsg(\n_set, globalEffects[\dirt_delay].nodeID,
-					\delaytime, delaytime,
-					\delayfeedback, delayfeedback
-				);
-			};
-
-			server.sendMsg(\g_new, synthGroup, 1, group); // make new group. it is freed from the monitor.
-
-
-			this.sendSynth(instrument, [
-				sustain: sustain,
-				speed: speed,
-				bufnum: buffer,
-				start: start,
-				end: end,
-				startFrame: startFrame,
-				endFrame: endFrame,
-				pan: pan,
-				accelerate: accelerate,
-				amp: amp,
-				offset: offset,
-				cps: cps,
-				out: synthBus],
-			synthGroup
-			);
-
-			if(vowel.notNil) {
-				vowel = dirt.vowels[vowel];
-				if(vowel.notNil) {
-					this.sendSynth("dirt_vowel" ++ numChannels,
-						[
-							out: synthBus,
-							vowelFreqs: vowel.freqs,
-							vowelAmps: vowel.amps,
-							vowelRqs: vowel.rqs,
-							resonance: resonance,
-						],
-						synthGroup
-					)
-				}
-
-			};
-
-			if(hcutoff != 0) {
-				this.sendSynth("dirt_hpf" ++ numChannels,
-					[
-						hcutoff: hcutoff,
-						hresonance: hresonance,
-						out: synthBus
-					],
-					synthGroup
-				)
-			};
-
-			if(bandqf != 0) {
-				this.sendSynth("dirt_bpf" ++ numChannels,
-					[
-						bandqf: bandqf,
-						bandq: bandq,
-						out: synthBus
-					],
-					synthGroup
-				)
-			};
-
-			if(crush != 0) {
-				this.sendSynth("dirt_crush" ++ numChannels,
-					[
-						crush: crush,
-						out: synthBus
-					],
-					synthGroup
-				)
-			};
-
-			if(coarse > 1) { // coarse == 1 => full rate
-				this.sendSynth("dirt_coarse" ++ numChannels,
-					[
-						coarse: coarse,
-						out: synthBus
-					],
-					synthGroup
-				)
-			};
-
-
-			this.sendSynth("dirt_monitor" ++ numChannels,
-				[
-					in: synthBus,  // read from private
-					out: outBus,     // write to outBus,
-					globalEffectBus: globalEffectBus,
-					effectAmp: delay,
-					cutGroup: cutgroup.abs, // ignore negatives here!
-					sample: sample, // required for the cutgroup mechanism
-					sustain: sustain, // after sustain, free all synths and group
-					release: releaseTime // fade out
-				],
-				synthGroup
-			);
-
-
-		});
-
-		// free group after sustain: this won't be needed after doneAction 14 works in SC 3.7.0
-
-		server.sendBundle(latency + sustain + releaseTime,
-			["/error", -1], // surpress error whe it has been freed already by a cut
-			["/n_free", synthGroup]
-		);
-
-
-	}
-
 
 	openNetworkConnection {
 
 		this.closeNetworkConnection;
-
-		// current standard protocol
-
-		netResponders.add(
-
-			OSCFunc({ |msg, time, tidalAddr|
-				var latency = time - Main.elapsedTime;
-				if(latency > 2) {
-					"The scheduling delay is too long. Your networks clocks may not be in sync".warn;
-					latency = 0.2;
-				};
-				replyAddr = tidalAddr; // collect tidal reply address
-				this.value(latency, *msg[1..]);
-			}, '/play', senderAddr, recvPort: port).fix
-
-		);
 
 		netResponders.add(
 			// an alternative protocol, uses pairs of parameter names and values in arbitrary order
@@ -441,8 +203,8 @@ DirtBus {
 					latency = 0.2;
 				};
 				replyAddr = tidalAddr; // collect tidal reply address
-				this.value2([\latency, latency] ++ msg[2..]);
-			}, '/play2', senderAddr, recvPort: port).fix
+				this.value([\latency, latency] ++ msg[2..]);
+			}, '/play', senderAddr, recvPort: port).fix
 		);
 
 		"SuperDirt: listening to Tidal on port %".format(port).postln;
@@ -461,4 +223,66 @@ DirtBus {
 		}
 	}
 
+
+	makeDefaultParentEvent {
+		defaultParentEvent = Event.make {
+
+			~cps = 1.0;
+			~offset = 0.0;
+			~start = 0.0;
+			~end = 1.0;
+			~speed = 1.0;
+			~pan = 0.0;
+			~accelerate = 0.0;
+			~gain = 1.0;
+			~cutgroup = 0.0;
+			~unit = \r;
+
+			// values from the dirt bus
+			~dirtBus = this;
+			~dirt = dirt;
+			~synthBus = synthBus;
+			~outBus = outBus;
+			~globalEffectBus = globalEffectBus;
+			~numChannels = dirt.numChannels;
+			~server = server;
+
+			// more defaults:
+			~latency = 0.0;
+			~length = 1.0;
+			~sustain = 1.0;
+			~bufferDuration = 1.0;
+
+			// global effects
+			~delaytime = -1;
+			~delayfeedback = -1;
+		}
+	}
+
+}
+
+
+// DirtModules encapsulate two functions:
+// 1) for testing for parameters (whether or not to start a synth at all)
+// 2) activated when the parameters are found in the message from tidal
+
+
+DirtModule {
+	var <name, <func, <test;
+
+	*new { |name, func, test|
+		^super.newCopyArgs(name, func, test ? true)
+	}
+
+	value { |dirtBus|
+		if(test.value, { func.value(dirtBus) })
+	}
+
+	== { arg that;
+		^this.compareObject(that, #[\name])
+	}
+
+	hash {
+		^this.instVarHash(#[\name])
+	}
 }
