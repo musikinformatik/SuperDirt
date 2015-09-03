@@ -62,9 +62,7 @@ DirtGateCutGroup {
 		) * sameCutGroup; // same cut group is mandatory
 
 		// this is a workaround for a somewhat broken behaviour of the doneAction 13
-		EnvGen.kr(Env.asr(0, 1, releaseTime), (1 - free), doneAction:13);
-
-		^EnvGen.ar(Env.asr(0, 1, releaseTime), (1 - free) * gate, doneAction:doneAction);
+		^EnvGen.ar(Env.asr(0, 1, releaseTime), K2A.ar((1 - free) * gate), doneAction:13)
 	}
 }
 
