@@ -204,7 +204,7 @@ DirtBus {
 		var length, sampleRate, numFrames, bufferDuration;
 		var sustain, startFrame, endFrame;
 		var numChannels = dirt.numChannels;
-		var synthGroup;
+		var synthGroup, monitorID;
 
 
 
@@ -288,6 +288,7 @@ DirtBus {
 		};
 
 		synthGroup = server.nextNodeID;
+		monitorID = server.nextNodeID;
 		latency = latency ? 0.0 + server.latency;
 
 		server.makeBundle(latency, { // use this to build a bundle
@@ -396,7 +397,7 @@ DirtBus {
 
 
 			server.sendMsg(\s_new, "dirt_monitor" ++ numChannels,
-				-1, // no id
+				monitorID,
 				3, // add action: addAfter
 				synthGroup, // send to group
 				*[
@@ -415,11 +416,13 @@ DirtBus {
 		});
 
 		// free group after sustain: this won't be needed after doneAction 14 works in SC 3.7.0
-
+		/*
 		server.sendBundle(latency + sustain + releaseTime,
 			["/error", -1], // surpress error whe it has been freed already by a cut
+			["/n_free", monitorID]
 			["/n_free", synthGroup]
 		);
+		*/
 
 
 	}

@@ -60,11 +60,10 @@ DirtGateCutGroup {
 				1.0
 			]
 		) * sameCutGroup; // same cut group is mandatory
-		var gate =  Line.ar(1, 0, sustain) * (1 - free);
+		var gate =  Line.ar(1, 0, sustain) > 0 * (1 - free);
 
-		EnvGen.kr(Env.cutoff(1, releaseTime, 'step'), gate, doneAction:doneAction); // frees all synths in the group.
+		^EnvGen.ar(Env.cutoff(1, releaseTime), gate, doneAction:doneAction);
 
-		^EnvGen.ar(Env.asr(0, 1, releaseTime), gate, doneAction:0);
 	}
 }
 

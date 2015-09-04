@@ -22,7 +22,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		var name = format("dirt_sample_%_%", sampleNumChannels, numChannels);
 
 		SynthDef(name, { |out, bufnum, startFrame, endFrame,
-			pan = 0, amp = 0.1, speed = 1, accelerate = 0, keepRunning = 0|
+			pan = 0, speed = 1, accelerate = 0, keepRunning = 0|
 
 			var sound, rate, phase, krPhase, endGate;
 
@@ -57,7 +57,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 	SynthDef("dirt_monitor" ++ numChannels, { |out, in, globalEffectBus, effectAmp = 0, sustain = 1, release = 0.02, amp = 0.1|
 		var signal = In.ar(in, numChannels);
-		signal = signal * amp * DirtGateCutGroup.ar(sustain, release, doneAction: 3); // free node before, which is the group
+		signal = signal * (amp * 10) * DirtGateCutGroup.ar(sustain, release, doneAction: 3); // free node before, which is the group
 		Out.ar(out, signal);
 		Out.ar(globalEffectBus, signal * effectAmp);
 		ReplaceOut.ar(in, Silent.ar(numChannels)) // clears bus signal for subsequent synths
