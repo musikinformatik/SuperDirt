@@ -157,7 +157,7 @@ DirtEvent {
 		// free group after sustain: this won't be needed after doneAction 14 works in SC 3.7.0
 
 		server.sendBundle(latency + ~sustain + dirtBus.releaseTime,
-			["/error", 1], // surpress error when it has been freed already by a cut
+			["/error", -1], // surpress error when it has been freed already by a cut
 			["/n_free", ~synthGroup]
 		);
 	}

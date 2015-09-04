@@ -47,7 +47,7 @@ Before we start the new synth, we send a /set message to all synths, and those t
 
 DirtGateCutGroup {
 
-	*ar { |gate = 1, releaseTime = 0.02, doneAction = 2|
+	*ar { |sustain = 1, releaseTime = 0.02|
 		// this is necessary because the message "==" tests for objects, not for signals
 		var same = { |a, b| BinaryOpUGen('==', a, b) };
 		var sameCutGroup = same.(\cutGroup.kr(0), abs(\gateCutGroup.kr(0)));
@@ -60,22 +60,25 @@ DirtGateCutGroup {
 				1.0
 			]
 		) * sameCutGroup; // same cut group is mandatory
-		var cutGate = K2A.ar((1 - free) * gate);
+		var gate =  Line.ar(1, 0, sustain) * (1 - free);
 
-			// this is a workaround for a somewhat broken behaviour of the doneAction 14
-		EnvGen.ar(Env.cutoff(1, releaseTime, 'step'), cutGate, doneAction:14);
+		EnvGen.kr(Env.cutoff(1, releaseTime, 'step'), gate, doneAction:13); // frees all synths in the group.
 
-		^EnvGen.ar(Env.asr(0, 1, releaseTime), cutGate, doneAction:doneAction);
+		^EnvGen.ar(Env.asr(0, 1, releaseTime), gate, doneAction:0);
 	}
 }
 
+//
+// DirtReleaseAfter {
+//
+// 	*ar { |sustain, releaseTime = 0.02, doneAction = 2|
+// 		^DirtGateCutGroup.ar(sustain, releaseTime, doneAction)
+// 	}
+// }
 
-DirtReleaseAfter {
 
-	*ar { |sustain, releaseTime = 0.02, doneAction = 2|
-		^DirtGateCutGroup.ar(EnvGen.kr(Env.linen(0, sustain, 0)), releaseTime, doneAction)
-	}
-}
+
+
 
 
 

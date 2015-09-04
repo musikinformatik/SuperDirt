@@ -40,7 +40,6 @@ You can't currently add your own, because Tidal needs to support this extension 
 	{ |dirtEvent|
 		var vowel = ~dirt.vowels[~vowel];
 		if(vowel.notNil) {
-			vowel.dump;
 			dirtEvent.sendSynth("dirt_vowel" ++ ~numChannels,
 				[
 					out: ~synthBus,
