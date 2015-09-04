@@ -59,7 +59,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		var signal = In.ar(in, numChannels);
 		//  doneAction:13 = must release all other synths in group.
 		// ideally, 14 but it doesn't work before 9d15cdc746627829a9598694cf4feaa6aab0bd90.
-		signal = signal * DirtReleaseAfter.ar(sustain, releaseTime: release, doneAction:2);
+		signal = signal * DirtGateCutGroup.ar(sustain, release);
 		Out.ar(out, signal);
 		Out.ar(globalEffectBus, signal * effectAmp);
 		ReplaceOut.ar(in, Silent.ar(numChannels)) // clears bus signal for subsequent synths
