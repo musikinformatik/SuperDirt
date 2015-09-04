@@ -14,8 +14,9 @@ SynthDef(\imp, { |out, speed = 1, start=0, end=1, pan, accelerate, amp = 1, offs
 	dur = (end - start) / speed * 0.5;
 	env = EnvGen.ar(Env.perc(0.001, dur, amp * 0.3, -1), timeScale:dur, doneAction:2);
 	phase = Line.ar(start, end, dur);
-	rate = (start + 1) * (speed + Sweep.kr(1, accelerate));
-	sound = Blip.ar(rate.linexp(0, 1, 1, 220) * [1, 1.25, 1.51, 1.42], ExpRand(80, 118) * phase).sum;
+	speed = speed + Sweep.kr(1, accelerate);
+	rate = (start + 1) * speed;
+	sound = Blip.ar(rate.linexp(0, 1, 1, 220) * [1, 1.25, 1.51, 1.42] * speed, ExpRand(80, 118) * phase).sum;
 	OffsetOut.ar(out,
 		DirtPan.ar(sound, ~dirt.numChannels, pan, env)
 	)
