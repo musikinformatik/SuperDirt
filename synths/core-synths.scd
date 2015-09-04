@@ -57,7 +57,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 	SynthDef("dirt_monitor" ++ numChannels, { |out, in, globalEffectBus, effectAmp = 0, sustain = 1, release = 0.02, amp = 0.1|
 		var signal = In.ar(in, numChannels);
-		signal = signal * amp * DirtGateCutGroup.ar(sustain, release);
+		signal = signal * amp * DirtGateCutGroup.ar(sustain, release, doneAction: 3); // free node before, which is the group
 		Out.ar(out, signal);
 		Out.ar(globalEffectBus, signal * effectAmp);
 		ReplaceOut.ar(in, Silent.ar(numChannels)) // clears bus signal for subsequent synths

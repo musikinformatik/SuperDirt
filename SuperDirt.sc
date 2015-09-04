@@ -395,8 +395,11 @@ DirtBus {
 			};
 
 
-			this.sendSynth("dirt_monitor" ++ numChannels,
-				[
+			server.sendMsg(\s_new, "dirt_monitor" ++ numChannels,
+				-1, // no id
+				3, // add action: addAfter
+				synthGroup, // send to group
+				*[
 					in: synthBus,  // read from private
 					out: outBus,     // write to outBus,
 					globalEffectBus: globalEffectBus,
@@ -405,8 +408,7 @@ DirtBus {
 					sample: sample, // required for the cutgroup mechanism
 					sustain: sustain, // after sustain, free all synths and group
 					release: releaseTime // fade out
-				],
-				synthGroup
+				].asOSCArgArray // append all other args
 			);
 
 
