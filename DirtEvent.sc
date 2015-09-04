@@ -62,35 +62,39 @@ DirtEvent {
 	}
 
 	calcRange {
+		var sustain;
 		if(~unit == \rate) { ~unit = \r }; // API adaption to tidal output
 
 		// sustain is the duration of the sample
 		switch(~unit,
 			\r, {
-				~sustain = ~bufferDuration * ~length / ~speed;
+				sustain = ~bufferDuration * ~length / ~speed;
 				~startFrame = ~numFrames * ~start;
 				~endFrame = ~numFrames * ~end;
 			},
 			\c, {
-				~sustain = ~length / ~cps;
+				sustain = ~length / ~cps;
 				~speed = ~speed * ~cps;
 				~startFrame = ~numFrames * ~start;
 				~endFrame = ~numFrames * ~end;
 			},
 			\s, {
-				~sustain = ~length;
+				sustain = ~length;
 				~startFrame = ~sampleRate * ~start;
 				~endFrame = ~sampleRate * ~end;
-			}
+			},
+			{ Error("this unit ('%') is not defined".format(~unit)).throw };
 		);
 
 		//unit.postln;
-		//[\end_start, ~endFrame - ~startFrame / sampleRate, \sustain, ~sustain].postln;
+		//[\end_start, ~endFrame - ~startFrame / sampleRate, \sustain, sustain].postln;
 
 		if(~accelerate != 0) {
 			// assumes linear acceleration
-			~sustain = ~sustain + (~accelerate * ~sustain * 0.5 * ~speed.sign.neg);
-		};
+			~sustain = sustain + (~accelerate * sustain * 0.5 * ~speed.sign.neg);
+		} {
+			~sustain = sustain
+		}
 
 	}
 
