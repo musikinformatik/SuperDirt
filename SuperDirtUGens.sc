@@ -60,12 +60,15 @@ DirtGateCutGroup {
 				1.0
 			]
 		) * sameCutGroup; // same cut group is mandatory
-		var cutGate = K2A.ar((1 - free) * gate);
+		var cutGate = (1 - free);
+		var allGate = K2A.ar((1 - free) * gate);
 
-			// this is a workaround for a somewhat broken behaviour of the doneAction 14
-		EnvGen.ar(Env.cutoff(1, releaseTime, 'step'), cutGate, doneAction:14);
+			// this is a workaround for a somewhat broken behaviour of the doneAction 14.
+		// really it should be just ^EnvGen.ar(Env.cutoff(1, releaseTime, 'step'), allGate, doneAction:14);
 
-		^EnvGen.ar(Env.asr(0, 1, releaseTime), cutGate, doneAction:doneAction);
+		EnvGen.kr(Env.cutoff(1, releaseTime, 'step'), cutGate, doneAction:14);
+
+		^EnvGen.ar(Env.asr(0, 1, releaseTime), allGate, doneAction:doneAction);
 	}
 }
 
