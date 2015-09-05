@@ -132,6 +132,8 @@ TEST EFFECTS
 ~d1.(nil, 1, 'cy:10', speed: 1, vowel: \a, resonance: 0.1, pan: 1);
 
 
+Tdef(\x).stop;
+~d1.releaseTime = 0.002;
 
 (
 Tdef(\x, {

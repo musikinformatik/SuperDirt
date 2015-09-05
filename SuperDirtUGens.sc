@@ -60,9 +60,9 @@ DirtGateCutGroup {
 				1.0
 			]
 		) * sameCutGroup; // same cut group is mandatory
-		var gate =  Line.ar(1, 0, sustain) > 0 * (1 - free);
+		var gate = Line.ar(1, 0, sustain) > 0 * (1 - free);
 
-		^EnvGen.ar(Env.cutoff(1, releaseTime), gate, doneAction:doneAction);
+		^EnvGen.ar(Env.cutoff(1, releaseTime), gate, doneAction:doneAction.poll);
 
 	}
 }

@@ -318,7 +318,6 @@ DirtBus {
 				endFrame: endFrame,
 				pan: pan,
 				accelerate: accelerate,
-				amp: amp,
 				offset: offset,
 				cps: cps,
 				out: synthBus],
@@ -405,6 +404,7 @@ DirtBus {
 					out: outBus,     // write to outBus,
 					globalEffectBus: globalEffectBus,
 					effectAmp: delay,
+					amp: amp,
 					cutGroup: cutgroup.abs, // ignore negatives here!
 					sample: sample, // required for the cutgroup mechanism
 					sustain: sustain, // after sustain, free all synths and group
