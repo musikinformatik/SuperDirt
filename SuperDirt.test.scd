@@ -158,7 +158,7 @@ Tdef(\x, {
 (
 Tdef(\x, {
 	loop {
-		~d1.(nil, 1, 'sd:8', start: 0, end: 1.0.rand, speed: 12.5, vowel: "aeiou".choose.asSymbol, resonance: 1, cutoff: 202);
+		~d1.(nil, 1, 'sd:8', start: 0, end: 1.0.rand, speed: 12.5, vowel: "a", resonance: 1, cutoff: 202);
 		0.02.wait;
 	}
 }).play;
@@ -231,7 +231,7 @@ Tdef(\x, {
 	var name = 'cy:10';
 	var cps = 2;
 	20.do {
-		~d1.(nil, cps:cps, name:name, unit: \r, start: 0, end: 1);
+		~d1.(nil, cps:cps, sound:name, unit: \r, start: 0, end: 1);
 		cps = cps + 0.3;
 		(1/cps).wait;
 	}
@@ -245,7 +245,7 @@ Tdef(\x, {
 	var name = 'cy:10';
 	var cps = 2;
 	20.do {
-		~d1.(nil, cps:cps, name:name, unit: \c, start: 0, end: 1);
+		~d1.(nil, cps:cps, sound:name, unit: \c, start: 0, end: 1);
 		cps = cps + 0.3;
 		(1/cps).wait;
 	}
@@ -258,7 +258,7 @@ Tdef(\x, {
 	var name = 'cy:10';
 	var cps = 0.2;
 	loop {
-		~d1.(nil, cps:cps, name:name, unit: \s, start: 0, end: 0.2);
+		~d1.(nil, cps:cps, sound:name, unit: \s, start: 0, end: 0.2);
 		0.2.wait;
 	}
 }).play
