@@ -147,7 +147,7 @@ DirtEvent {
 		var server = ~server;
 		var latency = ~latency + ~server.latency;
 
-		~amp = pow(~gain, 4) * 0.1;
+		~amp = pow(~gain, 4);
 
 		server.makeBundle(latency, { // use this to build a bundle
 
