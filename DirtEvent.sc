@@ -110,17 +110,23 @@ DirtEvent {
 	}
 
 	playMonitor {
-		this.sendSynth("dirt_monitor" ++ ~numChannels, [
-			in: ~synthBus,  // read from private
-			out: ~outBus,     // write to outBus,
-			globalEffectBus: ~globalEffectBus,
-			effectAmp: ~delay,
-			amp: ~amp,
-			cutGroup: ~cutgroup.abs, // ignore negatives here!
-			sample: ~sample, // required for the cutgroup mechanism
-			sustain: ~sustain, // after sustain, free all synths and group
-			release: dirtBus.releaseTime // fade out
-		]);
+		~server.sendMsg(\s_new,
+			"dirt_monitor" ++ ~numChannels,
+			-1, // no id
+			3, // add action: addAfter
+			~synthGroup, // send to group
+			*[
+				in: ~synthBus,  // read from private
+				out: ~outBus,     // write to outBus,
+				globalEffectBus: ~globalEffectBus,
+				effectAmp: ~delay,
+				amp: ~amp,
+				cutGroup: ~cutgroup.abs, // ignore negatives here!
+				sample: ~sample, // required for the cutgroup mechanism
+				sustain: ~sustain, // after sustain, free all synths and group
+				release: dirtBus.releaseTime // fade out
+			].asOSCArgArray // append all other args
+		)
 	}
 
 	updateGlobalEffects {
@@ -158,12 +164,6 @@ DirtEvent {
 
 		});
 
-		// free group after sustain: this won't be needed after doneAction 14 works in SC 3.7.0
-
-		server.sendBundle(latency + ~sustain + dirtBus.releaseTime,
-			["/error", -1], // surpress error when it has been freed already by a cut
-			["/n_free", ~synthGroup]
-		);
 	}
 
 	getMsgFunc { |instrument|
