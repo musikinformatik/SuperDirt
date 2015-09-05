@@ -23,7 +23,9 @@ s.waitForBoot {
 		~d2 = ~dirt.dirtBusses[1]; // the other
 
 	);
-}
+};
+
+s.latency = 0.3;
 );
 
 // access separate dirt busses directly

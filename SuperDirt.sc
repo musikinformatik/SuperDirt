@@ -190,10 +190,41 @@ DirtBus {
 		DirtEvent(this, dirt.modules, args).play
 	}
 
+	// this implements the standard API, internally converting it
+
+	value2 {
+		|latency, cps = 1, sound, offset = 0, start = 0, end = 1, speed = 1, pan = 0, velocity,
+		vowel, cutoff = 300, resonance = 0.5,
+		accelerate = 0, shape = 0, krio, gain = 1, cutgroup = 0,
+		delay = 0, delaytime = 0, delayfeedback = 0,
+		crush = 0,
+		coarse = 0,
+		hcutoff = 0, hresonance = 0,
+		bandqf = 0, bandq = 0,
+		unit = \r|
+
+		var args = [\latency, latency, \cps, cps, \sound, sound, \offset, offset, \start, start, \end, end, \speed, speed, \pan, pan, \velocity, velocity, \vowel, vowel, \cutoff, cutoff, \resonance, resonance, \accelerate, accelerate, \shape, shape, \krio, krio, \gain, gain, \cutgroup, cutgroup, \delay, delay, \delaytime, delaytime, \delayfeedback, delayfeedback, \crush, crush, \coarse, coarse, \hcutoff, hcutoff, \hresonance, hresonance, \bandqf, bandqf, \bandq, bandq, \unit, unit];
+
+		this.value(args)
+
+
+	}
+
 	openNetworkConnection {
 
 		this.closeNetworkConnection;
 
+		netResponders.add(
+			OSCFunc({ |msg, time, tidalAddr|
+				var latency = time - Main.elapsedTime;
+				if(latency > 2) {
+					"The scheduling delay is too long. Your networks clocks may not be in sync".warn;
+					latency = 0.2;
+				};
+				replyAddr = tidalAddr; // collect tidal reply address
+				this.value2(latency, *msg[1..]);
+			}, '/play', senderAddr, recvPort: port).fix
+		);
 		netResponders.add(
 			// an alternative protocol, uses pairs of parameter names and values in arbitrary order
 			OSCFunc({ |msg, time, tidalAddr|
@@ -204,8 +235,9 @@ DirtBus {
 				};
 				replyAddr = tidalAddr; // collect tidal reply address
 				this.value([\latency, latency] ++ msg[2..]);
-			}, '/play', senderAddr, recvPort: port).fix
+			}, '/play2', senderAddr, recvPort: port).fix
 		);
+
 
 		"SuperDirt: listening to Tidal on port %".format(port).postln;
 	}
