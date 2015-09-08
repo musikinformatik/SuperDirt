@@ -268,18 +268,18 @@ DirtBus {
 		// sustain is the duration of the sample
 		switch(unit,
 			\r, {
-				sustain = bufferDuration * length / avgSpeed;
+				sustain = bufferDuration * length.abs / avgSpeed;
 				startFrame = numFrames * start;
 				endFrame = numFrames * end;
 			},
 			\c, {
-				sustain = length / cps * (avgSpeed / speed.abs); // multiply by factor
+				sustain = length.abs / cps * (avgSpeed / speed.abs); // multiply by factor
 				speed = speed * cps;
 				startFrame = numFrames * start;
 				endFrame = numFrames * end;
 			},
 			\s, {
-				sustain = length;
+				sustain = length.abs;
 				startFrame = sampleRate * start;
 				endFrame = sampleRate * end;
 			}
