@@ -1,9 +1,12 @@
-# SuperDirt 0.1
+# SuperDirt 0.1 (event based branch)
 SuperCollider implementation of the Dirt sampler for the Tidal programming language
 
 Alex McLean and Julian Rohrhuber
 
-This is still experimental.
+This is still experimental, more than the master branch.
+
+It works, but is less efficient, so only use with moderate speeds. But also it is very easily extendible with effect modules. Some changes in Tidal may make it faster.
+
 
 ## Requirements
 
