@@ -261,7 +261,7 @@ DirtBus {
 		amp = pow(gain, 4);
 
 
-		endSpeed = speed * (1.0 + accelerate);
+		endSpeed = speed * (1.0 + (accelerate.abs.linexp(0.01, 4, 0.001, 20, nil) * accelerate.sign));
 		if(endSpeed.sign != speed.sign) { endSpeed = 0.0 }; // never turn back
 		avgSpeed = speed.abs + endSpeed.abs * 0.5;
 
