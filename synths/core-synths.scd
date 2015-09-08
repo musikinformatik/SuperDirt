@@ -31,7 +31,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 			// sample phase
 			// BufSampleRate adjusts the rate if the sound file doesn't have the same rate as the soundcard
-			phase =  Sweep.ar(1, rate * BufSampleRate.kr(bufnum)) + startFrame;
+			phase =  Sweep.ar(1, rate * BufSampleRate.ir(bufnum)) + startFrame;
 
 			sound = BufRd.ar(
 				numChannels: sampleNumChannels,
@@ -44,7 +44,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 			sound = DirtPan.ar(sound, numChannels, pan, mix:false);
 
 			OffsetOut.ar(out, sound)
-		}).add;
+		}, [\ir, \ir, \ir, \ir, \ir, \ir, \ir, \ir]).add;
 	};
 
 	/*
@@ -63,7 +63,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		Out.ar(out, signal);
 		Out.ar(globalEffectBus, signal * effectAmp);
 		ReplaceOut.ar(in, Silent.ar(numChannels)) // clears bus signal for subsequent synths
-	}).add;
+	}, [\ir, \ir, \ir, \ir, \ir, \ir, \ir]).add;
 
 
 
@@ -85,7 +85,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		//signal = Formlet.ar(signal, vowelFreqs, 0.005, vowelRqs);
 		ReplaceOut.ar(out, signal);
 
-	}).add;
+	}, [\ir, \ir, \ir]).add;
 
 	// would be nice to have some more parameters in some cases
 
@@ -93,32 +93,32 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		var signal = In.ar(out, numChannels);
 		signal = signal.round(0.5 ** crush);
 		ReplaceOut.ar(out, signal)
-	}).add;
+	}, [\ir, \ir]).add;
 
 
 	SynthDef("dirt_coarse" ++ numChannels, { |out, coarse = 0, bandq = 10|
 		var signal = In.ar(out, numChannels);
 		signal = Latch.ar(signal, Impulse.ar(SampleRate.ir / coarse));
 		ReplaceOut.ar(out, signal)
-	}).add;
+	}, [\ir, \ir, \ir]).add;
 
 	SynthDef("dirt_hpf" ++ numChannels, { |out, hcutoff = 440, hresonance = 0|
 		var signal = In.ar(out, numChannels);
 		signal = RHPF.ar(signal, hcutoff, hresonance.linexp(0, 1, 1, 0.001));
 		ReplaceOut.ar(out, signal)
-	}).add;
+	}, [\ir, \ir, \ir]).add;
 
 	SynthDef("dirt_bpf" ++ numChannels, { |out, bandqf = 440, bandq = 10|
 		var signal = In.ar(out, numChannels);
 		signal = BPF.ar(signal, bandqf, 1/bandq) * max(bandq, 1.0);
 		ReplaceOut.ar(out, signal)
-	}).add;
+	}, [\ir, \ir, \ir]).add;
 
 	SynthDef("dirt_shape" ++ numChannels, { |out, shape = 0|
 		var signal = In.ar(out, numChannels);
 		signal = (1 + shape) * signal / (1 + (shape * abs(signal)));
 		ReplaceOut.ar(out, signal)
-	}).add;
+	}, [\ir, \ir]).add;
 
 
 	// global synth defs: these synths run in each DirtBus and are only released when it is stopped
@@ -137,7 +137,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 			signal = signal * EnvGen.kr(Env.asr, gate, doneAction:2);
 			Out.ar(out, signal);
 
-		}).add;
+		}, [\ir, \ir, \kr, \kr, \kr]).add;
 	} {
 		SynthDef("dirt_delay" ++ numChannels, { |out, effectBus, gate = 1, delaytime, delayfeedback|
 			var signal = In.ar(effectBus, numChannels);
@@ -149,7 +149,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 			signal = LeakDC.ar(signal) * EnvGen.kr(Env.asr, gate, doneAction:2);
 			Out.ar(out, signal);
-		}).add;
+		}, [\ir, \ir, \kr, \kr, \kr]).add;
 	};
 
 	SynthDef("dirt_limiter" ++ numChannels, { |out, gate = 1|
@@ -187,7 +187,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 		Out.ar(out, snd * amp);
 
-	}).add;
+	}, [\ir, \ir, \kr, \kr, \kr]).add;
 
 
 	"---- core synth defs loaded ----".postln;
