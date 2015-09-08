@@ -16,6 +16,11 @@ s.waitForBoot {
 	s.sync; // wait for samples
 	~dirt.start([57120, 57121]);        // start listening on port 57120 and 57121
 
+	/*
+	// if you want nine instances like in dirt, just use instead:
+	~dirt.start(57120 + (0..9);
+	*/
+
 	// optional, needed for the sclang tests only:
 	(
 
