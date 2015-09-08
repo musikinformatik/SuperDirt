@@ -62,18 +62,24 @@ DirtEvent {
 	}
 
 	calcRange {
-		var sustain;
+
+		var sustain, avgSpeed;
+		var speed = ~speed;
+		var endSpeed = speed * (1.0 + ~accelerate);
+		if(endSpeed.sign != speed.sign) { endSpeed = 0.0 }; // never turn back
+		avgSpeed = speed.abs + endSpeed.abs * 0.5;
+
 		if(~unit == \rate) { ~unit = \r }; // API adaption to tidal output
 
 		// sustain is the duration of the sample
 		switch(~unit,
 			\r, {
-				sustain = ~bufferDuration * ~length / ~speed;
+				sustain = ~bufferDuration * ~length / avgSpeed;
 				~startFrame = ~numFrames * ~start;
 				~endFrame = ~numFrames * ~end;
 			},
 			\c, {
-				sustain = ~length / ~cps;
+				sustain = ~length / ~cps * (avgSpeed / speed.abs); // multiply by factor
 				~speed = ~speed * ~cps;
 				~startFrame = ~numFrames * ~start;
 				~endFrame = ~numFrames * ~end;
@@ -86,15 +92,14 @@ DirtEvent {
 			{ Error("this unit ('%') is not defined".format(~unit)).throw };
 		);
 
-		//unit.postln;
-		//[\end_start, ~endFrame - ~startFrame / sampleRate, \sustain, sustain].postln;
+		if(sustain < dirtBus.minSustain) {
+			^this // drop it.
+		};
 
-		if(~accelerate != 0) {
-			// assumes linear acceleration
-			~sustain = sustain + (~accelerate * sustain * 0.5 * ~speed.sign.neg);
-		} {
-			~sustain = sustain
-		}
+		~release = min(dirtBus.releaseTime, sustain * 0.618034);
+		~sustain = sustain - ~release;
+		~speed = speed;
+		~endSpeed = endSpeed;
 
 	}
 
@@ -124,7 +129,7 @@ DirtEvent {
 				cutGroup: ~cutgroup.abs, // ignore negatives here!
 				sample: ~sample, // required for the cutgroup mechanism
 				sustain: ~sustain, // after sustain, free all synths and group
-				release: dirtBus.releaseTime // fade out
+				release: ~release // fade out
 			].asOSCArgArray // append all other args
 		)
 	}

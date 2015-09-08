@@ -134,7 +134,7 @@ DirtBus {
 	var <outBus, <senderAddr, <replyAddr;
 	var <synthBus, <globalEffectBus;
 	var <group, <globalEffects, netResponders;
-	var <>releaseTime = 0.02;
+	var <>releaseTime = 0.02, <>minSustain;
 
 	var <>defaultParentEvent;
 
@@ -151,6 +151,7 @@ DirtBus {
 		globalEffects = ();
 		synthBus = Bus.audio(server, dirt.numChannels);
 		globalEffectBus = Bus.audio(server, dirt.numChannels);
+		minSustain = 8 / server.sampleRate;
 		this.initNodeTree;
 		this.makeDefaultParentEvent;
 

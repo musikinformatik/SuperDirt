@@ -23,6 +23,7 @@ You can't currently add your own, because Tidal needs to support this extension 
 		dirtEvent.sendSynth(~instrument,  [
 			sustain: ~sustain,
 			speed: ~speed,
+			endSpeed: ~endSpeed,
 			bufnum: ~buffer,
 			start: ~start,
 			end: ~end,
