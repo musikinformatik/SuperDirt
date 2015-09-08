@@ -123,7 +123,7 @@ DirtBus {
 	var <outBus, <senderAddr, <replyAddr;
 	var <synthBus, <globalEffectBus;
 	var group, globalEffects, netResponders;
-	var <>releaseTime = 0.02;
+	var <>releaseTime = 0.02, minSustain;
 
 	*new { |dirt, port = 57120, outBus = 0, senderAddr|
 		^super.newCopyArgs(dirt, port, dirt.server, outBus, senderAddr).init
@@ -138,6 +138,7 @@ DirtBus {
 		globalEffects = ();
 		synthBus = Bus.audio(server, dirt.numChannels);
 		globalEffectBus = Bus.audio(server, dirt.numChannels);
+		minSustain = 8 / server.sampleRate; // otherwise we drop the event
 		this.initNodeTree;
 		this.openNetworkConnection;
 		ServerTree.add(this, server); // synth node tree init
@@ -202,7 +203,7 @@ DirtBus {
 		var amp, buffer, instrument, sample;
 		var temp;
 		var length, sampleRate, numFrames, bufferDuration;
-		var sustain, startFrame, endFrame;
+		var sustain, release, startFrame, endFrame, endSpeed, avgSpeed;
 		var numChannels = dirt.numChannels;
 		var synthGroup;
 
@@ -259,15 +260,20 @@ DirtBus {
 		unit = unit ? \r;
 		amp = pow(gain, 4);
 
+
+		endSpeed = speed * (1.0 + accelerate);
+		if(endSpeed.sign != speed.sign) { endSpeed = 0.0 }; // never turn back
+		avgSpeed = speed.abs + endSpeed.abs * 0.5;
+
 		// sustain is the duration of the sample
 		switch(unit,
 			\r, {
-				sustain = bufferDuration * length / speed;
+				sustain = bufferDuration * length / avgSpeed;
 				startFrame = numFrames * start;
 				endFrame = numFrames * end;
 			},
 			\c, {
-				sustain = length / cps;
+				sustain = length / cps * (avgSpeed / speed.abs); // multiply by factor
 				speed = speed * cps;
 				startFrame = numFrames * start;
 				endFrame = numFrames * end;
@@ -279,13 +285,13 @@ DirtBus {
 			}
 		);
 
-		//unit.postln;
-		//[\end_start, endFrame - startFrame / sampleRate, \sustain, sustain].postln;
-
-		if(accelerate != 0) {
-			// assumes linear acceleration
-			sustain = sustain + (accelerate * sustain * 0.5 * speed.sign.neg);
+		if(sustain < minSustain) {
+			^this // drop it.
 		};
+
+		release = min(releaseTime, sustain * 0.618034);
+		sustain = sustain - release;
+
 
 		synthGroup = server.nextNodeID;
 		latency = latency ? 0.0 + server.latency;
@@ -310,6 +316,7 @@ DirtBus {
 			this.sendSynth(instrument, [
 				sustain: sustain,
 				speed: speed,
+				endSpeed: endSpeed,
 				bufnum: buffer,
 				start: start,
 				end: end,
@@ -407,7 +414,7 @@ DirtBus {
 					cutGroup: cutgroup.abs, // ignore negatives here!
 					sample: sample, // required for the cutgroup mechanism
 					sustain: sustain, // after sustain, free all synths and group
-					release: releaseTime // fade out
+					release: release // fade out
 				].asOSCArgArray // append all other args
 			);
 
