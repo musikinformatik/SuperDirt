@@ -203,7 +203,7 @@ DirtBus {
 		var amp, buffer, instrument, sample;
 		var temp;
 		var length, sampleRate, numFrames, bufferDuration;
-		var sustain, release, startFrame, endFrame, endSpeed, avgSpeed;
+		var sustain, release, endSpeed, avgSpeed;
 		var numChannels = dirt.numChannels;
 		var synthGroup;
 
@@ -269,19 +269,13 @@ DirtBus {
 		switch(unit,
 			\r, {
 				sustain = bufferDuration * length.abs / avgSpeed;
-				startFrame = numFrames * start;
-				endFrame = numFrames * end;
 			},
 			\c, {
 				sustain = length.abs / cps * (avgSpeed / speed.abs); // multiply by factor
 				speed = speed * cps;
-				startFrame = numFrames * start;
-				endFrame = numFrames * end;
 			},
 			\s, {
 				sustain = length.abs;
-				startFrame = sampleRate * start;
-				endFrame = sampleRate * end;
 			}
 		);
 
@@ -320,8 +314,6 @@ DirtBus {
 				bufnum: buffer,
 				start: start,
 				end: end,
-				startFrame: startFrame,
-				endFrame: endFrame,
 				pan: pan,
 				accelerate: accelerate,
 				offset: offset,
