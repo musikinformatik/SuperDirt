@@ -229,17 +229,13 @@ DirtBus {
 			if(buffer.sampleRate.isNil) {
 				"Dirt: buffer '%' not yet completely read".format(sound).warn; ^this
 			};
-			numFrames = buffer.numFrames;
 			bufferDuration = buffer.duration;
-			sampleRate = buffer.sampleRate;
 			sample = sound.identityHash;
 			instrument = format("dirt_sample_%_%", buffer.numChannels, numChannels);
 
 		} {
 			if(SynthDescLib.at(sound).notNil) {
 				instrument = sound;
-				sampleRate = server.sampleRate;
-				numFrames = sampleRate; // assume one second
 				bufferDuration = 1.0;
 			} {
 				"Dirt: no sample or instrument found for '%'.\n".postf(sound);
@@ -249,12 +245,12 @@ DirtBus {
 
 		if(end >= start) {
 			if(speed < 0) { temp = end; end = start; start = temp };
-			length = end - start;
 		} {
 			// backwards
-			length = start - end;
 			speed = speed.neg;
 		};
+
+		length = abs(start - end);
 
 		if(unit == \rate) { unit = \r }; // API adaption to tidal output
 		unit = unit ? \r;
@@ -268,14 +264,14 @@ DirtBus {
 		// sustain is the duration of the sample
 		switch(unit,
 			\r, {
-				sustain = bufferDuration * length.abs / avgSpeed;
+				sustain = bufferDuration * length / avgSpeed;
 			},
 			\c, {
-				sustain = length.abs / cps * (avgSpeed / speed.abs); // multiply by factor
+				sustain = length / cps * (avgSpeed / speed.abs); // multiply by factor
 				speed = speed * cps;
 			},
 			\s, {
-				sustain = length.abs;
+				sustain = length;
 			}
 		);
 
