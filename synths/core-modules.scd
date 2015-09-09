@@ -17,25 +17,36 @@ You can't currently add your own, because Tidal needs to support this extension 
 
 // argumets could be omitted using getMsgFunc, but for making it easier to understand, we write them out
 
-
 ~dirt.addModule('sound',
+	{ |dirtEvent|
+		dirtEvent.sendSynth(~instrument,  [
+			bufnum: ~buffer,
+			sustain: ~sustain,
+			speed: ~speed,
+			endSpeed: ~endSpeed,
+			startFrame: ~startFrame,
+			endFrame: ~endFrame,
+			pan: ~pan,
+			out: ~synthBus
+		]);
+}, { ~buffer.notNil });
+
+// this is a generic synth, which could receive any number of the parameters below
+~dirt.addModule('synth',
 	{ |dirtEvent|
 		dirtEvent.sendSynth(~instrument,  [
 			sustain: ~sustain,
 			speed: ~speed,
 			endSpeed: ~endSpeed,
-			bufnum: ~buffer,
 			start: ~start,
 			end: ~end,
-			startFrame: ~startFrame,
-			endFrame: ~endFrame,
 			pan: ~pan,
 			accelerate: ~accelerate,
 			offset: ~offset,
 			cps: ~cps,
 			out: ~synthBus
 		]);
-});
+}, { ~buffer.isNil });
 
 ~dirt.addModule('vowel',
 	{ |dirtEvent|
