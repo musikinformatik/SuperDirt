@@ -271,20 +271,19 @@ DirtBus {
 			~cutgroup = 0.0;
 			~unit = \r;
 
-			// values from the dirt bus
-			~dirtBus = this;
-			~dirt = dirt;
-			~synthBus = synthBus;
-			~outBus = outBus;
-			~globalEffectBus = globalEffectBus;
-			~numChannels = dirt.numChannels;
-			~server = server;
-
-			// more defaults:
 			~latency = 0.0;
 			~length = 1.0;
 			~sustain = 1.0;
 			~bufferDuration = 1.0;
+
+			// values from the dirt bus
+			~dirtBus = this;
+			~dirt = dirt;
+			~out = synthBus;
+			~publicBus = outBus;
+			~globalEffectBus = globalEffectBus;
+			~numChannels = dirt.numChannels;
+			~server = server;
 
 			// global effects
 			~delaytime = -1;

@@ -24,29 +24,17 @@ You can't currently add your own, because Tidal needs to support this extension 
 			sustain: ~sustain,
 			speed: ~speed,
 			endSpeed: ~endSpeed,
-			startFrame: ~startFrame,
-			endFrame: ~endFrame,
+			start: ~start,
 			pan: ~pan,
-			out: ~synthBus
+			out: ~out
 		]);
 }, { ~buffer.notNil });
 
-// this is a generic synth, which could receive any number of the parameters below
-~dirt.addModule('synth',
-	{ |dirtEvent|
-		dirtEvent.sendSynth(~instrument,  [
-			sustain: ~sustain,
-			speed: ~speed,
-			endSpeed: ~endSpeed,
-			start: ~start,
-			end: ~end,
-			pan: ~pan,
-			accelerate: ~accelerate,
-			offset: ~offset,
-			cps: ~cps,
-			out: ~synthBus
-		]);
-}, { ~buffer.isNil });
+// this is a generic synth, which could receive any number of the parameters in the event, e.g.
+// sustain, speed, endSpeed, start, end, pan, accelerate, offset, cps
+// it ought to use: out
+
+~dirt.addModule('synth', { |dirtEvent| dirtEvent.sendSynth(~instrument) }, { ~buffer.isNil });
 
 ~dirt.addModule('vowel',
 	{ |dirtEvent|
@@ -54,7 +42,7 @@ You can't currently add your own, because Tidal needs to support this extension 
 		if(vowel.notNil) {
 			dirtEvent.sendSynth("dirt_vowel" ++ ~numChannels,
 				[
-					out: ~synthBus,
+					out: ~out,
 					vowelFreqs: vowel.freqs,
 					vowelAmps: vowel.amps,
 					vowelRqs: vowel.rqs,
@@ -68,11 +56,10 @@ You can't currently add your own, because Tidal needs to support this extension 
 
 ~dirt.addModule('shape',
 	{ |dirtEvent|
-		var shape = (2.0 * ~shape) / (1.0 - ~shape);
 		dirtEvent.sendSynth("dirt_shape" ++ ~numChannels,
 			[
-				shape: shape,
-				out: ~synthBus
+				shape: ~shape,
+				out: ~out
 		])
 
 }, { ~shape.notNil and: { ~shape != 0 } });
@@ -83,7 +70,7 @@ You can't currently add your own, because Tidal needs to support this extension 
 			[
 				hcutoff: ~hcutoff,
 				hresonance: ~hresonance,
-				out: ~synthBus
+				out: ~out
 		])
 
 }, { ~hcutoff.notNil and: { ~hcutoff != 0 } });
@@ -94,7 +81,7 @@ You can't currently add your own, because Tidal needs to support this extension 
 			[
 				bandqf: ~bandqf,
 				bandq: ~bandq,
-				out: ~synthBus
+				out: ~out
 		])
 
 }, { ~bandqf.notNil and: { ~bandqf != 0 } });
@@ -104,7 +91,7 @@ You can't currently add your own, because Tidal needs to support this extension 
 		dirtEvent.sendSynth("dirt_crush" ++ ~numChannels,
 			[
 				crush: ~crush,
-				out: ~synthBus
+				out: ~out
 		])
 
 }, { ~crush.notNil and: { ~crush != 0 } });
@@ -115,7 +102,7 @@ You can't currently add your own, because Tidal needs to support this extension 
 		dirtEvent.sendSynth("dirt_coarse" ++ ~numChannels,
 			[
 				coarse: ~coarse,
-				out: ~synthBus
+				out: ~out
 		])
 
 }, { ~coarse.notNil and: { ~coarse > 1 } }); // coarse == 1 => full rate

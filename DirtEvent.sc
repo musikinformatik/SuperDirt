@@ -53,12 +53,11 @@ DirtEvent {
 		var temp;
 		if(~end >= ~start) {
 			if(~speed < 0) { temp = ~end; ~end = ~start; ~start = temp };
-			~length = ~end - ~start;
 		} {
 			// backwards
-			~length = ~start - ~end;
 			~speed = ~speed.neg;
-		}
+		};
+		~length = abs(~end - ~start);
 	}
 
 	calcRange {
@@ -76,19 +75,13 @@ DirtEvent {
 		switch(~unit,
 			\r, {
 				sustain = ~bufferDuration * ~length / avgSpeed;
-				~startFrame = ~numFrames * ~start;
-				~endFrame = ~numFrames * ~end;
 			},
 			\c, {
 				sustain = ~length / ~cps * (avgSpeed / speed.abs); // multiply by factor
 				~speed = ~speed * ~cps;
-				~startFrame = ~numFrames * ~start;
-				~endFrame = ~numFrames * ~end;
 			},
 			\s, {
 				sustain = ~length;
-				~startFrame = ~sampleRate * ~start;
-				~endFrame = ~sampleRate * ~end;
 			},
 			{ Error("this unit ('%') is not defined".format(~unit)).throw };
 		);
@@ -122,8 +115,8 @@ DirtEvent {
 			3, // add action: addAfter
 			~synthGroup, // send to group
 			*[
-				in: ~synthBus,  // read from private
-				out: ~outBus,     // write to outBus,
+				in: ~out,  // read from private
+				out: ~publicBus,     // write to outBus,
 				globalEffectBus: ~globalEffectBus,
 				effectAmp: ~delay,
 				amp: ~amp,
