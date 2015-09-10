@@ -256,6 +256,12 @@ DirtBus {
 		}
 	}
 
+	set { |...pairs|
+		pairs.pairsDo { |key, val|
+			defaultParentEvent.put(key, val)
+		}
+	}
+
 
 	makeDefaultParentEvent {
 		defaultParentEvent = Event.make {
