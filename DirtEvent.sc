@@ -22,7 +22,7 @@ DirtEvent {
 
 
 	getBuffer {
-		var buffer;
+		var buffer, synthDesc;
 		buffer = dirtBus.dirt.getBuffer(~sound);
 
 		if(buffer.notNil) {
@@ -30,19 +30,16 @@ DirtEvent {
 				"Dirt: buffer '%' not yet completely read".format(~sound).warn;
 				^this
 			};
-			~numFrames = buffer.numFrames;
-			~bufferDuration = buffer.duration;
-			~sampleRate = buffer.sampleRate;
+			~instrument = format("dirt_sample_%_%", buffer.numChannels, ~numChannels);
 			~sample = ~sound.identityHash;
 			~buffer = buffer.bufnum;
-			~instrument = format("dirt_sample_%_%", buffer.numChannels, ~numChannels);
+			~unitDuration = buffer.duration;
 
 		} {
-			if(SynthDescLib.at(~sound).notNil) {
+			synthDesc = SynthDescLib.at(~sound);
+			if(synthDesc.notNil) {
 				~instrument = ~sound;
-				~sampleRate = ~server.sampleRate;
-				~numFrames = ~sampleRate; // assume one second
-				~bufferDuration = 1.0;
+				~unitDuration = synthDesc.controlDict.at(\sustain).defaultValue ? 1.0; // use definition, if defined.
 			} {
 				"Dirt: no sample or instrument found for '%'.\n".postf(~sound);
 			}
@@ -74,7 +71,7 @@ DirtEvent {
 		// sustain is the duration of the sample
 		switch(~unit,
 			\r, {
-				sustain = ~bufferDuration * ~length / avgSpeed;
+				sustain = ~unitDuration * ~length / avgSpeed;
 			},
 			\c, {
 				sustain = ~length / ~cps * (avgSpeed / speed.abs); // multiply by factor
