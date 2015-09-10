@@ -335,7 +335,7 @@ DirtBus {
 
 			};
 
-			if(shape != 0) {
+			if(shape != 0 and: { shape < 1.0 }) {
 				shape = (2.0 * shape) / (1.0 - shape);
 				this.sendSynth("dirt_shape" ++ numChannels,
 					[
