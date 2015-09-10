@@ -5,7 +5,7 @@ Alex McLean and Julian Rohrhuber
 
 This is still experimental, more than the master branch.
 
-It works, but is less efficient, so only use with moderate speeds. But also it is very easily extendible with effect [modules] (https://github.com/musikinformatik/SuperDirt/blob/event-based/synths/core-modules.scd). Some changes in Tidal may make it faster.
+This branch works like master, but is less efficient (about half), so only use with moderate speeds. But also it is very easily extendible with effect [modules] (https://github.com/musikinformatik/SuperDirt/blob/event-based/synths/core-modules.scd). Some changes in Tidal may make it faster.
 
 
 ## Requirements
