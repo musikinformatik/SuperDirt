@@ -30,9 +30,14 @@ You can't currently add your own, because Tidal needs to support this extension 
 		]);
 }, { ~buffer.notNil });
 
-// this is a generic synth, which could receive any number of the parameters in the event, e.g.
-// sustain, speed, endSpeed, start, end, pan, accelerate, offset, cps
-// it ought to use: out
+/* 
+this is a generic synth, which allows us to embed a SynthDef name in a tidal pattern next to sample names
+
+it could receive any number of the parameters in the event, e.g.
+sustain, speed, endSpeed, start, end, pan, accelerate, offset, cps
+
+it ought to use: out
+*/
 
 ~dirt.addModule('synth', { |dirtEvent| dirtEvent.sendSynth(~instrument) }, { ~buffer.isNil });
 
