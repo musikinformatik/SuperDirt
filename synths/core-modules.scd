@@ -41,6 +41,11 @@ it ought to use: out
 
 ~dirt.addModule('synth', { |dirtEvent| dirtEvent.sendSynth(~instrument) }, { ~buffer.isNil });
 
+/*
+these function as effects on the input of the synth or sample (see SynthDefs in core-synths)
+they respond to the existence of a value for one of the tidal parameters
+*/
+
 ~dirt.addModule('vowel',
 	{ |dirtEvent|
 		var vowel = ~dirt.vowels[~vowel];
