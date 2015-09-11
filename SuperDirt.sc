@@ -281,10 +281,10 @@ DirtBus {
 
 		release = min(releaseTime, sustain * 0.618034);
 		sustain = sustain - release;
-
+		offset = offset * speed;
 
 		synthGroup = server.nextNodeID;
-		latency = latency ? 0.0 + server.latency;
+		latency = latency ? 0.0 + server.latency + offset;
 
 		server.makeBundle(latency, { // use this to build a bundle
 
