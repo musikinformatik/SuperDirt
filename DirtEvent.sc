@@ -141,7 +141,7 @@ DirtEvent {
 
 	playSynths {
 		var server = ~server;
-		var latency = ~latency + ~server.latency;
+		var latency = ~latency + ~server.latency + (~offset * ~speed);
 
 		~amp = pow(~gain, 4);
 
