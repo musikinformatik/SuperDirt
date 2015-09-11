@@ -132,7 +132,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 			var signal = In.ar(effectBus, numChannels);
 
 			// from sc3-plugins
-			signal = SwitchDelay.ar(signal, 1, 1, delaytime, delayfeedback);
+			signal = \SwitchDelay.asClass.ar(signal, 1, 1, delaytime, delayfeedback);
 
 			signal = signal * EnvGen.kr(Env.asr, gate, doneAction:2);
 			Out.ar(out, signal);
