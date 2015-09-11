@@ -70,11 +70,22 @@ TEST SPEED/START/END
 (
 Tdef(\x, {
 	loop {
-		~d1.([sound: 'cy:10', 0, 0.3.rand, 1.0.rand, 1 + 1.3.rand2, 2.rand2, accelerate:0]);
+		~d1.([sound: 'cy:10', speed: 2.0.rand2, accelerate:2.5.rand2]);
 		(0.2 * [1, 2, 1/3]).choose.wait;
 	}
 }).play;
 )
+
+(
+Tdef(\x, {
+	loop {
+		~d1.([sound: ~dirt.buffers.keys.choose, speed: 2.0.rand2, accelerate:2.5.rand2]);
+		(0.2 * [1, 2, 1/3]).choose.wait;
+	}
+}).play;
+)
+Tdef(\x).stop;
+
 
 ~d1.([sound: 'cy:10', speed: 1]);
 ~d1.([sound: 'cy:10', speed: -1]);
