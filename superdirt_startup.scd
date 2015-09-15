@@ -9,8 +9,10 @@ This is an example startup file. You can load it from your startup file
 // see http://doc.sccode.org/Classes/ServerOptions.html
 s.options.numBuffers = 1024 * 16;
 s.options.memSize = 8192 * 16;
+s.quit;
 // boot the server and start SuperDirt
 s.waitForBoot {
+
 	~dirt = SuperDirt(2, s); // two output channels
 	~dirt.loadSoundFiles;   // load samples (path can be passed) mono is assumed.
 	s.sync; // wait for samples
