@@ -21,7 +21,7 @@ Then we could map arguments to effects, and new effects could be added easily
 SuperDirt {
 
 	var <numChannels, <server;
-	var <buffers, <vowels;
+	var <buffers, <vowels, <functions;
 	var <>dirtBusses;
 
 	classvar <>maxSampleNumChannels = 2;
@@ -32,6 +32,7 @@ SuperDirt {
 
 	init {
 		buffers = ();
+		functions = ();
 		this.loadSynthDefs;
 		this.initVowels(\counterTenor);
 	}
@@ -126,6 +127,7 @@ DirtBus {
 	var <dirt, <port, <server;
 	var <outBus, <senderAddr, <replyAddr;
 	var <synthBus, <globalEffectBus;
+	var <functions;
 	var group, globalEffects, netResponders;
 	var <>releaseTime = 0.02, minSustain;
 
@@ -140,6 +142,7 @@ DirtBus {
 		};
 		group = server.nextPermNodeID;
 		globalEffects = ();
+		functions = ().parent_(dirt.functions);
 		synthBus = Bus.audio(server, dirt.numChannels);
 		globalEffectBus = Bus.audio(server, dirt.numChannels);
 		minSustain = 8 / server.sampleRate; // otherwise we drop the event
@@ -205,7 +208,7 @@ DirtBus {
 		unit = \r|
 
 		var amp, buffer, instrument, sample;
-		var temp;
+		var temp, function;
 		var length, sampleRate, numFrames, bufferDuration;
 		var sustain, release, endSpeed, avgSpeed;
 		var numChannels = dirt.numChannels;
@@ -225,6 +228,12 @@ DirtBus {
 		bandqf, bandq,
 		unit).postln;
 		*/
+
+		function = functions.at(sound);
+		if(function.notNil) {
+			function.value(this);
+			^this
+		};
 
 
 		buffer = dirt.getBuffer(sound);
