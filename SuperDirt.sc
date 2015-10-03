@@ -69,7 +69,7 @@ SuperDirt {
 		^allbufs.wrapAt(index)
 	}
 
-	loadSoundFiles { |path, fileExtension = "wav", delay = 0.001|
+	loadSoundFiles { |path, fileExtension = "wav"|
 		var folderPaths;
 		if(server.serverRunning.not) {
 			"Superdirt: server not running - cannot load sound files.".warn; ^this
@@ -77,21 +77,18 @@ SuperDirt {
 		path = path ?? { "samples".resolveRelative };
 		folderPaths = pathMatch(path +/+ "**");
 		"\nloading sample banks:\n".post;
-		{
-			folderPaths.do { |folderPath|
-				PathName(folderPath).filesDo { |filepath|
-					var buf, name;
-					if(filepath.extension.find(fileExtension, true).notNil) {
-						buf = Buffer.read(server, filepath.fullPath);
-						name = filepath.folderName.toLower;
-						buffers[name.asSymbol] = buffers[name.asSymbol].add(buf);
-						delay.wait;
-					}
-				};
-				folderPath.basename.post; " ".post;
+		folderPaths.do { |folderPath|
+			PathName(folderPath).filesDo { |filepath|
+				var buf, name;
+				if(filepath.extension.find(fileExtension, true).notNil) {
+					buf = Buffer.readWithInfo(server, filepath.fullPath);
+					name = filepath.folderName.toLower;
+					buffers[name.asSymbol] = buffers[name.asSymbol].add(buf);
+				}
 			};
-			"\nfiles loaded\n\n".post;
-		}.fork(AppClock);
+			folderPath.basename.post; " ".post;
+		};
+		"\nfiles loaded\n\n".post;
 	}
 
 	freeSoundFiles {
