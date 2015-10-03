@@ -11,8 +11,7 @@
 			buffer.numFrames = file.numFrames;
 			buffer.numChannels = file.numChannels;
 		});
-		buffer.read(path);
-		^buffer
+		^buffer.allocRead(path)
 	}
 
 }
