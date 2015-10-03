@@ -26,3 +26,18 @@ NOTE: The interface for this may change!
 	Pbind(\dur, 0.02, \note, Pbrown(-15, 15, 0.3, 230.rand), \out, dirtbus.synthBus, \pan, Pfunc { 1.0.rand2 }).play
 };
 )
+
+/*
+
+forward midi
+
+*/
+
+MIDIClient.init;
+
+~midiOut = MIDIOut(0);
+
+~d1.diversion = { |sound|
+	~dict[sound].value(~d1)
+};
+
