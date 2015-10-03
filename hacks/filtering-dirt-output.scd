@@ -13,7 +13,7 @@ This assumes that you have SuperDirt running and accesible in ~dirt
 
 ~bus = Bus.audio(s, numChannels:2); // assuming stereo, expand if needed
 
-~dx1 = DirtBus(~dirt, 57130, ~bus, NetAddr("127.0.0.1"));
+~dx1 = ~dirt.connect(57130, ~bus);
 
 // using 57130. in Tidal: d1 <- stream "127.0.0.1" 57130 dirt {timestamp = BundleStamp}
 
@@ -40,3 +40,10 @@ Ndef(\x, {
 )
 
 // ... and so on.
+
+
+/*
+cleaning up, when you're done
+*/
+
+~dx1.free; ~bus.free;

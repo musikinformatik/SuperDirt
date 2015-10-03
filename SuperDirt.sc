@@ -34,11 +34,22 @@ SuperDirt {
 	}
 
 	start { |ports = 57120, outBusses = 0, senderAddrs = (NetAddr("127.0.0.1"))|
-		dirtBusses = [ports, outBusses, senderAddrs].flop.collect(DirtBus(this, *_))
+		this.connect(ports, outBusses, senderAddrs)
 	}
 
 	stop {
 		dirtBusses.do(_.free);
+	}
+
+	connect { |ports = 57120, outBusses = 0, senderAddrs = (NetAddr("127.0.0.1"))|
+		var connections;
+		if(Main.scVersionMajor == 3 and: { Main.scVersionMinor == 6 }) {
+			"Please note: SC3.6 listens to any sender.".warn;
+			senderAddrs = nil;
+		};
+		connections = [ports, outBusses, senderAddrs].flop.collect(DirtBus(this, *_));
+		dirtBusses = dirtBusses ++ connections;
+		^connections.unbubble
 	}
 
 	free {
