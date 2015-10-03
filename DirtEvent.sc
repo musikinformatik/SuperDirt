@@ -87,7 +87,7 @@ DirtEvent {
 			^this // drop it.
 		};
 
-		~release = min(dirtBus.releaseTime, sustain * 0.618034);
+		~release = min(dirtBus.releaseTime, sustain * 0.381966);
 		~sustain = sustain - ~release;
 		~speed = speed;
 		~endSpeed = endSpeed;
