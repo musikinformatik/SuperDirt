@@ -60,7 +60,7 @@ SuperDirt {
 		allbufs = buffers[key];
 		if(allbufs.isNil) { ^nil };
 		index = (index ? 0).asInteger;
-		^allbufs[index]
+		^allbufs.wrapAt(index)
 	}
 
 	loadSoundFiles { |path, fileExtension = "wav", delay = 0.001|
