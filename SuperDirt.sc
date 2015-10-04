@@ -289,10 +289,11 @@ DirtBus {
 		);
 
 		if(sustain < minSustain) {
+			//"dropping samples, sustain is: % minimum %\n".postf(sustain, minSustain);
 			^this // drop it.
 		};
 
-		release = min(releaseTime, sustain * 0.618034);
+		release = min(releaseTime, sustain * 0.381966);
 		sustain = sustain - release;
 		offset = offset * speed;
 
