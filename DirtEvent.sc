@@ -13,6 +13,7 @@ DirtEvent {
 
 	play {
 		event.use {
+			this.splitName;
 			this.getBuffer;
 			this.orderRange;
 			this.calcRange;
@@ -20,10 +21,17 @@ DirtEvent {
 		}
 	}
 
+	splitName {
+		var key, index;
+		#key, index = ~sound.asString.split($:);
+		~key = key.asSymbol;
+		~index = index.asInteger;
+	}
+
 
 	getBuffer {
 		var buffer, synthDesc;
-		buffer = dirtBus.dirt.getBuffer(~sound);
+		buffer = dirtBus.dirt.getBuffer(~key, ~index);
 
 		if(buffer.notNil) {
 			if(buffer.sampleRate.isNil) {
@@ -36,9 +44,9 @@ DirtEvent {
 			~unitDuration = buffer.duration;
 
 		} {
-			synthDesc = SynthDescLib.at(~sound);
+			synthDesc = SynthDescLib.at(~key);
 			if(synthDesc.notNil) {
-				~instrument = ~sound;
+				~instrument = ~key;
 				~unitDuration = synthDesc.controlDict.at(\sustain).defaultValue ? 1.0; // use definition, if defined.
 			} {
 				"Dirt: no sample or instrument found for '%'.\n".postf(~sound);

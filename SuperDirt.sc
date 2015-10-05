@@ -70,10 +70,8 @@ SuperDirt {
 		modules = [];
 	}
 
-	getBuffer { |name|
-		var key, index, allbufs;
-		#key, index = name.asString.split($:);
-		key = key.asSymbol;
+	getBuffer { |key, index|
+		var allbufs;
 		allbufs = buffers[key];
 		if(allbufs.isNil) { ^nil };
 		index = (index ? 0).asInteger;
