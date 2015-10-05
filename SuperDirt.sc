@@ -60,10 +60,8 @@ SuperDirt {
 		this.stop;
 	}
 
-	getBuffer { |name|
-		var key, index, allbufs;
-		#key, index = name.asString.split($:);
-		key = key.asSymbol;
+	getBuffer { |key, index|
+		var allbufs;
 		allbufs = buffers[key];
 		if(allbufs.isNil) { ^nil };
 		index = (index ? 0).asInteger;
@@ -215,6 +213,7 @@ DirtBus {
 		var sustain, release, endSpeed, avgSpeed;
 		var numChannels = dirt.numChannels;
 		var synthGroup, diverted;
+		var key, index;
 
 
 
@@ -235,8 +234,10 @@ DirtBus {
 		diverted = diversion.value(sound);
 		if(diverted.notNil) { ^this };
 
+		#key, index = sound.asString.split($:);
+		key = key.asSymbol;
 
-		buffer = dirt.getBuffer(sound);
+		buffer = dirt.getBuffer(key, index);
 
 		if(buffer.notNil) {
 			if(buffer.sampleRate.isNil) {
@@ -247,8 +248,8 @@ DirtBus {
 			instrument = format("dirt_sample_%_%", buffer.numChannels, numChannels);
 
 		} {
-			if(SynthDescLib.at(sound).notNil) {
-				instrument = sound;
+			if(SynthDescLib.at(key).notNil) {
+				instrument = key;
 				bufferDuration = 1.0;
 			} {
 				"Dirt: no sample or instrument found for '%'.\n".postf(sound);
@@ -328,6 +329,7 @@ DirtBus {
 				accelerate: accelerate,
 				offset: offset,
 				cps: cps,
+				index: index,
 				out: synthBus],
 			synthGroup
 			);
