@@ -2,16 +2,6 @@
 
 SuperCollider implementation of Dirt
 
-Requires: sc3-plugins
-
-Currently you can run only one instance at a time
-
-Options:
-
-* network port (default: 57120)
-* vowelRegister (default: \tenor)
-
-
 
 Open Qustions:
 
@@ -23,64 +13,81 @@ TODO:
 * let's make a nice protocol of how to extend it better
 
 One first step would be: Tidal sends pairs of argument names and values
-Then we could map arguments to effects, and new effects could easity be added
+If tidal sends only those that matter (omitting the defaults) this would be more efficient
+Then we could map arguments to effects, and new effects could be added easily
 
 */
 
 SuperDirt {
 
-	var <numChannels, <server, <options;
-	var <bus, <globalEffectBus;
-	var <buffers;
-	var <globalEffects;
-	var <vowels;
-	var <replyAddr;
+	var <numChannels, <server;
+	var <buffers, <vowels;
+	var <>dirtBusses;
 
-	*new { |numChannels = 2, server, options|
-		^super.newCopyArgs(numChannels, server ? Server.default, options ? ()).init
+	classvar <>maxSampleNumChannels = 2;
+
+	*new { |numChannels = 2, server|
+		^super.newCopyArgs(numChannels, server ? Server.default).init
 	}
 
 	init {
-		ServerTree.add(this, server); // synth node tree init
-		globalEffects = ();
 		buffers = ();
-		this.initSynthDefs;
-		vowels = ();
-		[\a, \e, \i, \o, \u].collect { |x|
-			vowels[x] = Vowel(x, register:options[\vowelRegister] ? \tenor)
-		};
+		this.loadSynthDefs;
+		this.initVowels(\counterTenor);
 	}
 
-	start {
-		if(server.serverRunning.not) {
-			Error("SuperColldier server '%' not running. Couldn't start SuperDirt".format(server.name)).warn;
-			^this
+	start { |ports = 57120, outBusses = 0, senderAddrs = (NetAddr("127.0.0.1"))|
+		this.connect(ports, outBusses, senderAddrs)
+	}
+
+	stop {
+		dirtBusses.do(_.free);
+	}
+
+	connect { |ports = 57120, outBusses = 0, senderAddrs = (NetAddr("127.0.0.1"))|
+		var connections;
+		if(Main.scVersionMajor == 3 and: { Main.scVersionMinor == 6 }) {
+			"Please note: SC3.6 listens to any sender.".warn;
+			senderAddrs = nil;
 		};
-		bus = Bus.audio(server, numChannels);
-		globalEffectBus = Bus.audio(server, numChannels);
-		this.initGlobalEffects;
-		this.openNetworkConnection;
+		connections = [ports, outBusses, senderAddrs].flop.collect(DirtBus(this, *_));
+		dirtBusses = dirtBusses ++ connections;
+		^connections.unbubble
 	}
 
 	free {
 		this.freeSoundFiles;
-		ServerTree.remove(this, server);
+		this.stop;
+	}
+
+	getBuffer { |key, index|
+		var allbufs;
+		allbufs = buffers[key];
+		if(allbufs.isNil) { ^nil };
+		index = (index ? 0).asInteger;
+		^allbufs.wrapAt(index)
 	}
 
 	loadSoundFiles { |path, fileExtension = "wav"|
 		var folderPaths;
+		if(server.serverRunning.not) {
+			"Superdirt: server not running - cannot load sound files.".warn; ^this
+		};
 		path = path ?? { "samples".resolveRelative };
 		folderPaths = pathMatch(path +/+ "**");
+		"\nloading sample banks:\n".post;
 		folderPaths.do { |folderPath|
 			PathName(folderPath).filesDo { |filepath|
 				var buf, name;
 				if(filepath.extension.find(fileExtension, true).notNil) {
-					buf = Buffer.read(server, filepath.fullPath);
-					name = filepath.folderName;
-					buffers[name.asSymbol] = buffers[name.asSymbol].add(buf)
+					buf = Buffer.readWithInfo(server, filepath.fullPath);
+					name = filepath.folderName.toLower;
+					buffers[name.asSymbol] = buffers[name.asSymbol].add(buf);
 				}
-			}
-		}
+			};
+			folderPath.basename.post; " ".post;
+		};
+		"\nfiles loaded\n\n".post;
 	}
 
 	freeSoundFiles {
@@ -93,206 +100,106 @@ SuperDirt {
 		path = path ?? { "synths".resolveRelative };
 		filePaths = pathMatch(path +/+ "*");
 		filePaths.do { |filepath|
-			if(filepath.extension == "scd") {
-				try { (dirt:this).use { filepath.load }; "loading synthdefs in %\n".postf(filepath) } { |err| err.postln };
+			if(filepath.splitext.last == "scd") {
+				(dirt:this).use { filepath.load }; "loading synthdefs in %\n".postf(filepath)
 			}
 		}
+	}
 
+	initVowels { |register|
+		vowels = ();
+		if(Vowel.formLib.at(\a).at(register).isNil) {
+			"This voice register (%) isn't avaliable. Using counterTenor instead".format(register).warn;
+			"Available registers are: %".format(Vowel.formLib.at(\a).keys).postln;
+			register = \counterTenor;
+		};
+
+		[\a, \e, \i, \o, \u].collect { |x|
+			vowels[x] = Vowel(x, register)
+		};
+	}
+
+
+}
+
+
+DirtBus {
+
+	var <dirt, <port, <server;
+	var <outBus, <senderAddr, <replyAddr;
+	var <synthBus, <globalEffectBus;
+	var <>diversion;
+	var group, globalEffects, netResponders;
+	var <>releaseTime = 0.02, minSustain;
+
+	*new { |dirt, port = 57120, outBus = 0, senderAddr|
+		^super.newCopyArgs(dirt, port, dirt.server, outBus, senderAddr).init
+	}
+
+	init {
+		if(server.serverRunning.not) {
+			Error("SuperColldier server '%' not running. Couldn't start DirtBus".format(server.name)).warn;
+			^this
+		};
+		group = server.nextPermNodeID;
+		globalEffects = ();
+		synthBus = Bus.audio(server, dirt.numChannels);
+		globalEffectBus = Bus.audio(server, dirt.numChannels);
+		minSustain = 8 / server.sampleRate; // otherwise we drop the event
+		this.initNodeTree;
+		this.openNetworkConnection;
+		ServerTree.add(this, server); // synth node tree init
 	}
 
 	doOnServerTree {
 		// on node tree init:
-		this.initGlobalEffects
+		this.initNodeTree
 	}
 
-	initGlobalEffects {
-		server.bind { // make sure they are in order
+	initNodeTree {
+		server.makeBundle(nil, { // make sure they are in order
+			server.sendMsg("/g_new", group, 0, 1);
 			[\dirt_limiter, \dirt_delay].do { |name|
-				globalEffects[name] = Synth.after(1, name, [\out, 0, \effectBus, globalEffectBus]);
+				globalEffects[name] = Synth.after(group, name.asString ++ dirt.numChannels,
+					[\out, outBus, \effectBus, globalEffectBus]
+				);
 			}
-		};
+		})
 	}
 
-	initSynthDefs {
-
-		// global synth defs
-
-		SynthDef(\dirt_delay, { |out, effectBus, delaytime, delayfeedback|
-			var signal = In.ar(effectBus, numChannels);
-			signal = SwitchDelay.ar(signal, 1, 1, delaytime, delayfeedback); // from sc3-plugins
-			Out.ar(out, signal);
-		}).add;
-
-		SynthDef(\dirt_limiter, { |out|
-			var signal = In.ar(out, numChannels);
-			ReplaceOut.ar(signal, Limiter.ar(signal))
-		}).add;
-
-
-		SynthDef(\dirt, { |bufnum, startFrame, endFrame,
-			pan = 0, amp = 0.1, speed = 1, accelerate = 0, keepRunning = 0|
-
-			var sound, rate, phase, krPhase, endGate;
-
-			// bufratescale adjusts the rate if sample doesn't have the same rate as soundcard
-			rate = speed + Sweep.kr(rate: accelerate);
-
-			// sample phase
-			phase =  Sweep.ar(1, rate * BufSampleRate.kr(bufnum)) + startFrame;
-
-			// release synth when end position is reached (or when backwards, start position)
-			krPhase = A2K.kr(phase); // more efficient
-			endGate = Select.kr(startFrame > endFrame, [
-				InRange.kr(phase, startFrame, endFrame), // workaround
-				InRange.kr(phase, endFrame, startFrame)
-			]);
-			endGate = endGate * (rate.abs > 0.0); // yes?
-
-			sound = BufRd.ar(
-				numChannels: 1, // mono samples only
-				bufnum: bufnum,
-				phase: phase,
-				loop: 0, // should we loop?
-				interpolation: 4 // cubic interpolation
-			);
-
-
-			this.panOut(sound, pan, amp * this.gateCutGroup(endGate));
-		}).add;
-
-		/*
-		Add Effect SynthDefs
-		*/
-		/*
-
-		The local effect synths are freed when input is silent for longer than 0.1 sec (in DetectSilence).
-		This makes it unnecessary to keep track of any synths.
-		But it may cause problems with samples that contain silence.
-
-		One way to solve this involves bookkeeping of synths on the language side (haskell or sclang).
-		For now, we use the simplest possible way.
-		*/
-
-
-		SynthDef(\dirt_vowel, { |out, cutoff = 440, resonance = 0.5, vowel, sustain = 1|
-			var signal, vowelFreqs, vowelAmps, vowelRqs;
-			signal = In.ar(out, numChannels);
-			vowelFreqs = \vowelFreqs.ir(1000 ! 5) * (cutoff / 440);
-			vowelAmps = \vowelAmps.ir(0 ! 5) * resonance.linlin(0, 1, 50, 350);
-			vowelRqs = \vowelRqs.ir(0 ! 5) * resonance.linlin(0, 1, 1, 0.1);
-			signal = BPF.ar(signal, vowelFreqs, vowelRqs, vowelAmps).sum;
-			DetectSilence.ar(LeakDC.ar(signal.asArray.sum), doneAction:2);
-			ReplaceOut.ar(out, signal);
-
-		}).add;
-
-		// would be nice to have some more parameters in some cases
-
-		SynthDef(\dirt_crush, { |out, crush = 4|
-			var signal = In.ar(out, numChannels);
-			DetectSilence.ar(LeakDC.ar(signal.asArray.sum), doneAction:2);
-			signal = signal.round(0.5 ** crush);
-			ReplaceOut.ar(out, signal)
-		}).add;
-
-		SynthDef(\dirt_hpf, { |out, hcutoff = 440, hresonance = 0|
-			var signal = In.ar(out, numChannels);
-			signal = RHPF.ar(signal, hcutoff, hresonance.linexp(0, 1, 1, 0.001));
-			DetectSilence.ar(LeakDC.ar(signal.asArray.sum), doneAction:2);
-			ReplaceOut.ar(out, signal)
-		}).add;
-
-		SynthDef(\dirt_bpf, { |out, bandqf = 440, bandq = 10|
-			var signal = In.ar(out, numChannels);
-			signal = BPF.ar(signal, bandqf, 1/bandq) * max(bandq, 1.0);
-			DetectSilence.ar(LeakDC.ar(signal.asArray.sum), doneAction:2);
-			ReplaceOut.ar(out, signal)
-		}).add;
-
-		SynthDef(\dirt_coarse, { |out, coarse = 0, bandq = 10|
-			var signal = In.ar(out, numChannels);
-			DetectSilence.ar(LeakDC.ar(signal.asArray.sum), doneAction:2);
-			signal = (signal * coarse).tanh * (coarse.reciprocal.max(1));
-			ReplaceOut.ar(out, signal)
-		}).add;
-
-		// the monitor does the mixing and zeroing of the busses for each sample grain
-
-		SynthDef(\dirt_monitor, { |out, in, delayBus, delay = 0|
-			var signal = In.ar(in, numChannels);
-			DetectSilence.ar(LeakDC.ar(signal.asArray.sum), doneAction:2);
-			Out.ar(out, signal);
-			Out.ar(delayBus, signal * delay);
-			ReplaceOut.ar(in, Silent.ar(numChannels)) // clears bus signal for subsequent synths
-		}).add;
-
+	free {
+		this.closeNetworkConnection;
+		ServerTree.remove(this, server);
+		globalEffects.do(_.release);
+		server.freePermNodeID(group);
+		synthBus.free;
+		globalEffectBus.free;
 	}
 
-
-	/*
-	convenience method for panning
-	*/
-
-	panOut { |signal, pan = 0.0, mul = 1.0|
-		var output;
-
-		if(numChannels == 2) {
-			output = Pan2.ar(signal, (pan * 2) - 1, mul)
-		} {
-			output = PanAz.ar(numChannels, signal, pan, mul)
-		};
-		if(signal.size > 1) { output = output.sum };
-
-		^OffsetOut.ar(\out.kr, output); // we create an out control argument in a different way here.
-	}
-
-
-	/*
-	In order to avoid bookkeeping on the language side, we implement cutgroups as follows:
-	The language initialises the synth with its sample id (some number that correlates with the sample name) and the cutgroup.
-	Before we start the new synth, we send a /set message to all synths, and those that match the specifics will be released.
-	*/
-
-	gateCutGroup { |gate = 1|
-		// this is necessary because the message "==" tests for objects, not for signals
-		var same = { |a, b| BinaryOpUGen('==', a, b) };
-		var sameCutGroup = same.(\cutGroup.kr(0), abs(\gateCutGroup.kr(0)));
-		var sameSample = same.(\sample.kr(0), \gateSample.kr(0));
-		var which = \gateCutGroup.kr(0).sign; // -1, 0, 1
-		var free = Select.kr(which + 1, // 0, 1, 2
-			[
-				sameSample,
-				0.0, // default cut group 0 doesn't ever cut
-				1.0
-			]
-		) * sameCutGroup; // same cut group is mandatory
-
-		^EnvGen.kr(Env.asr(0, 1, 0.01), (1 - free) * gate, doneAction:2);
-	}
-
-
-	sendSynth { |instrument, args|
+	sendSynth { |instrument, args, synthGroup = -1|
+		//args.asOSCArgArray.postln; "--------------".postln;
 		server.sendMsg(\s_new, instrument,
 			-1, // no id
 			1, // add action: addToTail
-			1, // send to group 1
+			synthGroup, // send to group
 			*args.asOSCArgArray // append all other args
 		)
 	}
 
 
-	/*
-	This uses the Dirt OSC API
-	*/
+	// This implements an alternative API, to be accessed via OSC by "/play2"
 
 	value2 { |args| // args are in the shape [key, val, key, val ...]
 		this.performKeyValuePairs(\value, args)
 	}
 
+
+	// This implements the Dirt OSC API, to be accessed via OSC by "/play"
+
 	value {
-		|latency, cps = 1, name, offset = 0, start = 0, end = 1, speed = 1, pan = 0, velocity,
+		|latency, cps = 1, sound, offset = 0, start = 0, end = 1, speed = 1, pan = 0, velocity,
 		vowel, cutoff = 300, resonance = 0.5,
-		accelerate = 0, shape, krio, gain = 1, cutgroup = 0,
+		accelerate = 0, shape = 0, krio, gain = 1, cutgroup = 0,
 		delay = 0, delaytime = 0, delayfeedback = 0,
 		crush = 0,
 		coarse = 0,
@@ -300,208 +207,275 @@ SuperDirt {
 		bandqf = 0, bandq = 0,
 		unit = \r|
 
-		var amp, allbufs, buffer, group;
-		var instrument, key, index, sample;
-		var temp;
+		var amp, buffer, instrument, sample;
+		var temp, function;
 		var length, sampleRate, numFrames, bufferDuration;
-		var sustain, startFrame, endFrame;
+		var sustain, release, endSpeed, avgSpeed;
+		var numChannels = dirt.numChannels;
+		var synthGroup, diverted;
+		var key, index;
 
-		#key, index = name.asString.split($:);
+
+
+		/*
+		"cps: %, sound: %, offset: %, start: %, end: %, speed: %, pan: %, velocity: %, vowel: %, cutoff: %, resonance: %, accelerate: %, shape: %, krio: %, gain: %, cutgroup: %, delay: %, delaytime: %, delayfeedback: %, crush: %, coarse: %, hcutoff: %, hresonance: %, bandqf: %, bandq: %,unit: %"
+		.format(cps, sound, offset, start, end, speed, pan, velocity,
+		vowel, cutoff, resonance,
+		accelerate, shape, krio, gain, cutgroup,
+		delay, delaytime, delayfeedback,
+		crush,
+		coarse,
+		hcutoff, hresonance,
+		bandqf, bandq,
+		unit).postln;
+		*/
+
+
+		diverted = diversion.value(sound);
+		if(diverted.notNil) { ^this };
+
+		#key, index = sound.asString.split($:);
 		key = key.asSymbol;
-		allbufs = this.buffers[key];
-		index = (index ? 0).asInteger;
 
-		if(allbufs.notNil) {
-			instrument = \dirt;
-			buffer = allbufs.wrapAt(index);
-			numFrames = buffer.numFrames;
+		buffer = dirt.getBuffer(key, index);
+
+		if(buffer.notNil) {
+			if(buffer.sampleRate.isNil) {
+				"Dirt: buffer '%' not yet completely read".format(sound).warn; ^this
+			};
 			bufferDuration = buffer.duration;
-			sampleRate = buffer.sampleRate;
-			sample = name.identityHash;
+			sample = sound.identityHash;
+			instrument = format("dirt_sample_%_%", buffer.numChannels, numChannels);
+
 		} {
-			instrument = key;
-			sampleRate = server.sampleRate;
-			numFrames = sampleRate; // assume one second
-			bufferDuration = 1.0;
+			if(SynthDescLib.at(key).notNil) {
+				instrument = key;
+				bufferDuration = 1.0;
+			} {
+				"Dirt: no sample or instrument found for '%'.\n".postf(sound);
+				^this
+			}
 		};
 
 		if(end >= start) {
 			if(speed < 0) { temp = end; end = start; start = temp };
-			length = end - start;
 		} {
 			// backwards
-			length = start - end;
 			speed = speed.neg;
 		};
 
-		if(allbufs.notNil or: { SynthDescLib.at(key).notNil }) {
+		length = abs(start - end);
 
-			unit = unit ? \r;
-			amp = pow(gain, 4);
+		if(unit == \rate) { unit = \r }; // API adaption to tidal output
+		unit = unit ? \r;
+		amp = pow(gain, 4);
 
-			// sustain is the duration of the sample
-			switch(unit,
-				\r, {
-					sustain = bufferDuration * length / speed;
-					startFrame = numFrames * start;
-					endFrame = numFrames * end;
-				},
-				\c, {
-					sustain = length / cps;
-					speed = speed * cps;
-					startFrame = numFrames * start;
-					endFrame = numFrames * end;
-				},
-				\s, {
-					sustain = length * sampleRate;
-					startFrame = sampleRate * start;
-					endFrame = sampleRate * end;
+
+		endSpeed = speed * (1.0 + (accelerate.abs.linexp(0.01, 4, 0.001, 20, nil) * accelerate.sign));
+		if(endSpeed.sign != speed.sign) { endSpeed = 0.0 }; // never turn back
+		avgSpeed = speed.abs + endSpeed.abs * 0.5;
+
+		// sustain is the duration of the sample
+		switch(unit,
+			\r, {
+				sustain = bufferDuration * length / avgSpeed;
+			},
+			\c, {
+				sustain = length / cps * (avgSpeed / speed.abs); // multiply by factor
+				speed = speed * cps;
+			},
+			\s, {
+				sustain = length;
+			}
+		);
+
+		if(sustain < minSustain) {
+			//"dropping samples, sustain is: % minimum %\n".postf(sustain, minSustain);
+			^this // drop it.
+		};
+
+		release = min(releaseTime, sustain * 0.381966);
+		sustain = sustain - release;
+		offset = offset * speed;
+
+		synthGroup = server.nextNodeID;
+		latency = latency ? 0.0 + server.latency + offset;
+
+		server.makeBundle(latency, { // use this to build a bundle
+
+			if(cutgroup != 0) {
+				server.sendMsg(\n_set, group, \gateCutGroup, cutgroup, \gateSample, sample);
+			};
+
+			// set global delay synth parameters
+			if(delaytime > 0 or: { delayfeedback > 0 }) {
+				server.sendMsg(\n_set, globalEffects[\dirt_delay].nodeID,
+					\delaytime, delaytime,
+					\delayfeedback, delayfeedback
+				);
+			};
+
+			server.sendMsg(\g_new, synthGroup, 1, group); // make new group. it is freed from the monitor.
+
+
+			this.sendSynth(instrument, [
+				sustain: sustain,
+				speed: speed,
+				endSpeed: endSpeed,
+				bufnum: buffer,
+				start: start,
+				end: end,
+				pan: pan,
+				accelerate: accelerate,
+				offset: offset,
+				cps: cps,
+				index: index,
+				out: synthBus],
+			synthGroup
+			);
+
+			if(vowel.notNil) {
+				vowel = dirt.vowels[vowel];
+				if(vowel.notNil) {
+					this.sendSynth("dirt_vowel" ++ numChannels,
+						[
+							out: synthBus,
+							vowelFreqs: vowel.freqs,
+							vowelAmps: vowel.amps,
+							vowelRqs: vowel.rqs,
+							resonance: resonance,
+						],
+						synthGroup
+					)
 				}
+
+			};
+
+			if(shape != 0 and: { shape < 1.0 }) {
+				shape = (2.0 * shape) / (1.0 - shape);
+				this.sendSynth("dirt_shape" ++ numChannels,
+					[
+						shape: shape,
+						out: synthBus
+					],
+					synthGroup
+				)
+			};
+
+			if(hcutoff != 0) {
+				this.sendSynth("dirt_hpf" ++ numChannels,
+					[
+						hcutoff: hcutoff,
+						hresonance: hresonance,
+						out: synthBus
+					],
+					synthGroup
+				)
+			};
+
+			if(bandqf != 0) {
+				this.sendSynth("dirt_bpf" ++ numChannels,
+					[
+						bandqf: bandqf,
+						bandq: bandq,
+						out: synthBus
+					],
+					synthGroup
+				)
+			};
+
+			if(crush != 0) {
+				this.sendSynth("dirt_crush" ++ numChannels,
+					[
+						crush: crush,
+						out: synthBus
+					],
+					synthGroup
+				)
+			};
+
+			if(coarse > 1) { // coarse == 1 => full rate
+				this.sendSynth("dirt_coarse" ++ numChannels,
+					[
+						coarse: coarse,
+						out: synthBus
+					],
+					synthGroup
+				)
+			};
+
+
+			server.sendMsg(\s_new, "dirt_monitor" ++ numChannels,
+				-1,
+				3, // add action: addAfter
+				synthGroup, // send to group
+				*[
+					in: synthBus,  // read from private
+					out: outBus,     // write to outBus,
+					globalEffectBus: globalEffectBus,
+					effectAmp: delay,
+					amp: amp,
+					cutGroup: cutgroup.abs, // ignore negatives here!
+					sample: sample, // required for the cutgroup mechanism
+					sustain: sustain, // after sustain, free all synths and group
+					release: release // fade out
+				].asOSCArgArray // append all other args
 			);
 
 
-			server.makeBundle(latency, { // use this to build a bundle
-
-				if(cutgroup != 0) {
-					// set group 1, in which all synths are living
-					server.sendMsg(\n_set, 1, \gateCutGroup, cutgroup, \gateSample, sample);
-				};
-
-				// set global delay synth parameters
-				if(delaytime != 0 or: { delayfeedback != 0 }) {
-					server.sendMsg(\n_set, globalEffects[\dirt_delay].nodeID,
-						\delaytime, delaytime,
-						\delayfeedback, delayfeedback
-					);
-				};
-
-				this.sendSynth(instrument, [
-					sustain: sustain,
-					speed: speed,
-					bufnum: buffer,
-					start: start,
-					end: end,
-					startFrame: startFrame,
-					endFrame: endFrame,
-					pan: pan,
-					accelerate: accelerate,
-					amp: amp,
-					offset: offset,
-					cutGroup: cutgroup.abs, // ignore negatives here!
-					sample: sample,
-					cps: cps,
-					out: bus]
-				);
-
-				if(vowel.notNil) {
-					vowel = vowels[vowel];
-					if(vowel.notNil) {
-						this.sendSynth(\dirt_vowel,
-							[
-								out: bus,
-								vowelFreqs: vowel.freqs,
-								vowelAmps: vowel.amps,
-								vowelRqs: vowel.rqs,
-								cutoff: cutoff,
-								resonance: resonance,
-								sustain: sustain
-							]
-						);
-					}
-
-				};
-
-				if(crush != 0) {
-					this.sendSynth(\dirt_crush,
-						[
-							crush: crush,
-							out: bus
-						]
-					)
-				};
-
-				if(hcutoff != 0) {
-					this.sendSynth(\dirt_hpf,
-						[
-							hcutoff: hcutoff,
-							hresonance: hresonance,
-							out: bus
-						]
-					)
-				};
-
-				if(bandqf != 0) {
-					this.sendSynth(\dirt_bpf,
-						[
-							bandqf: bandqf,
-							bandq: bandq,
-							out: bus
-						]
-					)
-				};
-
-				if(coarse != 0) {
-					this.sendSynth(\dirt_coarse,
-						[
-							coarse: coarse,
-							out: bus
-						]
-					)
-				};
-
-				this.sendSynth(\dirt_monitor,
-					[
-						in: bus,  // read from private
-						out: 0,     // write to public,
-						delayBus: globalEffectBus,
-						delay: delay
-					]
-				);
+		});
 
 
-			});
-
-		} {
-			"Dirt: no sample or instrument found for this name: %\n".postf(name);
-		}
 	}
+
 
 	openNetworkConnection {
 
-		var port = options[\port] ? 57120;
+		this.closeNetworkConnection;
 
 		// current standard protocol
 
-		OSCdef(\dirt, { |msg, time, tidalAddr|
-			var latency = time - Main.elapsedTime;
-			if(latency > 2) {
-				"The scheduling delay is too long. Your networks clocks may not be in sync".warn;
-				latency = 0.2;
-			};
-			replyAddr = tidalAddr; // collect tidal reply address
-			this.value(latency, *msg[1..]);
-		}, '/play', recvPort: port).fix;
+		netResponders.add(
 
+			OSCFunc({ |msg, time, tidalAddr|
+				var latency = time - Main.elapsedTime;
+				if(latency > 2) {
+					"The scheduling delay is too long. Your networks clocks may not be in sync".warn;
+					latency = 0.2;
+				};
+				replyAddr = tidalAddr; // collect tidal reply address
+				this.value(latency, *msg[1..]);
+			}, '/play', senderAddr, recvPort: port).fix
 
-		// an alternative protocol, uses pairs of parameter names and values in arbitrary order
-		OSCdef(\dirt2, { |msg, time, tidalAddr|
-			var latency = time - Main.elapsedTime;
-			if(latency > 2) {
-				"The scheduling delay is too long. Your networks clocks may not be in sync".warn;
-				latency = 0.2;
-			};
-			replyAddr = tidalAddr; // collect tidal reply address
-			this.value2([\latency, latency] ++ msg[1..]);
-		}, '/play2', recvPort: port).fix;
+		);
+
+		netResponders.add(
+			// an alternative protocol, uses pairs of parameter names and values in arbitrary order
+			OSCFunc({ |msg, time, tidalAddr|
+				var latency = time - Main.elapsedTime;
+				if(latency > 2) {
+					"The scheduling delay is too long. Your networks clocks may not be in sync".warn;
+					latency = 0.2;
+				};
+				replyAddr = tidalAddr; // collect tidal reply address
+				this.value2([\latency, latency] ++ msg[2..]);
+			}, '/play2', senderAddr, recvPort: port).fix
+		);
 
 		"SuperDirt: listening to Tidal on port %".format(port).postln;
+	}
+
+	closeNetworkConnection {
+		netResponders.do { |x| x.free };
+		netResponders = List.new;
 	}
 
 	sendToTidal { |args|
 		if(replyAddr.notNil) {
 			replyAddr.sendMsg(*args);
+		} {
+			"Currently no connection back to tidal".warn;
 		}
 	}
-
 
 }
