@@ -270,6 +270,8 @@ DirtBus {
 		unit = unit ? \r;
 		amp = pow(gain, 4);
 
+		// so speed = 1 sets the sample to play for 1 cycle, and 2 for half a cycle
+		if (unit == \c) { speed = speed * bufferDuration * cps };
 
 		endSpeed = speed * (1.0 + (accelerate.abs.linexp(0.01, 4, 0.001, 20, nil) * accelerate.sign));
 		if(endSpeed.sign != speed.sign) { endSpeed = 0.0 }; // never turn back
@@ -281,8 +283,7 @@ DirtBus {
 				sustain = bufferDuration * length / avgSpeed;
 			},
 			\c, {
-				sustain = length / cps * (avgSpeed / speed.abs); // multiply by factor
-				speed = speed * cps;
+				sustain = bufferDuration * length / avgSpeed;
 			},
 			\s, {
 				sustain = length;
