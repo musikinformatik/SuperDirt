@@ -70,11 +70,16 @@ DirtEvent {
 		var sustain, avgSpeed;
 		var speed = ~speed;
 		var accelerate = ~accelerate;
-		var endSpeed = speed * (1.0 + (accelerate.abs.linexp(0.01, 4, 0.001, 20, nil) * accelerate.sign));
+		var endSpeed;
+
+		if (~unit == \c) { speed = speed * ~unitDuration * ~cps };
+
+		endSpeed = speed * (1.0 + (accelerate.abs.linexp(0.01, 4, 0.001, 20, nil) * accelerate.sign));
 		if(endSpeed.sign != speed.sign) { endSpeed = 0.0 }; // never turn back
 		avgSpeed = speed.abs + endSpeed.abs * 0.5;
 
 		if(~unit == \rate) { ~unit = \r }; // API adaption to tidal output
+
 
 		// sustain is the duration of the sample
 		switch(~unit,
@@ -82,8 +87,7 @@ DirtEvent {
 				sustain = ~unitDuration * ~length / avgSpeed;
 			},
 			\c, {
-				sustain = ~length / ~cps * (avgSpeed / speed.abs); // multiply by factor
-				~speed = ~speed * ~cps;
+				sustain = ~unitDuration * ~length / avgSpeed;
 			},
 			\s, {
 				sustain = ~length;
