@@ -12,7 +12,7 @@ If your SuperDirt instance is assigned to the variable ~dirt, you can livecode t
 SynthDef(\imp, { |out, speed = 1, start=0, end=1, pan, accelerate, amp = 1, offset|
 	var env, sound, dur, rate, phase;
 	dur = (end - start) / speed * 0.5;
-	env = EnvGen.ar(Env.perc(0.001, dur, amp * 0.3, -1), timeScale:dur, doneAction:2);
+	env = EnvGen.ar(Env.perc(0.001, dur, amp * 0.2, -1), timeScale:dur, doneAction:2);
 	phase = Line.ar(start, end, dur);
 	speed = speed + Sweep.kr(1, accelerate);
 	rate = (start + 1) * speed;
@@ -29,7 +29,7 @@ SynthDef(\pmsin, { |out, speed = 1, start=0, end=1, pan, accelerate, amp = 1, of
 	freq = MouseX.kr(30, 80).round.midicps;
 	modfreq = MouseY.kr(1, 200, 1);
 	amp = AmpCompA.kr(freq) * amp;
-	env = EnvGen.ar(Env.perc(0.002, dur, amp * 0.3, -1), timeScale:dur, doneAction:2);
+	env = EnvGen.ar(Env.perc(0.002, dur, amp * 0.2, -1), timeScale:dur, doneAction:2);
 	phase = Line.ar(start, end, dur);
 	rate = speed + Sweep.kr(1, accelerate);
 	sound = SinOsc.ar(freq, SinOsc.ar(modfreq * (1..5), 0, 1 - phase * 10 * env / (1..5), 0.5pi)).sum;

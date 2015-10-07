@@ -268,7 +268,7 @@ DirtBus {
 
 		if(unit == \rate) { unit = \r }; // API adaption to tidal output
 		unit = unit ? \r;
-		amp = pow(gain, 4);
+		amp = pow(gain, 4) * 0.1;
 
 		// so speed = 1 sets the sample to play for 1 cycle, and 2 for half a cycle
 		if (unit == \c) { speed = speed * bufferDuration * cps };
