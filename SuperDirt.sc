@@ -130,7 +130,7 @@ DirtBus {
 	var <synthBus, <globalEffectBus;
 	var <>diversion;
 	var group, globalEffects, netResponders;
-	var <>releaseTime = 0.02, minSustain;
+	var <>fadeTime = 0.0004, minSustain;
 
 	*new { |dirt, port = 57120, outBus = 0, senderAddr|
 		^super.newCopyArgs(dirt, port, dirt.server, outBus, senderAddr).init
@@ -210,7 +210,7 @@ DirtBus {
 		var amp, buffer, instrument, sample;
 		var temp, function;
 		var length, sampleRate, numFrames, bufferDuration;
-		var sustain, release, endSpeed, avgSpeed;
+		var sustain, ramp, endSpeed, avgSpeed;
 		var numChannels = dirt.numChannels;
 		var synthGroup, diverted;
 		var key, index;
@@ -295,8 +295,8 @@ DirtBus {
 			^this // drop it.
 		};
 
-		release = min(releaseTime, sustain * 0.381966);
-		sustain = sustain - release;
+		ramp = min(fadeTime, sustain * 0.190983);
+		sustain = sustain - (2 * ramp);
 		offset = offset * speed;
 
 		synthGroup = server.nextNodeID;
@@ -419,7 +419,7 @@ DirtBus {
 					cutGroup: cutgroup.abs, // ignore negatives here!
 					sample: sample, // required for the cutgroup mechanism
 					sustain: sustain, // after sustain, free all synths and group
-					release: release // fade out
+					fadeTime: ramp // fade in and out
 				].asOSCArgArray // append all other args
 			);
 
