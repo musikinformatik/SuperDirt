@@ -43,7 +43,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 			sound = DirtPan.ar(sound, numChannels, pan, mix:false);
 
-			OffsetOut.ar(out, sound)
+			Out.ar(out, sound)
 		}, [\ir, \ir, \ir, \ir, \ir, \ir, \ir, \ir]).add;
 	};
 
