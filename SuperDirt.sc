@@ -176,6 +176,11 @@ DirtBus {
 		globalEffectBus.free;
 	}
 
+	outBus_ { |bus|
+		globalEffects.do { |synth| synth.set(\out, bus) };
+		outBus = bus;
+	}
+
 	sendSynth { |instrument, args, synthGroup = -1|
 		//args.asOSCArgArray.postln; "--------------".postln;
 		server.sendMsg(\s_new, instrument,
