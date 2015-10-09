@@ -350,6 +350,7 @@ DirtBus {
 							vowelAmps: vowel.amps,
 							vowelRqs: vowel.rqs,
 							resonance: resonance,
+							cutoff: cutoff
 						],
 						synthGroup
 					)
