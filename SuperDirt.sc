@@ -213,6 +213,7 @@ DirtBus {
 
 		var args = [\latency, latency, \cps, cps, \sound, sound, \offset, offset, \start, start, \end, end, \speed, speed, \pan, pan, \velocity, velocity, \vowel, vowel, \cutoff, cutoff, \resonance, resonance, \accelerate, accelerate, \shape, shape, \krio, krio, \gain, gain, \cutgroup, cutgroup, \delay, delay, \delaytime, delaytime, \delayfeedback, delayfeedback, \crush, crush, \coarse, coarse, \hcutoff, hcutoff, \hresonance, hresonance, \bandqf, bandqf, \bandq, bandq, \unit, unit];
 
+
 		this.value(args)
 
 
