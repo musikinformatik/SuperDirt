@@ -140,7 +140,8 @@ DirtBus {
 	var <outBus, <senderAddr, <replyAddr;
 	var <synthBus, <globalEffectBus;
 	var <group, <globalEffects, netResponders;
-	var <>releaseTime = 0.02, <>minSustain;
+	var <>fadeTime = 0.001, <>minSustain;
+
 
 	var <>defaultParentEvent;
 

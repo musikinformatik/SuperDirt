@@ -99,8 +99,8 @@ DirtEvent {
 			^this // drop it.
 		};
 
-		~release = min(dirtBus.releaseTime, sustain * 0.381966);
-		~sustain = sustain - ~release;
+		~fadeTime = min(dirtBus.fadeTime, sustain * 0.19098);
+		~sustain = sustain - (2 * ~fadeTime);
 		~speed = speed;
 		~endSpeed = endSpeed;
 
@@ -132,7 +132,7 @@ DirtEvent {
 				cutGroup: ~cutgroup.abs, // ignore negatives here!
 				sample: ~sample, // required for the cutgroup mechanism
 				sustain: ~sustain, // after sustain, free all synths and group
-				release: ~release // fade out
+				fadeTime: ~fadeTime // fade in and out
 			].asOSCArgArray // append all other args
 		)
 	}

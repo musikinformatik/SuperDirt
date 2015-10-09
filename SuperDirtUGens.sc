@@ -61,9 +61,7 @@ DirtGateCutGroup {
 			]
 		) * sameCutGroup; // same cut group is mandatory
 
-		^EnvGen.ar(Env([1, 1, 0], [sustain, releaseTime]), doneAction:doneAction)
-		*
-		EnvGen.kr(Env.cutoff(releaseTime), (1 - free), doneAction:doneAction);
+		^EnvGen.kr(Env.cutoff(releaseTime), (1 - free), doneAction:doneAction);
 
 	}
 }

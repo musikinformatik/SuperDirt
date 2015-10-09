@@ -43,7 +43,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 			sound = DirtPan.ar(sound, numChannels, pan, mix:false);
 
-			OffsetOut.ar(out, sound)
+			Out.ar(out, sound)
 		}, [\ir, \ir, \ir, \ir, \ir, \ir, \ir, \ir]).add;
 	};
 
@@ -57,9 +57,11 @@ live coding them requires that you have your SuperDirt instance in an environmen
 	// the monitor does the mixing and zeroing of the busses for each sample grain
 	// so that they can all play in one bus
 
-	SynthDef("dirt_monitor" ++ numChannels, { |out, in, globalEffectBus, effectAmp = 0, sustain = 1, release = 0.02, amp = 0.1|
+	SynthDef("dirt_monitor" ++ numChannels, { |out, in, globalEffectBus, effectAmp = 0, sustain = 1, fadeTime = 0.001, amp = 1|
 		var signal = In.ar(in, numChannels);
-		signal = signal * (amp * 10) * DirtGateCutGroup.ar(sustain, release, doneAction: 3); // free node before, which is the group
+		 //  doneAction: 3: free node before, which is the group with sample player and effects
+		var env = EnvGen.ar(Env([0, 1, 1, 0], [fadeTime, sustain, fadeTime], \lin), doneAction: 3);
+		signal = signal * amp * env * DirtGateCutGroup.ar(sustain, fadeTime, doneAction: 3);
 		Out.ar(out, signal);
 		Out.ar(globalEffectBus, signal * effectAmp);
 		ReplaceOut.ar(in, Silent.ar(numChannels)) // clears bus signal for subsequent synths
