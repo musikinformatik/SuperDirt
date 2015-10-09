@@ -60,10 +60,10 @@ live coding them requires that you have your SuperDirt instance in an environmen
 	SynthDef("dirt_monitor" ++ numChannels, { |out, in, globalEffectBus, effectAmp = 0, sustain = 1, fadeTime = 0.001, amp = 1|
 		var signal = In.ar(in, numChannels);
 		 //  doneAction: 3: free node before, which is the group with sample player and effects
-		var env = EnvGen.ar(Env([0, 1, 1, 0], [fadeTime, sustain, fadeTime], \lin), doneAction: 3);
+		var env = EnvGen.ar(Env([0, 1, 1, 0], [fadeTime, sustain, fadeTime], \sin), doneAction: 3);
 		signal = signal * amp * env * DirtGateCutGroup.ar(sustain, fadeTime, doneAction: 3);
-		Out.ar(out, signal);
-		Out.ar(globalEffectBus, signal * effectAmp);
+		OffsetOut.ar(out, signal);
+		OffsetOut.ar(globalEffectBus, signal * effectAmp);
 		ReplaceOut.ar(in, Silent.ar(numChannels)) // clears bus signal for subsequent synths
 	}, [\ir, \ir, \ir, \ir, \ir, \ir, \ir]).add;
 
