@@ -130,7 +130,7 @@ DirtBus {
 	var <synthBus, <globalEffectBus;
 	var <>diversion;
 	var group, globalEffects, netResponders;
-	var <>fadeTime = 0.001, minSustain;
+	var <>fadeTime = 0.001, <>amp = 0.1, minSustain;
 
 	*new { |dirt, port = 57120, outBus = 0, senderAddr|
 		^super.newCopyArgs(dirt, port, dirt.server, outBus, senderAddr).init
@@ -212,7 +212,7 @@ DirtBus {
 		bandqf = 0, bandq = 0,
 		unit = \r|
 
-		var amp, buffer, instrument, sample;
+		var synthAmp, buffer, instrument, sample;
 		var temp, function;
 		var length, sampleRate, numFrames, bufferDuration;
 		var sustain, ramp, endSpeed, avgSpeed;
@@ -273,7 +273,7 @@ DirtBus {
 
 		if(unit == \rate) { unit = \r }; // API adaption to tidal output
 		unit = unit ? \r;
-		amp = pow(gain, 4);
+		synthAmp = pow(gain, 4) * amp;
 
 		// so speed = 1 sets the sample to play for 1 cycle, and 2 for half a cycle
 		if (unit == \c) { speed = speed * bufferDuration * cps };
@@ -421,7 +421,7 @@ DirtBus {
 					out: outBus,     // write to outBus,
 					globalEffectBus: globalEffectBus,
 					effectAmp: delay,
-					amp: amp,
+					amp: synthAmp,
 					cutGroup: cutgroup.abs, // ignore negatives here!
 					sample: sample, // required for the cutgroup mechanism
 					sustain: sustain, // after sustain, free all synths and group
