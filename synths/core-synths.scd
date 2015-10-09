@@ -160,7 +160,12 @@ live coding them requires that you have your SuperDirt instance in an environmen
 	SynthDef("dirt_limiter" ++ numChannels, { |out, gate = 1|
 		var signal = In.ar(out, numChannels);
 		signal = signal * EnvGen.kr(Env.asr, gate, doneAction:2);
-		ReplaceOut.ar(out, Limiter.ar(signal))
+		signal = Limiter.ar(signal);
+		// or if you like it harsher
+		//signal = tanh(signal);
+		// or:
+		//signal = distort(signal);
+		ReplaceOut.ar(out, signal)
 	}).add;
 
 	// thanks to Jost Muxfeld:
