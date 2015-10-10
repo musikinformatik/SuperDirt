@@ -37,11 +37,13 @@ SuperDirt {
 	}
 
 	start { |ports = 57120, outBusses = 0, senderAddrs = (NetAddr("127.0.0.1"))|
+		if(dirtBusses.notNil) { this.stop };
 		this.connect(ports, outBusses, senderAddrs)
 	}
 
 	stop {
 		dirtBusses.do(_.free);
+		dirtBusses = nil;
 	}
 
 	connect { |ports = 57120, outBusses = 0, senderAddrs = (NetAddr("127.0.0.1"))|
