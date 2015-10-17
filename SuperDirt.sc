@@ -132,7 +132,7 @@ DirtBus {
 	var <synthBus, <globalEffectBus;
 	var <>diversion;
 	var group, globalEffects, netResponders;
-	var <>fadeTime = 0.001, <>amp = 0.1, minSustain;
+	var <>fadeTime = 0.001, <>amp = 0.4, minSustain;
 
 	*new { |dirt, port = 57120, outBus = 0, senderAddr|
 		^super.newCopyArgs(dirt, port, dirt.server, outBus, senderAddr).init
