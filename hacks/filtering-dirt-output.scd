@@ -13,13 +13,11 @@ This assumes that you have SuperDirt running and accesible in ~dirt
 
 ~bus = Bus.audio(s, numChannels:2); // assuming stereo, expand if needed
 
-~dx1 = ~dirt.connect(57130, ~bus);
-
-// using 57130. in Tidal: d1 <- stream "127.0.0.1" 57130 dirt {timestamp = BundleStamp}
+~d1.outBus = ~bus; // play into that bus.
 
 
 /*
-No playing patterns in d1 in tidal should be silent.
+Now, playing patterns in d1 in tidal should be silent.
 */
 
 // listen directly
@@ -43,7 +41,8 @@ Ndef(\x, {
 
 
 /*
-cleaning up, when you're done
+cleaning up when you're done:
 */
 
-~dx1.free; ~bus.free;
+~d1.outBus = 0;
+~bus.free;
