@@ -196,7 +196,7 @@ DirtBus {
 	// This implements an alternative API, to be accessed via OSC by "/play2"
 
 	value { |args| // args are in the shape [key, val, key, val ...]
-		if(args.first.isKindOf(Symbol).not) { "wrong tidal format, please set 'namedParams = True'".warn; ^this };
+		//if(args.first.isKindOf(Symbol).not) { "wrong tidal format, please set 'namedParams = True'".warn; ^this };
 		DirtEvent(this, dirt.modules, args).play
 	}
 
