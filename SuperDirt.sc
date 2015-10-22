@@ -184,6 +184,11 @@ DirtBus {
 		})
 	}
 
+	outBus_ { |bus|
+		globalEffects.do { |synth| synth.set(\out, bus) };
+		outBus = bus;
+	}
+
 	free {
 		this.closeNetworkConnection;
 		ServerTree.remove(this, server);
@@ -296,7 +301,6 @@ DirtBus {
 			~dirtBus = this;
 			~dirt = dirt;
 			~out = synthBus;
-			~publicBus = outBus;
 			~globalEffectBus = globalEffectBus;
 			~numChannels = dirt.numChannels;
 			~server = server;

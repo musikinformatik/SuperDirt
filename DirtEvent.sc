@@ -125,7 +125,7 @@ DirtEvent {
 			~synthGroup, // send to group
 			*[
 				in: ~out,  // read from private
-				out: ~publicBus,     // write to outBus,
+				out: dirtBus.outBus,     // write to outBus,
 				globalEffectBus: ~globalEffectBus,
 				effectAmp: ~delay,
 				amp: ~amp,
