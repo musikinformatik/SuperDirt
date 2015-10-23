@@ -63,11 +63,9 @@ SuperDirt {
 	}
 
 	getBuffer { |key, index|
-		var allbufs;
-		allbufs = buffers[key];
+		var allbufs = buffers[key];
 		if(allbufs.isNil) { ^nil };
-		index = (index ? 0).asInteger;
-		^allbufs.wrapAt(index)
+		^allbufs.wrapAt(index.asInteger)
 	}
 
 	loadSoundFiles { |path, fileExtension = "wav"|
@@ -243,7 +241,7 @@ DirtBus {
 
 		#key, index = sound.asString.split($:);
 		key = key.asSymbol;
-
+		index = if(index.isNil) { 0.0 } { index.asFloat };
 		buffer = dirt.getBuffer(key, index);
 
 		if(buffer.notNil) {
