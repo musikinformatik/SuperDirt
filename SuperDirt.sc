@@ -73,11 +73,9 @@ SuperDirt {
 	}
 
 	getBuffer { |key, index|
-		var allbufs;
-		allbufs = buffers[key];
+		var allbufs = buffers[key];
 		if(allbufs.isNil) { ^nil };
-		index = (index ? 0).asInteger;
-		^allbufs.wrapAt(index)
+		^allbufs.wrapAt(index.asInteger)
 	}
 
 	loadSoundFiles { |path, fileExtension = "wav"|
