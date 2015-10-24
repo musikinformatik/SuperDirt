@@ -30,7 +30,7 @@ DirtEvent {
 
 
 	getBuffer {
-		var buffer, synthDesc;
+		var buffer, synthDesc, sustainControl;
 		buffer = dirtBus.dirt.getBuffer(~key, ~index);
 
 		if(buffer.notNil) {
@@ -47,7 +47,8 @@ DirtEvent {
 			synthDesc = SynthDescLib.at(~key);
 			if(synthDesc.notNil) {
 				~instrument = ~key;
-				~unitDuration = synthDesc.controlDict.at(\sustain).defaultValue ? 1.0; // use definition, if defined.
+				sustainControl = synthDesc.controlDict.at(\sustain);
+				~unitDuration = if(sustainControl.isNil) { 1.0 } { sustainControl.defaultValue ? 1.0 }; // use definition, if defined.
 			} {
 				"Dirt: no sample or instrument found for '%'.\n".postf(~sound);
 			}
