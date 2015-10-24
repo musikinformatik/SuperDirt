@@ -39,6 +39,7 @@ s.waitForBoot {
 ## Setup from Tidal
 ```
 d1 <- stream "127.0.0.1" 57120 dirt {timestamp = BundleStamp}
+
 d2 <- stream "127.0.0.1" 57121 dirt {timestamp = BundleStamp}
 ```
 Now you can run a pattern, e.g.
