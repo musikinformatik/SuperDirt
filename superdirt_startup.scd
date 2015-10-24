@@ -7,16 +7,16 @@ This is an example startup file. You can load it from your startup file
 (
 // configure the sound server: here you could add hardware specific options
 // see http://doc.sccode.org/Classes/ServerOptions.html
-s.options.numBuffers = 1024 * 16;
-s.options.memSize = 8192 * 16;
+s.options.numBuffers = 1024 * 16; // increase this if you need to load more samples
+s.options.memSize = 8192 * 16; // increase this if you get "alloc failed" messages
+s.options.maxNodes = 1024 * 32; // increase this if you are getting drop outs and the message "too many nodes"
 s.quit;
 // boot the server and start SuperDirt
 s.waitForBoot {
-
-	~dirt = SuperDirt(2, s); // two output channels
-	~dirt.loadSoundFiles;   // load samples (path can be passed) mono is assumed.
-	s.sync; // wait for samples
-	~dirt.start([57120, 57121]);        // start listening on port 57120 and 57121
+	~dirt = SuperDirt(2, s); // two output channels, increase if you want to pan across more channels
+	~dirt.loadSoundFiles;   // load samples (path can be passed in)
+	s.sync; // wait for samples to be read
+	~dirt.start([57120, 57121]);   // start listening on port 57120 and 57121. Add more ports as needed.
 
 	/*
 	// if you want nine instances like in dirt, just use instead:
@@ -30,8 +30,9 @@ s.waitForBoot {
 		~d2 = ~dirt.dirtBusses[1]; // the other
 
 	);
-}
+};
+
+s.latency = 0.3; // increase this if you get "late" messages
 );
 
-// access separate dirt busses directly
 
