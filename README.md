@@ -41,12 +41,14 @@ s.waitForBoot {
 
 ## Setup from Tidal
 ```
-d1 <- stream "127.0.0.1" 57120 dirt {timestamp = BundleStamp}
-d2 <- stream "127.0.0.1" 57121 dirt {timestamp = BundleStamp}
+d1 <- stream "127.0.0.1" 57120 dirt {timestamp = BundleStamp, latency = 0.1}
+
+d2 <- stream "127.0.0.1" 57121 dirt {timestamp = BundleStamp, latency = 0.1}
 ```
 Now you can run a pattern, e.g.
 ```
 d1 $ sound "[bd bd bd, sn cp sn cp]"
+
 d2 $ sound "[sn*2 imp bd*3]" |+| speed "1"
 ```
 
