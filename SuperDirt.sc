@@ -305,7 +305,7 @@ DirtBus {
 		offset = offset * speed;
 
 		synthGroup = server.nextNodeID;
-		latency = latency ? 0.0 + server.latency + offset;
+		latency = latency ? 0.0 + offset; // + server.latency
 
 		server.makeBundle(latency, { // use this to build a bundle
 
