@@ -50,7 +50,9 @@ DirtEvent {
 				sustainControl = synthDesc.controlDict.at(\sustain);
 				~unitDuration = if(sustainControl.isNil) { 1.0 } { sustainControl.defaultValue ? 1.0 }; // use definition, if defined.
 			} {
-				"Dirt: no sample or instrument found for '%'.\n".postf(~sound);
+				if(~diversion.isNil) {
+					"Dirt: no sample or instrument found for '%'.\n".postf(~sound)
+				};
 			}
 		}
 	}

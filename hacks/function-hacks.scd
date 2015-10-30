@@ -7,37 +7,49 @@ NOTE: The interface for this may change!
 
 */
 
-// d1 $ sound "tlalak bd sn sn bd"
+// d1 $ sound "tlalak bd*5 sn" |+| vowel "a e"
 
 (
-~dict = (); // make a dictionary of functions
-~dict[\tlalak] = {
+~event = ~d1.defaultParentEvent;
+~event[\dict] = ();  // make a dictionary of functions
+~event[\dict][\tlalak] = {
 	"hello tlalak".postln;
 };
-~d1.diversion = { |sound|
-	~dict[sound].value(~d1)
-};
+// use the "diversion" key as a hook for playing the synth
+~event[\diversion] = {
+	~dict[~sound].value(~d1)
+};)
 )
 
 // execute arbitrary sc code. The dirtbus is the argument
 (
-~dict[\tlalak] = { |dirtbus|
-	// we are playing out on dirtbus.synthBus, so that we can still use global effects like delay
-	Pbind(\dur, 0.02, \note, Pbrown(-15, 15, 0.3, 230.rand), \out, dirtbus.synthBus, \pan, Pfunc { 1.0.rand2 }).play
+~event[\dict][\tlalak]  = {
+	Pfindur(~sustain, Pbind(\dur, 0.04, \note, Pbrown(-15, 15 ! 5, 0.3, inf), \out, ~out, \pan, ~pan)).play
 };
 )
+
+
 
 /*
 
 forward midi
+(untested!)
 
 */
 
 MIDIClient.init;
 
-~midiOut = MIDIOut(0);
+(
+var midiOut = MIDIOut(0);
+var chan = 16;
 
-~d1.diversion = { |sound|
-	~dict[sound].value(~d1)
+~event[\dict][\midi]  = {
+	var note = ~speed.ratiomidi + 60;
+	var vel = ~amp * 128;
+	midiOut.noteOn(chan, note, vel)
+	SystemClock.sched(~sustain, {
+		midiOut.noteOff(chan, note, vel);
+	}
 };
+)
 
