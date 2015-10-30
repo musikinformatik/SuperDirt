@@ -73,8 +73,8 @@ SuperDirt {
 		if(server.serverRunning.not) {
 			"Superdirt: server not running - cannot load sound files.".warn; ^this
 		};
-		path = path ?? { "samples".resolveRelative };
-		folderPaths = pathMatch(path +/+ "**");
+		path = path ?? { "../samples".resolveRelative };
+		folderPaths = pathMatch(standardizePath(path +/+ "**"));
 		"\nloading sample banks:\n".post;
 		folderPaths.do { |folderPath|
 			PathName(folderPath).filesDo { |filepath|
@@ -97,8 +97,8 @@ SuperDirt {
 
 	loadSynthDefs { |path|
 		var filePaths;
-		path = path ?? { "synths".resolveRelative };
-		filePaths = pathMatch(path +/+ "*");
+		path = path ?? { "../synths".resolveRelative };
+		filePaths = pathMatch(standardizePath(path +/+ "*"));
 		filePaths.do { |filepath|
 			if(filepath.splitext.last == "scd") {
 				(dirt:this).use { filepath.load }; "loading synthdefs in %\n".postf(filepath)
