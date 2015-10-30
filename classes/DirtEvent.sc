@@ -153,10 +153,13 @@ DirtEvent {
 	}
 
 	playSynths {
-		var server = ~server;
+		var diverted, server = ~server;
 		var latency = ~latency + (~offset * ~speed); // ~server.latency +
 
 		~amp = pow(~gain, 4) * dirtBus.amp;
+
+		diverted = ~diversion.value;
+		if(diverted.notNil) { ^this };
 
 		server.makeBundle(latency, { // use this to build a bundle
 
