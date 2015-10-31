@@ -68,6 +68,10 @@ SuperDirt {
 		if(index.isNil) { modules = modules.add(module) } { modules.put(index, module) };
 	}
 
+	removeModule { |name|
+		modules.removeAllSuchThat { |x| x.name == name }
+	}
+
 	clearModules {
 		modules = [];
 	}

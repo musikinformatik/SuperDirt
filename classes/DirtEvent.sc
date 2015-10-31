@@ -1,6 +1,6 @@
 DirtEvent {
 
-	var dirtBus, modules, event;
+	var <dirtBus, <modules, <event;
 
 	*new { |dirtBus, modules, args|
 		^super.newCopyArgs(dirtBus, modules).init(args)
