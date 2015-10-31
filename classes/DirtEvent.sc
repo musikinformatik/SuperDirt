@@ -49,10 +49,6 @@ DirtEvent {
 				~instrument = ~key;
 				sustainControl = synthDesc.controlDict.at(\sustain);
 				~unitDuration = if(sustainControl.isNil) { 1.0 } { sustainControl.defaultValue ? 1.0 }; // use definition, if defined.
-			} {
-				if(~diversion.isNil) {
-					"Dirt: no sample or instrument found for '%'.\n".postf(~sound)
-				};
 			}
 		}
 	}
@@ -159,9 +155,6 @@ DirtEvent {
 		var latency = ~latency + (~offset * ~speed); // ~server.latency +
 
 		~amp = pow(~gain, 4) * dirtBus.amp;
-
-		diverted = ~diversion.value;
-		if(diverted.notNil) { ^this };
 
 		server.makeBundle(latency, { // use this to build a bundle
 

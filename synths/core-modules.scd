@@ -17,7 +17,7 @@ You can't currently add your own, because Tidal needs to support this extension 
 
 // argumets could be omitted using getMsgFunc, but for making it easier to understand, we write them out
 
-~dirt.addModule('sound',
+~dirt.addModule('sample',
 	{ |dirtEvent|
 		dirtEvent.sendSynth(~instrument,  [
 			bufnum: ~buffer,
@@ -30,16 +30,28 @@ You can't currently add your own, because Tidal needs to support this extension 
 		]);
 }, { ~buffer.notNil });
 
-/* 
+/*
 this is a generic synth, which allows us to embed a SynthDef name in a tidal pattern next to sample names
 
 it could receive any number of the parameters in the event, e.g.
 sustain, speed, endSpeed, start, end, pan, accelerate, offset, cps
 
 it ought to use: out
+
+the diversion is a hook to add an arbitrary function instead of a synth def.
+this may be refacored later.
 */
 
-~dirt.addModule('synth', { |dirtEvent| dirtEvent.sendSynth(~instrument) }, { ~buffer.isNil });
+~dirt.addModule('synth', { |dirtEvent|
+	var diverted = ~diversion.value;
+	if(diverted.isNil) {
+		if(~instrument.isNil) {
+			"instrument not found: %".format(~sound).postln
+		} {
+			dirtEvent.sendSynth(~instrument)
+		}
+	}
+}, { ~buffer.isNil });
 
 /*
 these function as effects on the input of the synth or sample (see SynthDefs in core-synths)
