@@ -13,45 +13,51 @@ You can't currently add your own, because Tidal needs to support this extension 
 
 */
 
-(
 
-// argumets could be omitted using getMsgFunc, but for making it easier to understand, we write them out
-
-~dirt.addModule('sample',
-	{ |dirtEvent|
-		dirtEvent.sendSynth(~instrument,  [
-			bufnum: ~buffer,
-			sustain: ~sustain,
-			speed: ~speed,
-			endSpeed: ~endSpeed,
-			start: ~start,
-			pan: ~pan,
-			out: ~out
-		]);
-}, { ~buffer.notNil });
 
 /*
-this is a generic synth, which allows us to embed a SynthDef name in a tidal pattern next to sample names
+The sound source to be filtered by later stages (modules)
 
-it could receive any number of the parameters in the event, e.g.
+This could be:
+
+- a sample that is played
+- a generic synth, which allows us to embed a SynthDef name in a tidal pattern next to sample names
+
+A SynthDef could receive any number of the parameters in the event, e.g.
 sustain, speed, endSpeed, start, end, pan, accelerate, offset, cps
 
-it ought to use: out
+it ought to use "out" as bus output argument.
 
 the diversion is a hook to add an arbitrary function instead of a synth def.
 this may be refacored later.
 */
+(
 
-~dirt.addModule('synth', { |dirtEvent|
-	var diverted = ~diversion.value;
-	if(diverted.isNil) {
-		if(~instrument.isNil) {
-			"instrument not found: %".format(~sound).postln
-		} {
-			dirtEvent.sendSynth(~instrument)
+~dirt.addModule('sound-source',
+	{ |dirtEvent|
+		if(~diversion.value.isNil) {
+			if(~buffer.notNil) {
+				// argumets could be omitted using getMsgFunc, but for making it easier to understand, we write them out
+				dirtEvent.sendSynth(~instrument,  [
+					bufnum: ~buffer,
+					sustain: ~sustain,
+					speed: ~speed,
+					endSpeed: ~endSpeed,
+					start: ~start,
+					pan: ~pan,
+					out: ~out
+				])
+			} {
+				if(~instrument.isNil) {
+					"instrument not found: %".format(~sound).postln
+				} {
+					// here, we just derive the arguments as necessary from the environment
+					dirtEvent.sendSynth(~instrument)
+				}
+			}
 		}
-	}
-}, { ~buffer.isNil });
+});
+
 
 /*
 these function as effects on the input of the synth or sample (see SynthDefs in core-synths)

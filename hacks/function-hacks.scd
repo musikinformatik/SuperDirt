@@ -10,24 +10,32 @@ NOTE: The interface for this may change!
 // d1 $ sound "tlalak bd*5 sn" |+| vowel "a e"
 
 (
-~event = ~d1.defaultParentEvent;
-~event[\dict] = ();  // make a dictionary of functions
-~event[\dict][\tlalak] = {
+var diversions = ();  // make a dictionary of functions
+~diversions = diversions; // make it available out of scope
+~diversions[\tlalak] = {
 	"hello tlalak".postln;
 };
 // use the "diversion" key as a hook for playing the synth
-~event[\diversion] = {
-	~dict[~sound].value(~d1)
-};)
+~d1.defaultParentEvent[\diversion] = { diversions[~sound].value };
 )
 
-// execute arbitrary sc code. The dirtbus is the argument
+// execute arbitrary sc code
+// you can livecode this
 (
-~event[\dict][\tlalak]  = {
-	Pfindur(~sustain, Pbind(\dur, 0.04, \note, Pbrown(-15, 15 ! 5, 0.3, inf), \out, ~out, \pan, ~pan)).play
+~diversions[\tlalak]  = {
+	Pfindur(~sustain,
+		Pbind(
+			\dur, 0.04,
+			\note, Pbrown(-15, 15 ! 5, 0.3, inf) + 16,
+			\out, ~out, \pan, ~pan, \amp, ~amp * 0.1
+		)
+	).play
 };
 )
 
+
+// take it out again.
+~diversions[\tlalak]  = nil;
 
 
 /*
@@ -43,7 +51,7 @@ MIDIClient.init;
 var midiOut = MIDIOut(0);
 var chan = 16;
 
-~event[\dict][\midi]  = {
+~diversions[\midi]  = {
 	var note = ~speed.ratiomidi + 60;
 	var vel = ~amp * 128;
 	midiOut.noteOn(chan, note, vel)
