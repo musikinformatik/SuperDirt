@@ -25,7 +25,7 @@ DirtEvent {
 		var key, index;
 		#key, index = ~sound.asString.split($:);
 		~key = key.asSymbol;
-		~index = if(index.isNil) { 0.0 } { index.asFloat };
+		~index = if(index.isNil) { ~index ? 0.0 } { index.asFloat };
 	}
 
 
