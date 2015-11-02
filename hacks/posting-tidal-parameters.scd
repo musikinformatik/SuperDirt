@@ -9,14 +9,14 @@ adding a post function
 	{ |dirtEvent|
 		[\sound,
 			\cps, \offset, \start, \end, \sustain,
-			\amp, \speed, \endSpeed, \accellerate,
+			\amp, \speed, \endSpeed, \accelerate,
 			\resonance, \hcutoff, \hresonance, \bandqf, \bandq,
 			\crush, \coarse
 		].do { |key, i|
-			if(dirtEvent.dirtBus.defaultParentEvent.at(key) != key.envirGet) {
-				"%: % ".format(key, key.envirGet).post;
-				if(i % 8 == 0) { "\n".post };
-			};
+			var val = key.envirGet;
+			if(val.notNil) { val = val.round(0.001) };
+			"%: % ".format(key, val).post;
+			if(i % 4 == 0) { "\n".post };
 		};
 		"\n\n".post;
 
