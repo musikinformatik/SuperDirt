@@ -87,7 +87,7 @@ SuperDirt {
 		if(server.serverRunning.not) {
 			"Superdirt: server not running - cannot load sound files.".warn; ^this
 		};
-		path = path ?? { "../samples".resolveRelative };
+		path = path ?? { "../../Dirt-Samples/".resolveRelative };
 		folderPaths = pathMatch(standardizePath(path +/+ "**"));
 		"\nloading sample banks:\n".post;
 		folderPaths.do { |folderPath|
