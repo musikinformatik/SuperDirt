@@ -191,6 +191,13 @@ DirtBus {
 		outBus = bus;
 	}
 
+	freeSynths {
+		server.bind {
+			server.sendMsg("/n_free", group);
+			this.initNodeTree
+		}
+	}
+
 	free {
 		this.closeNetworkConnection;
 		ServerTree.remove(this, server);
