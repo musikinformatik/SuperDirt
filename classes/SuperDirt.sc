@@ -176,6 +176,14 @@ DirtBus {
 		globalEffectBus.free;
 	}
 
+	freeSynths {
+		server.bind {
+			server.sendMsg("/n_free", group);
+			this.initNodeTree
+		}
+	}
+
+
 	outBus_ { |bus|
 		globalEffects.do { |synth| synth.set(\out, bus) };
 		outBus = bus;
