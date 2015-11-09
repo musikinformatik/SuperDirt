@@ -20,26 +20,55 @@ thisProcess.removeOSCRecvFunc(~oscFunc);
 ~oscFile !? { ~oscFile.close };
 )
 
-// read it again:
+
+// incrementally play it:
+(
+~playLog = { |path, startFrom = 0.0, dirtBus| // seconds into the log
+	var file = File.open(path.standardizePath, "r");
+	var getArgs = { |str| str.split($,).collect(_.interpret) };
+	var nextLine = { getArgs.(file.getLine ? "") };
+	dirtBus = dirtBus ? ~d1;
+	fork {
+		var list, time1, time2;
+		list = nextLine.value ? [];
+		time1 = list[0];
+		while {
+			list = nextLine.value;
+			time2 = list[0];
+			time2.notNil
+		} {
+			if(startFrom <= 0) {
+				dirtBus.value2(s.latency, *list[1..].postln);
+				(time2 - time1).wait;
+			} {
+				startFrom = startFrom - (time2 - time1);
+			};
+			time1 = time2;
+		};
+		file.close;
+		"---- finished ----".postln;
+	};
+	CmdPeriod.doOnce { file.close };
+};
+~playLog.("~/osc-log.txt");
+)
+
+
+
+// or read it all, to take a closer look ...
 (
 File.use("~/osc-log.txt".standardizePath, "r", { |file|
 	~oscData = file.readAllString.split(Char.nl).collect(_.split($,));
-	~oscData = ~oscData.deepCollect(2, _.interpret)
-})
+	~oscData = ~oscData.deepCollect(2, _.interpret).drop(-1)
+});
+~oscData.cs;
 );
 
 
-// play it again:
-(
-fork {
-	~oscData.do { |list, i|
-		var time, args, nextTime;
-		#time ... args = list;
-		~d1.value2(s.latency, *args);
-		nextTime = ~oscData.clipAt(i + 1).at(0);
-		nextTime !? { (nextTime - time).wait };
-	};
-	"---- finished.".postln;
-}
-)
+/*
+Parameters:
+
+[ 'latency', 'cps', 'sound', 'offset', 'start', 'end', 'speed', 'pan', 'velocity', 'vowel', 'cutoff', 'resonance', 'accelerate', 'shape', 'krio', 'gain', 'cutgroup', 'delay', 'delaytime', 'delayfeedback', 'crush', 'coarse', 'hcutoff', 'hresonance', 'bandqf', 'bandq', 'unit' ]
+
+*/
 
