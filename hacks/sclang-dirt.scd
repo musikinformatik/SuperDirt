@@ -2,7 +2,8 @@
 
 (
 var db = ~d1;
-Event.addEventType(\dirt, {
+Event.addEventType(\dirt, { |server|
+	~latency = ~latency ? server.latency;
 	db.performWithEnvir(\value, currentEnvironment)
 });
 )
