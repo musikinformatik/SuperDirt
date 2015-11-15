@@ -120,12 +120,16 @@ live coding them requires that you have your SuperDirt instance in an environmen
 	}, [\ir, \ir, \ir]).add;
 
 	SynthDef("dirt_shape" ++ numChannels, { |out, shape = 0|
-		var signal = In.ar(out, numChannels);
+		var signal = In.ar(out, numChannels), amp = 1;
 		shape = min(shape, 1.0 - 1e-16); // avoid division by zero
+		//amp = 1.0 - (0.15 * shape / (shape + 2.0)) * amp; // optional gain comp
 		shape = (2.0 * shape) / (1.0 - shape);
+
 		signal = (1 + shape) * signal / (1 + (shape * abs(signal)));
-		ReplaceOut.ar(out, signal)
+		ReplaceOut.ar(out, signal * amp)
 	}, [\ir, \ir]).add;
+
+
 
 
 	// global synth defs: these synths run in each DirtBus and are only released when it is stopped
