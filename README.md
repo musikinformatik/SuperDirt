@@ -17,8 +17,7 @@ This branch works like master, but is less efficient (about half), so only use w
 
 ## Installation from SuperCollider
 ```
-Quarks.install("https://github.com/musikinformatik/SuperDirt.git");
-Quarks.install("Vowel");
+include("SuperDirt");
 ```
 
 ## Setup
