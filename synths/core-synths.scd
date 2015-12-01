@@ -77,15 +77,16 @@ live coding them requires that you have your SuperDirt instance in an environmen
 	*/
 
 	SynthDef("dirt_vowel" ++ numChannels, { |out, resonance = 0.5, cutoff = 0|
-		var signal, vowelFreqs, vowelAmps, vowelRqs;
+		var voweled, signal, vowelFreqs, vowelAmps, vowelRqs;
 		signal = In.ar(out, numChannels);
 		vowelFreqs = \vowelFreqs.ir(1000 ! 5) * cutoff.linexp(0, 1, 1, 2);
-		vowelAmps = \vowelAmps.ir(0 ! 5) * resonance.linlin(0, 1, 50, 350);
-		vowelRqs = \vowelRqs.ir(0 ! 5) * resonance.linexp(0, 1, 4, 0.2);
-		//vowelRqs = \vowelRqs.ir(0 ! 5) * resonance.linexp(0, 1, 0.01, 0.2);
+		vowelAmps = \vowelAmps.ir(0 ! 5) * resonance.linlin(0, 1, 50, 200);
+		vowelRqs = \vowelRqs.ir(0 ! 5) / resonance.linlin(0, 1, 1/10, 1/2);
 		vowelFreqs = vowelFreqs.minNyquist; // limit ceiling
-		signal = BPF.ar([signal], vowelFreqs, vowelRqs, vowelAmps).sum + (signal * 0.3);
-		//signal = Formlet.ar(signal, vowelFreqs, 0.005, vowelRqs);
+		voweled = BPF.ar([signal], vowelFreqs, vowelRqs, vowelAmps).sum;
+		//voweled = Formlet.ar(signal, vowelFreqs, 0.005, vowelRqs, vowelAmps).sum;
+		signal = XFade2.ar(signal, voweled, resonance.linlin(0, 1, -0.5, 1), 0.25);
+
 		ReplaceOut.ar(out, signal);
 
 	}, [\ir, \ir, \ir]).add;
