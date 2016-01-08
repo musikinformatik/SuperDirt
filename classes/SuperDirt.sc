@@ -223,7 +223,7 @@ DirtBus {
 		var synthAmp, buffer, instrument, sample;
 		var temp, function;
 		var length, sampleRate, numFrames, bufferDuration;
-		var sustain, ramp, endSpeed, avgSpeed;
+		var sustain, ramp, endSpeed, avgSpeed, synthDesc, sustainControl;
 		var numChannels = dirt.numChannels;
 		var synthGroup, diverted;
 		var key, index;
@@ -261,9 +261,11 @@ DirtBus {
 			instrument = format("dirt_sample_%_%", buffer.numChannels, numChannels);
 
 		} {
-			if(SynthDescLib.at(key).notNil) {
+			synthDesc = SynthDescLib.at(key);
+			if(synthDesc.notNil) {
 				instrument = key;
-				bufferDuration = 1.0;
+				sustainControl = synthDesc.controlDict.at(\sustain);
+				bufferDuration = if(sustainControl.isNil) { 1.0 } { sustainControl.defaultValue ? 1.0 }; // use definition, if defined.
 			} {
 				"Dirt: no sample or instrument found for '%'.\n".postf(sound);
 				^this
