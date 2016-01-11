@@ -295,7 +295,7 @@ DirtBus {
 			~start = 0.0;
 			~end = 1.0;
 			~speed = 1.0;
-			~pan = 0.0;
+			~pan = 0.5;
 			~accelerate = 0.0;
 			~gain = 1.0;
 			~cutgroup = 0.0;
