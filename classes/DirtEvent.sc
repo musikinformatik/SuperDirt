@@ -55,13 +55,13 @@ DirtEvent {
 
 	orderRange {
 		var temp;
-		if(~end >= ~start) {
-			if(~speed < 0) { temp = ~end; ~end = ~start; ~start = temp };
+		if(~end >= ~begin) {
+			if(~speed < 0) { temp = ~end; ~end = ~begin; ~begin = temp };
 		} {
 			// backwards
 			~speed = ~speed.neg;
 		};
-		~length = abs(~end - ~start);
+		~length = abs(~end - ~begin);
 	}
 
 	calcRange {

@@ -217,7 +217,7 @@ DirtBus {
 	// this implements the standard API, internally converting it
 
 	value2 {
-		|latency, cps = 1, sound, offset = 0, start = 0, end = 1, speed = 1, pan = 0, velocity,
+		|latency, cps = 1, sound, offset = 0, begin = 0, end = 1, speed = 1, pan = 0, velocity,
 		vowel, cutoff = 300, resonance = 0.5,
 		accelerate = 0, shape = 0, krio, gain = 1, cutgroup = 0,
 		delay = 0, delaytime = 0, delayfeedback = 0,
@@ -227,7 +227,7 @@ DirtBus {
 		bandqf = 0, bandq = 0,
 		unit = \r|
 
-		var args = [\latency, latency, \cps, cps, \sound, sound, \offset, offset, \start, start, \end, end, \speed, speed, \pan, pan, \velocity, velocity, \vowel, vowel, \cutoff, cutoff, \resonance, resonance, \accelerate, accelerate, \shape, shape, \krio, krio, \gain, gain, \cutgroup, cutgroup, \delay, delay, \delaytime, delaytime, \delayfeedback, delayfeedback, \crush, crush, \coarse, coarse, \hcutoff, hcutoff, \hresonance, hresonance, \bandqf, bandqf, \bandq, bandq, \unit, unit];
+		var args = [\latency, latency, \cps, cps, \sound, sound, \offset, offset, \begin, begin, \end, end, \speed, speed, \pan, pan, \velocity, velocity, \vowel, vowel, \cutoff, cutoff, \resonance, resonance, \accelerate, accelerate, \shape, shape, \krio, krio, \gain, gain, \cutgroup, cutgroup, \delay, delay, \delaytime, delaytime, \delayfeedback, delayfeedback, \crush, crush, \coarse, coarse, \hcutoff, hcutoff, \hresonance, hresonance, \bandqf, bandqf, \bandq, bandq, \unit, unit];
 
 
 		this.value(args)
@@ -292,7 +292,7 @@ DirtBus {
 
 			~cps = 1.0;
 			~offset = 0.0;
-			~start = 0.0;
+			~begin = 0.0;
 			~end = 1.0;
 			~speed = 1.0;
 			~pan = 0.5;

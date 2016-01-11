@@ -19,7 +19,7 @@ e.g. Scratching through samples:
 
 	var name = format("dirt_sample_%_%", sampleNumChannels, ~dirt.numChannels);
 
-	SynthDef(name, { |out, bufnum, sustain = 1, start = 0, pan = 0, speed = 1, endSpeed = 1|
+	SynthDef(name, { |out, bufnum, sustain = 1, begin = 0, pan = 0, speed = 1, endSpeed = 1|
 
 		var sound, rate, phase, scratch;
 
@@ -28,7 +28,7 @@ e.g. Scratching through samples:
 
 		// sample phase
 		// BufSampleRate adjusts the rate if the sound file doesn't have the same rate as the soundcard
-		phase =  Sweep.ar(1, rate * BufSampleRate.ir(bufnum)) + (start * BufFrames.ir(bufnum));
+		phase =  Sweep.ar(1, rate * BufSampleRate.ir(bufnum)) + (begin * BufFrames.ir(bufnum));
 
 		scratch = LFNoise2.ar(12, 0.02 * BufSampleRate.ir(bufnum));
 		phase = phase + scratch;
@@ -58,7 +58,7 @@ e.g. Scratching through samples:
 
 	var name = format("dirt_sample_%_%", sampleNumChannels, ~dirt.numChannels);
 
-	SynthDef(name, { |out, bufnum, sustain = 1, start = 0, pan = 0, speed = 1, endSpeed = 1|
+	SynthDef(name, { |out, bufnum, sustain = 1, begin = 0, pan = 0, speed = 1, endSpeed = 1|
 
 		var sound, rate, phase, scratch;
 
@@ -67,7 +67,7 @@ e.g. Scratching through samples:
 
 		// sample phase
 		// BufSampleRate adjusts the rate if the sound file doesn't have the same rate as the soundcard
-		phase =  Sweep.ar(1, rate * BufSampleRate.ir(bufnum)) + (start * BufFrames.ir(bufnum));
+		phase =  Sweep.ar(1, rate * BufSampleRate.ir(bufnum)) + (begin * BufFrames.ir(bufnum));
 
 		scratch = LFNoise2.ar(XLine.ar(12, 1000, sustain), 0.02 * BufSampleRate.ir(bufnum));
 		phase = phase + scratch;
