@@ -259,7 +259,7 @@ DirtBus {
 					latency = 0.2;
 				};
 				replyAddr = tidalAddr; // collect tidal reply address
-				this.value([\latency, latency] ++ msg[2..]);
+				this.value([\latency, latency] ++ msg[1..]);
 			}, '/play2', senderAddr, recvPort: port).fix
 		);
 
