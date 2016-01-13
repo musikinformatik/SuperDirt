@@ -28,7 +28,7 @@ DirtPan {
 		if(mono.not) {
 			if(mix.not) {
 				// if multichannel, take only the diagonal
-				output = numChannels.collect(output[_]);
+				output = numChannels.collect(output @@ _);
 			};
 			output = output.sum;
 		};
