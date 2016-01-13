@@ -150,7 +150,7 @@ TEST EFFECTS
 (
 Tdef(\x, {
 	loop {
-		~d1.([sound: 'sd:8', start: 0, end: 1, speed: 1, vowel: "aeiou".choose.asSymbol, resonance: 0.6, cutoff: 540, gain: 1]);
+		~d1.([sound: 'sd:8', begin: 0, end: 1, speed: 1, vowel: "aeiou".choose.asSymbol, resonance: 0.6, cutoff: 540, gain: 1]);
 		1.wait;
 		//(0.3 * [1, 2, 1/3]).choose.wait;
 	}
@@ -160,7 +160,7 @@ Tdef(\x, {
 (
 Tdef(\x, {
 	loop {
-		~d1.([sound: 'sd:8', start: 0, end: 1.0.rand, speed: 2.5, vowel: "aeiou".choose.asSymbol, resonance: 0.5, cutoff: 202]);
+		~d1.([sound: 'sd:8', begin: 0, end: 1.0.rand, speed: 2.5, vowel: "aeiou".choose.asSymbol, resonance: 0.5, cutoff: 202]);
 		0.1.wait;
 	}
 }).play;
@@ -170,7 +170,7 @@ Tdef(\x, {
 (
 Tdef(\x, {
 	loop {
-		~d1.([sound: 'sd:8', start: 0, end: 1.0.rand, speed: 12.5, vowel: "aeiou".choose.asSymbol, resonance: 1, cutoff: 202]);
+		~d1.([sound: 'sd:8', begin: 0, end: 1.0.rand, speed: 12.5, vowel: "aeiou".choose.asSymbol, resonance: 1, cutoff: 202]);
 		0.02.wait;
 	}
 }).play;
@@ -231,7 +231,7 @@ TEST UNIT
 
 /*
 s unit -
-"r" makes unit of speed and start/end time in terms of
+"r" makes unit of speed and begin/end time in terms of
 ratio (the default described above),
 
 "c" in terms of cycles per second
@@ -249,7 +249,7 @@ Tdef(\x, {
 	var name = 'cy:10';
 	var cps = 2;
 	20.do {
-		~d1.([cps:cps, sound:name, unit: \r, start: 0, end: 1]);
+		~d1.([cps:cps, sound:name, unit: \r, begin: 0, end: 1]);
 		cps = cps + 0.3;
 		(1/cps).wait;
 	}
@@ -263,7 +263,7 @@ Tdef(\x, {
 	var name = 'cy:10';
 	var cps = 2;
 	20.do {
-		~d1.([cps:cps, sound:name, unit: \c, start: 0, end: 1]);
+		~d1.([cps:cps, sound:name, unit: \c, begin: 0, end: 1]);
 		cps = cps + 0.3;
 		(1/cps).wait;
 	}
@@ -276,7 +276,7 @@ Tdef(\x, {
 	var name = 'cy:10';
 	var cps = 0.2;
 	loop {
-		~d1.([cps:cps, sound:name, unit: \s, start: 0, end: 0.2]);
+		~d1.([cps:cps, sound:name, unit: \s, begin: 0, end: 0.2]);
 		0.2.wait;
 	}
 }).play
@@ -294,15 +294,15 @@ TEST LIVE CODING SYNTHS
 
 // this is a default synth def
 
-~d1.(['imp', speed: 1, start: 0, end: 1]);
-~d1.(['imp', speed: 1, start: 0.5, end: 1]);
+~d1.(['imp', speed: 1, begin: 0, end: 1]);
+~d1.(['imp', speed: 1, begin: 0.5, end: 1]);
 
 
-~d1.(['imp', speed: 0.1, start: 0, end: 1, accelerate: 3]);
+~d1.(['imp', speed: 0.1, begin: 0, end: 1, accelerate: 3]);
 
-~d1.(['imp', speed: 1, start: 0, end: 0.3.rand, delay: 1, delaytime: 3]);
-~d1.(['imp', speed: 1, start: 0, end: 0.3.rand, delay: 1, delaytime: 3]);
-~d1.(['imp', speed: 1, start: 0, end: 0.3.rand, delay: 1, delaytime: 3]);
+~d1.(['imp', speed: 1, begin: 0, end: 0.3.rand, delay: 1, delaytime: 3]);
+~d1.(['imp', speed: 1, begin: 0, end: 0.3.rand, delay: 1, delaytime: 3]);
+~d1.(['imp', speed: 1, begin: 0, end: 0.3.rand, delay: 1, delaytime: 3]);
 
 
 (
@@ -310,7 +310,7 @@ Tdef(\x, {
 	loop {
 		~d1.(['imp', 0,
 			speed: rrand(0.1, 2.0),
-			start:1.0.rand,
+			begin:1.0.rand,
 			end: 2.0.rand,
 			accelerate:2.0.rand,
 			hcutoff: 4000.0.rand,
@@ -328,7 +328,7 @@ Tdef(\x, {
 	loop {
 		~d1.(['inr', 0,
 			speed: rrand(0.5, 2.0),
-			start:1.0.rand,
+			begin:1.0.rand,
 			end: 2.0.rand,
 			//accelerate:2.0.rand,
 			//hcutoff: 4000.0.rand,
@@ -344,14 +344,14 @@ Tdef(\x, {
 
 // rewrite this at runtime
 (
-SynthDef(\imp, { |speed = 1, start=0, end=1, pan, accelerate, amp = 1, offset|
+SynthDef(\imp, { |speed = 1, begin=0, end=1, pan, accelerate, amp = 1, offset|
 	var env, sound, dur, rate, phase;
-	dur = (end - start) / speed;
+	dur = (end - begin) / speed;
 	env = EnvGen.ar(Env.linen(0, 0.2, 0.8, amp * 0.1, -4), timeScale:dur, doneAction:2);
-	phase = Line.ar(start + 0.0001, end, dur);
-	rate = (start + 1) * (speed + Sweep.kr(1, accelerate));
+	phase = Line.ar(begin + 0.0001, end, dur);
+	rate = (begin + 1) * (speed + Sweep.kr(1, accelerate));
 	sound = Saw.ar(rate.linexp(0, 1, 1/[1, 3, 7], [1, 2, 5]) * 200).sum;
-	sound = RHPF.ar(sound, phase.linexp(start, end, 300, 9000));
+	sound = RHPF.ar(sound, phase.linexp(begin, end, 300, 9000));
 	env = env * ~dirt.gateCutGroup; // this synth can be freed by cutgroup mechanism
 	~dirt.panOut(sound, pan, env)
 }).add;

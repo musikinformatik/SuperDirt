@@ -8,7 +8,7 @@ adding a post function
 ~dirt.addModule('post',
 	{ |dirtEvent|
 		[\sound,
-			\cps, \offset, \start, \end, \sustain,
+			\cps, \offset, \begin, \end, \sustain,
 			\amp, \speed, \endSpeed, \accelerate,
 			\resonance, \hcutoff, \hresonance, \bandqf, \bandq,
 			\crush, \coarse

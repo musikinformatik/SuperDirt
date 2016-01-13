@@ -22,7 +22,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 		var name = format("dirt_sample_%_%", sampleNumChannels, numChannels);
 
-		SynthDef(name, { |out, bufnum, sustain = 1, start, speed = 1, endSpeed = 1, pan = 0|
+		SynthDef(name, { |out, bufnum, sustain = 1, begin, speed = 1, endSpeed = 1, pan = 0|
 
 			var sound, rate, phase;
 
@@ -31,7 +31,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 			// sample phase
 			// BufSampleRate adjusts the rate if the sound file doesn't have the same rate as the soundcard
-			phase =  Sweep.ar(1, rate * BufSampleRate.ir(bufnum)) + (BufFrames.ir(bufnum) * start);
+			phase =  Sweep.ar(1, rate * BufSampleRate.ir(bufnum)) + (BufFrames.ir(bufnum) * begin);
 
 			sound = BufRd.ar(
 				numChannels: sampleNumChannels,
