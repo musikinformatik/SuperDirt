@@ -22,7 +22,7 @@ DirtPan {
 		if(numChannels == 2) {
 			output = Pan2.ar(signal, (pan * 2) - 1, mul)
 		} {
-			output = PanAz.ar(numChannels, signal, pan, mul)
+			output = PanAz.ar(numChannels, signal, pos: pan, level: mul, orientation: 0)
 		};
 
 		if(mono.not) {
