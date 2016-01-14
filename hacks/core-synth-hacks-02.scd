@@ -42,7 +42,7 @@ e.g. Scratching through samples:
 			interpolation: 4 // cubic interpolation
 		);
 
-		sound = DirtPan.ar(sound,  ~dirt.numChannels, pan, mix:false);
+		sound = DirtPan.ar(sound,  ~dirt.numChannels, pan);
 
 		OffsetOut.ar(out, sound)
 	}, [\ir, \ir, \ir, \ir, \ir, \ir, \ir, \ir]).add;
@@ -84,7 +84,7 @@ e.g. Scratching through samples:
 		// ring mod
 		sound = sound * SinOsc.ar(XLine.kr(40, 80, sustain));
 
-		sound = DirtPan.ar(sound,  ~dirt.numChannels, pan, mix:false);
+		sound = DirtPan.ar(sound,  ~dirt.numChannels, pan);
 
 		OffsetOut.ar(out, sound)
 	}, [\ir, \ir, \ir, \ir, \ir, \ir, \ir, \ir]).add;

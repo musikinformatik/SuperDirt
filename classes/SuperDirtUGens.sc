@@ -12,29 +12,48 @@ convenience methods for panning and releasing
 */
 
 DirtPan {
+	classvar <>defaultMixingFunction;
 
-	*ar { |signal, numChannels, pan = 0.0, mul = 1.0, mix = false|
+	*initClass {
 
-		var output, mono;
+		// the channels are passed in as N x M array
+		// where N = number of input channels
+		// M = number of output channels to pan across
 
-		mono = signal.size <= 1;
+		defaultMixingFunction = #{ |channels|
+			channels.sum { |ch, i| ch.rotate(i) } // mixdown with one speaker offset per input channel
+		}
+
+		/*
+		variants are:
+
+		 // mono mixdown
+		defaultMixingFunction = #{ |channels|
+			channels.sum
+		}
+		// wrapped mutual crossfade
+		defaultMixingFunction = #{ |channels|
+			channels.flop.collect { |ch, i| ch[i] }
+		}
+
+		you can set them via DirtPan.defaultMixingFunction = { ... your function ... }
+		and/or pass in a synth specific mixingFunction in the SynthDef
+		*/
+	}
+
+	*ar { |signal, numChannels, pan = 0.0, mul = 1.0, mixingFunction|
+
+		var output;
+
 		pan = pan * 2; // convert unipolar (0..1) range into bipolar compatible one
+		signal = signal.asArray; // always keep the same shape
 
 		if(numChannels == 2) {
 			output = Pan2.ar(signal, pan - 1, mul)
 		} {
 			output = PanAz.ar(numChannels, signal, pos: pan, level: mul, orientation: 0)
 		};
-
-		if(mono.not) {
-			if(mix.not) {
-				// if multichannel, take only the diagonal
-				output = numChannels.collect(output @@ _);
-			};
-			output = output.sum;
-		};
-
-		^output
+		^value(mixingFunction ? defaultMixingFunction, output)
 
 	}
 }
