@@ -130,6 +130,11 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		ReplaceOut.ar(out, signal * amp)
 	}, [\ir, \ir]).add;
 
+	SynthDef("dirt_lpf" ++ numChannels, { |out, cutoff = 440, resonance = 0|
+		var signal = In.ar(out, numChannels);
+		signal = RLPF.ar(signal, cutoff, resonance.linexp(0, 1, 1, 0.001));
+		ReplaceOut.ar(out, signal)
+	}, [\ir, \ir, \ir]).add;
 
 
 
