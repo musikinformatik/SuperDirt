@@ -135,6 +135,17 @@ they respond to the existence of a value for one of the tidal parameters
 
 }, { ~coarse.notNil and: { ~coarse > 1 } }); // coarse == 1 => full rate
 
+~dirt.addModule('lpf',
+	{ |dirtEvent|
+		dirtEvent.sendSynth("dirt_lpf" ++ ~numChannels,
+			[
+				cutoff: ~cutoff,
+				resonance: ~resonance,
+				out: ~out
+		])
+
+}, { ~cutoff.notNil });
+
 
 
 );
