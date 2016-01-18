@@ -87,10 +87,13 @@ SuperDirt {
 		this.addModule(synthName, { |dirtEvent| dirtEvent.sendSynth(instrument) }, test);
 	}
 
-	orderModules { |names|
+	orderModules { |names| // names provide some partial order
 		var allNames = modules.collect { |x| x.name };
-		names = names ++ difference(allNames, names); // keep those which weren't mentioned
-		"new module order: %".format.postln;
+		var first = names.removeAt(0);
+		var rest = difference(allNames, names);
+		var firstIndex = rest.indexOf(first) ? -1 + 1;
+		names = rest.insert(firstIndex, names).flatten;
+		"new module order: %".format(names).postln;
 		modules = names.collect { |x| this.getModule(x) }
 	}
 
@@ -363,5 +366,13 @@ DirtModule {
 
 	hash {
 		^this.instVarHash(#[\name])
+	}
+
+	printOn { |stream|
+		stream  << this.class.name << "(" <<< name << ")"
+	}
+
+	storeArgs {
+		^[name, func, test]
 	}
 }
