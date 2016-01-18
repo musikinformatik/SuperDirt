@@ -199,7 +199,7 @@ DirtBus {
 	initNodeTree {
 		server.makeBundle(nil, { // make sure they are in order
 			server.sendMsg("/g_new", group, 0, 1);
-			[\dirt_limiter, \dirt_delay].do { |name|
+			[\dirt_delay, \dirt_reverb, \dirt_limiter].reverseDo { |name|
 				globalEffects[name] = Synth.after(group, name.asString ++ dirt.numChannels,
 					[\out, outBus, \effectBus, globalEffectBus]
 				);

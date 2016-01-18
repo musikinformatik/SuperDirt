@@ -142,6 +142,12 @@ DirtEvent {
 				\delaytime, ~delaytime,
 				\delayfeedback, ~delayfeedback
 			)
+		};
+		if(~room.notNil) {
+			~server.sendMsg(\n_set, dirtBus.globalEffects[\dirt_reverb].nodeID,
+				\size, ~size,
+				\amp, ~room
+			)
 		}
 	}
 
