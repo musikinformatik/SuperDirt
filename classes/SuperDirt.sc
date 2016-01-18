@@ -61,6 +61,7 @@ SuperDirt {
 
 	addModule { |name, func, test|
 		var index, module;
+		name = name.asSymbol;
 		// the order of modules determines the order of synths
 		// when replacing a module, we don't change the order
 		module = DirtModule(name, func, test);
@@ -72,8 +73,25 @@ SuperDirt {
 		modules.removeAllSuchThat { |x| x.name == name }
 	}
 
+	getModule { |name|
+		^modules.detect { |x| x.name == name }
+	}
+
 	clearModules {
 		modules = [];
+	}
+
+	addFilterModule { |synthName, synthFunc, test|
+		var instrument = synthName ++ numChannels;
+		SynthDef(instrument, synthFunc).add;
+		this.addModule(synthName, { |dirtEvent| dirtEvent.sendSynth(instrument) }, test);
+	}
+
+	orderModules { |names|
+		var allNames = modules.collect { |x| x.name };
+		names = names ++ difference(allNames, names); // keep those which weren't mentioned
+		"new module order: %".format.postln;
+		modules = names.collect { |x| this.getModule(x) }
 	}
 
 	getBuffer { |key, index|
