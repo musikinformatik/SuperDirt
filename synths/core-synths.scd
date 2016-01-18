@@ -186,12 +186,13 @@ live coding them requires that you have your SuperDirt instance in an environmen
 	SynthDef("dirt_reverb" ++ numChannels, { |out, effectBus, gate = 1, amp = 0.1, size = 0.4|
 		var in, snd, loop, depth;
 
-		in = In.ar(effectBus, numChannels).asArray.sum;
+		in = In.ar(out, numChannels).asArray.sum; // for now, read from the dry signal bus.
+		//in = In.ar(effectBus, numChannels).asArray.sum;
 
 		4.do { in = AllpassN.ar(in, 0.03, { Rand(0.005, 0.02) }.dup(numChannels), 1) };
 
 
-		depth = size.linlin(0, 1, 0.1, 0.98); // change depth between 0.1 and 0.98
+		depth = size.linexp(0, 1, 0.1, 0.98); // change depth between 0.1 and 0.98
 		loop = LocalIn.ar(numChannels) * { depth + Rand(0, 0.05) }.dup(numChannels);
 		loop = OnePole.ar(loop, 0.5);  // 0-1
 
@@ -207,6 +208,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 		snd = Delay2.ar(loop);
 		snd = snd * EnvGen.kr(Env.asr, gate, doneAction:2);
+
 
 		Out.ar(out, snd * amp);
 
