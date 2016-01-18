@@ -33,7 +33,7 @@ this may be refacored later.
 */
 (
 
-~dirt.addModule('sound-source',
+~dirt.addModule('sound',
 	{ |dirtEvent|
 		if(~diversion.value.isNil) {
 			if(~buffer.notNil) {
