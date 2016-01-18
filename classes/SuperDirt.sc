@@ -94,7 +94,7 @@ SuperDirt {
 		var firstIndex = rest.indexOf(first) ? -1 + 1;
 		names = rest.insert(firstIndex, names).flatten;
 		"new module order: %".format(names).postln;
-		modules = names.collect { |x| this.getModule(x) }
+		modules = names.collect { |x| this.getModule(x) }.reject { |x| x.isNil }
 	}
 
 	getBuffer { |key, index|
