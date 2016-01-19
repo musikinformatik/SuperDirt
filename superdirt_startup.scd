@@ -17,7 +17,7 @@ s.waitForBoot {
 	~dirt = SuperDirt(2, s); // two output channels, increase if you want to pan across more channels
 	~dirt.loadSoundFiles;   // load samples (path can be passed in)
 	s.sync; // wait for samples to be read
-	~dirt.start([57120, 57121]);   // start listening on port 57120 and 57121. Add more ports as needed.
+	~dirt.start(57120 + (0..1));   // start listening on port 57120 and 57121. Add more ports as needed.
 
 	// optional, needed for the sclang tests only:
 	(
