@@ -40,9 +40,7 @@ s.waitForBoot {
 
 ## Setup from Tidal
 ```
-d1 <- stream "127.0.0.1" 57120 dirt {timestamp = BundleStamp, latency = 0.1}
-
-d2 <- stream "127.0.0.1" 57121 dirt {timestamp = BundleStamp, latency = 0.1}
+(d1, d2) <- superDirtSetters getNow
 ```
 Now you can run a pattern, e.g.
 ```
