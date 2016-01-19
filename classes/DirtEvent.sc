@@ -126,7 +126,6 @@ DirtEvent {
 				in: ~out,  // read from private
 				out: dirtBus.outBus,     // write to outBus,
 				globalEffectBus: ~globalEffectBus,
-				effectAmp: ~delay,
 				amp: ~amp,
 				cutGroup: ~cutgroup.abs, // ignore negatives here!
 				sample: ~sample, // required for the cutgroup mechanism
@@ -137,8 +136,9 @@ DirtEvent {
 	}
 
 	updateGlobalEffects {
-		if(~delaytime > 0 or: { ~delayfeedback > 0 }) {
+		if(~delay.notNil  or: { ~delaytime > 0 } or: { ~delayfeedback > 0 }) {
 			~server.sendMsg(\n_set, dirtBus.globalEffects[\dirt_delay].nodeID,
+				\amp, ~delay,
 				\delaytime, ~delaytime,
 				\delayfeedback, ~delayfeedback
 			)

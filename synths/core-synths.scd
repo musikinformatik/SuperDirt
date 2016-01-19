@@ -189,10 +189,12 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		in = In.ar(out, numChannels).asArray.sum; // for now, read from the dry signal bus.
 		//in = In.ar(effectBus, numChannels).asArray.sum;
 
+		in = in * amp.lag(0.01); // regulate input
+
 		4.do { in = AllpassN.ar(in, 0.03, { Rand(0.005, 0.02) }.dup(numChannels), 1) };
 
 
-		depth = size.linexp(0, 1, 0.1, 0.98); // change depth between 0.1 and 0.98
+		depth = size.lag(0.02).linexp(0, 1, 0.1, 0.98); // change depth between 0.1 and 0.98
 		loop = LocalIn.ar(numChannels) * { depth + Rand(0, 0.05) }.dup(numChannels);
 		loop = OnePole.ar(loop, 0.5);  // 0-1
 
@@ -210,7 +212,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		snd = snd * EnvGen.kr(Env.asr, gate, doneAction:2);
 
 
-		Out.ar(out, snd * amp);
+		Out.ar(out, snd);
 
 	}, [\ir, \ir, \kr, \kr, \kr]).add;
 
