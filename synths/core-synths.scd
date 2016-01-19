@@ -57,7 +57,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 	// the monitor does the mixing and zeroing of the busses for each sample grain
 	// so that they can all play in one bus
 
-	SynthDef("dirt_monitor" ++ numChannels, { |out, in, globalEffectBus, effectAmp = 0, sustain = 1, fadeTime = 0.001, amp = 1|
+	SynthDef("dirt_monitor" ++ numChannels, { |out, in, globalEffectBus, effectAmp = 1, sustain = 1, fadeTime = 0.001, amp = 1|
 		var signal = In.ar(in, numChannels);
 		 //  doneAction: 3: free node before, which is the group with sample player and effects
 		var env = EnvGen.ar(Env([0, 1, 1, 0], [fadeTime, sustain, fadeTime], \sin), doneAction: 3);
@@ -145,19 +145,20 @@ live coding them requires that you have your SuperDirt instance in an environmen
 	if(\SwitchDelay.asClass.notNil) {
 
 
-		SynthDef("dirt_delay" ++ numChannels, { |out, effectBus, gate = 1, delaytime, delayfeedback|
-			var signal = In.ar(effectBus, numChannels);
+		SynthDef("dirt_delay" ++ numChannels, { |out, effectBus, gate = 1, delaytime, delayfeedback, amp = 1, outAmp = 1|
+			var signal = In.ar(effectBus, numChannels) * amp.lag(0.01);
 
 			// from sc3-plugins
 			signal = SwitchDelay.ar(signal, 1, 1, delaytime, delayfeedback);
 
 			signal = signal * EnvGen.kr(Env.asr, gate, doneAction:2);
+			signal = signal * outAmp.lag(0.01);
 			Out.ar(out, signal);
 
 		}, [\ir, \ir, \kr, \kr, \kr]).add;
 	} {
-		SynthDef("dirt_delay" ++ numChannels, { |out, effectBus, gate = 1, delaytime, delayfeedback|
-			var signal = In.ar(effectBus, numChannels);
+		SynthDef("dirt_delay" ++ numChannels, { |out, effectBus, gate = 1, delaytime, delayfeedback, amp = 1, outAmp = 1|
+			var signal = In.ar(effectBus, numChannels) * amp.lag(0.01);
 			var loop = LocalIn.ar(numChannels);
 
 			signal = signal + (loop * delayfeedback.lag(0.3));
@@ -165,6 +166,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 			LocalOut.ar(signal);
 
 			signal = LeakDC.ar(signal) * EnvGen.kr(Env.asr, gate, doneAction:2);
+			signal = signal * outAmp.lag(0.01);
 			Out.ar(out, signal);
 		}, [\ir, \ir, \kr, \kr, \kr]).add;
 	};
@@ -183,13 +185,12 @@ live coding them requires that you have your SuperDirt instance in an environmen
 	// thanks to Jost Muxfeld and James McCartney
 	// note that "size" is not room size, just a depth metaphor
 
-	SynthDef("dirt_reverb" ++ numChannels, { |out, effectBus, gate = 1, amp = 0.1, size = 0.4|
+	SynthDef("dirt_reverb" ++ numChannels, { |out, effectBus, gate = 1, amp = 0.1, size = 0.4, outAmp = 1|
 		var in, snd, loop, depth;
 
-		in = In.ar(out, numChannels).asArray.sum; // for now, read from the dry signal bus.
-		//in = In.ar(effectBus, numChannels).asArray.sum;
+		in = In.ar(effectBus, numChannels).asArray.sum;
 
-		in = in * amp.lag(0.01); // regulate input
+		in = in * amp.lag(LFNoise1.kr(1).range(0.01, 0.02)); // regulate input
 
 		4.do { in = AllpassN.ar(in, 0.03, { Rand(0.005, 0.02) }.dup(numChannels), 1) };
 
@@ -212,7 +213,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		snd = snd * EnvGen.kr(Env.asr, gate, doneAction:2);
 
 
-		Out.ar(out, snd);
+		Out.ar(out, snd * outAmp.lag(LFNoise1.kr(1).range(0.01, 0.03)));
 
 	}, [\ir, \ir, \kr, \kr, \kr]).add;
 

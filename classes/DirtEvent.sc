@@ -136,18 +136,32 @@ DirtEvent {
 	}
 
 	updateGlobalEffects {
+
+		// these will need some refactoring
+
+		var id, wet;
+		id = dirtBus.globalEffects[\dirt_delay].nodeID;
+		wet = 1.0 - ~dry;
 		if(~delay.notNil  or: { ~delaytime > 0 } or: { ~delayfeedback > 0 }) {
-			~server.sendMsg(\n_set, dirtBus.globalEffects[\dirt_delay].nodeID,
+			~server.sendMsg(\n_set, id,
 				\amp, ~delay,
 				\delaytime, ~delaytime,
-				\delayfeedback, ~delayfeedback
+				\delayfeedback, ~delayfeedback,
+				\outAmp, wet
 			)
+		} {
+			~server.sendMsg(\n_set, id, \amp, 0.0, \outAmp, wet);
 		};
+
+		id = dirtBus.globalEffects[\dirt_reverb].nodeID;
 		if(~room.notNil) {
-			~server.sendMsg(\n_set, dirtBus.globalEffects[\dirt_reverb].nodeID,
+			~server.sendMsg(\n_set, id,
 				\size, ~size,
-				\amp, ~room
+				\amp, ~room,
+				\outAmp, wet
 			)
+		} {
+			~server.sendMsg(\n_set, id, \amp, 0.0, \outAmp, wet);
 		}
 	}
 

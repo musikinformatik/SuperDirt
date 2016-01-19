@@ -326,6 +326,7 @@ DirtBus {
 			~length = 1.0;
 			~sustain = 1.0;
 			~unitDuration = 1.0;
+			~dry = 0.0;
 
 			// values from the dirt bus
 			~dirtBus = this;
