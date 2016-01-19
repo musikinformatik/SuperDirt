@@ -45,11 +45,11 @@ DirtPan {
 
 		var output;
 
-		pan = pan * 2; // convert unipolar (0..1) range into bipolar compatible one
+		pan = pan * 2 - 1; // convert unipolar (0..1) range into bipolar compatible one
 		signal = signal.asArray; // always keep the same shape
 
 		if(numChannels == 2) {
-			output = Pan2.ar(signal, pan - 1, mul)
+			output = Pan2.ar(signal, pan, mul)
 		} {
 			output = PanAz.ar(numChannels, signal, pos: pan, level: mul, orientation: 0)
 		};

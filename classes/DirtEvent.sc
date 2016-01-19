@@ -123,7 +123,7 @@ DirtEvent {
 			3, // add action: addAfter
 			~synthGroup, // send to group
 			*[
-				in: ~out,  // read from private
+				in: dirtBus.synthBus,  // read from private
 				out: dirtBus.outBus,     // write to outBus,
 				globalEffectBus: ~globalEffectBus,
 				amp: ~amp,
