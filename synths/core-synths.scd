@@ -180,7 +180,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		ReplaceOut.ar(out, signal)
 	}).add;
 
-	// thanks to Jost Muxfeld
+	// thanks to Jost Muxfeld and James McCartney
 	// note that "size" is not room size, just a depth metaphor
 
 	SynthDef("dirt_reverb" ++ numChannels, { |out, effectBus, gate = 1, amp = 0.1, size = 0.4|
