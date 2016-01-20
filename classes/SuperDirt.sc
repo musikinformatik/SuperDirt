@@ -321,6 +321,7 @@ DirtBus {
 			~gain = 1.0;
 			~cutgroup = 0.0;
 			~unit = \r;
+			~n = 0; // sample number or note
 
 			~latency = 0.0;
 			~length = 1.0;

@@ -13,7 +13,7 @@ DirtEvent {
 
 	play {
 		event.use {
-			this.splitName;
+			if(~s.isNil) { this.splitName };
 			this.getBuffer;
 			this.orderRange;
 			this.calcRange;
@@ -22,16 +22,16 @@ DirtEvent {
 	}
 
 	splitName {
-		var key, index;
-		#key, index = ~sound.asString.split($:);
-		~key = key.asSymbol;
-		~index = if(index.isNil) { ~index ? 0.0 } { index.asFloat };
+		var s, n;
+		#s, n = ~sound.asString.split($:);
+		~s = s.asSymbol;
+		~n = if(n.notNil) { ~n = n.asFloat } { 0.0 };
 	}
 
 
 	getBuffer {
 		var buffer, synthDesc, sustainControl;
-		buffer = dirtBus.dirt.getBuffer(~key, ~index);
+		buffer = dirtBus.dirt.getBuffer(~s, ~n);
 
 		if(buffer.notNil) {
 			if(buffer.sampleRate.isNil) {
@@ -44,9 +44,11 @@ DirtEvent {
 			~unitDuration = buffer.duration;
 
 		} {
-			synthDesc = SynthDescLib.at(~key);
+			synthDesc = SynthDescLib.at(~s);
 			if(synthDesc.notNil) {
-				~instrument = ~key;
+				~instrument = ~s;
+				~note = ~n;
+				~freq = (~note + 60).midicps;
 				sustainControl = synthDesc.controlDict.at(\sustain);
 				~unitDuration = if(sustainControl.isNil) { 1.0 } { sustainControl.defaultValue ? 1.0 }; // use definition, if defined.
 			}
