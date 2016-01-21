@@ -180,15 +180,24 @@ DirtBus {
 			^this
 		};
 		group = server.nextPermNodeID;
-		globalEffects = ();
 		synthBus = Bus.audio(server, dirt.numChannels);
 		globalEffectBus = Bus.audio(server, dirt.numChannels);
 		minSustain = 8 / server.sampleRate;
+		this.initGlobalEffects;
 		this.initNodeTree;
 		this.makeDefaultParentEvent;
 
 		this.openNetworkConnection; // start listen
 		ServerTree.add(this, server); // synth node tree init
+	}
+
+	initGlobalEffects {
+		var n = dirt.numChannels;
+		globalEffects = [
+			GlobalDirtEffect(\dirt_delay, n, [\delaytime, \delayfeedback, \wet, \delayInAmp]), // don't set \delay yet.
+			GlobalDirtEffect(\dirt_reverb, n, [\size, \room, \wet, \reverbInAmp]),
+			GlobalDirtEffect(\dirt_limiter, n)
+		]
 	}
 
 	doOnServerTree {
@@ -198,17 +207,13 @@ DirtBus {
 
 	initNodeTree {
 		server.makeBundle(nil, { // make sure they are in order
-			server.sendMsg("/g_new", group, 0, 1);
-			[\dirt_delay, \dirt_reverb, \dirt_limiter].reverseDo { |name|
-				globalEffects[name] = Synth.after(group, name.asString ++ dirt.numChannels,
-					[\out, outBus, \effectBus, globalEffectBus]
-				);
-			}
+			server.sendMsg("/g_new", group, 0, 1); // make sure group exists
+			globalEffects.reverseDo { |x| x.play(group, outBus, globalEffectBus) };
 		})
 	}
 
 	outBus_ { |bus|
-		globalEffects.do { |synth| synth.set(\out, bus) };
+		globalEffects.do { |x| x.synth.set(\out, bus) };
 		outBus = bus;
 	}
 
@@ -378,3 +383,42 @@ DirtModule {
 		^[name, func, test]
 	}
 }
+
+// this keeps state of running synths that have a livespan of the DirtBus
+// sends only OSC when an update is necessary
+
+GlobalDirtEffect {
+
+	var <name, <numChannels, <paramNames, state;
+	var synth, defName;
+
+	*new { |name, numChannels, paramNames|
+		^super.newCopyArgs(name, numChannels, paramNames, ())
+	}
+
+	play { |group, outBus, effectBus|
+		synth = Synth.after(group, name.asString ++ numChannels,
+			[\out, outBus, \effectBus, effectBus] ++ state.asPairs
+		)
+	}
+
+	release { |releaseTime|
+		synth.release(releaseTime)
+	}
+
+	set { |event|
+		var argsChanged;
+		paramNames.do { |key|
+			var value = event[key];
+			if(state[key] != value) {
+				argsChanged = argsChanged.add(key).add(value);
+				state[key] = value;
+			}
+		};
+		if(argsChanged.notNil) {
+			synth.set(*argsChanged);
+		}
+	}
+
+}
+

@@ -138,36 +138,6 @@ DirtEvent {
 		)
 	}
 
-	updateGlobalEffects {
-
-		// these will need some refactoring
-
-		var id, wet;
-		id = dirtBus.globalEffects[\dirt_delay].nodeID;
-		wet = 1.0 - ~dry;
-		if(~delay.notNil  or: { ~delaytime > 0 } or: { ~delayfeedback > 0 }) {
-			~server.sendMsg(\n_set, id,
-				\amp, ~delay,
-				\delaytime, ~delaytime,
-				\delayfeedback, ~delayfeedback,
-				\outAmp, wet
-			)
-		} {
-			~server.sendMsg(\n_set, id, \amp, 0.0, \outAmp, wet);
-		};
-
-		id = dirtBus.globalEffects[\dirt_reverb].nodeID;
-		if(~room.notNil) {
-			~server.sendMsg(\n_set, id,
-				\size, ~size,
-				\amp, ~room,
-				\outAmp, wet
-			)
-		} {
-			~server.sendMsg(\n_set, id, \amp, 0.0, \outAmp, wet);
-		}
-	}
-
 	prepareSynthGroup {
 		~synthGroup = ~server.nextNodeID;
 		~server.sendMsg(\g_new, ~synthGroup, 1, dirtBus.group);
@@ -179,10 +149,12 @@ DirtEvent {
 
 		~amp = pow(~gain, 4) * dirtBus.amp;
 		~channel !? { ~pan = ~pan + (~channel / ~numChannels) };
+		~wet = 1.0 - ~dry;
 
 		server.makeBundle(latency, { // use this to build a bundle
 
-			this.updateGlobalEffects;
+			~delayInAmp = ~delay;
+			dirtBus.globalEffects.do { |x| x.set(currentEnvironment) };
 
 			if(~cutgroup != 0) {
 				server.sendMsg(\n_set, dirtBus.group, \gateCutGroup, ~cutgroup, \gateSample, ~hash);
