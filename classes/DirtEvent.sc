@@ -13,7 +13,7 @@ DirtEvent {
 
 	play {
 		event.use {
-			if(~s.isNil) { this.splitName };
+			~s ?? { this.splitName };
 			this.getBuffer;
 			this.orderRange;
 			this.calcRange;
@@ -25,28 +25,29 @@ DirtEvent {
 		var s, n;
 		#s, n = ~sound.asString.split($:);
 		~s = s.asSymbol;
-		~n = if(n.notNil) { ~n = n.asFloat } { 0.0 };
+		~n = if(n.notNil) { n.asFloat } { 0.0 };
 	}
 
 
 	getBuffer {
-		var buffer, synthDesc, sustainControl;
-		buffer = dirtBus.dirt.getBuffer(~s, ~n);
+		var buffer, sound, synthDesc, sustainControl;
+		sound = ~s;
+		buffer = dirtBus.dirt.getBuffer(sound, ~n);
 
 		if(buffer.notNil) {
 			if(buffer.sampleRate.isNil) {
-				"Dirt: buffer '%' not yet completely read".format(~sound).warn;
+				"Dirt: buffer '%' not yet completely read".format(sound).warn;
 				^this
 			};
 			~instrument = format("dirt_sample_%_%", buffer.numChannels, ~numChannels);
-			~sample = ~sound.identityHash;
+			~sample = sound.identityHash;
 			~buffer = buffer.bufnum;
 			~unitDuration = buffer.duration;
 
 		} {
-			synthDesc = SynthDescLib.at(~s);
+			synthDesc = SynthDescLib.at(sound);
 			if(synthDesc.notNil) {
-				~instrument = ~s;
+				~instrument = sound;
 				~note = ~n;
 				~freq = (~note + 60).midicps;
 				sustainControl = synthDesc.controlDict.at(\sustain);
