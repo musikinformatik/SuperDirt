@@ -32,6 +32,7 @@ DirtEvent {
 	getBuffer {
 		var buffer, sound, synthDesc, sustainControl;
 		sound = ~s;
+		~hash = ~hash ?? { sound.identityHash };
 		buffer = dirtBus.dirt.getBuffer(sound, ~n);
 
 		if(buffer.notNil) {
@@ -40,7 +41,6 @@ DirtEvent {
 				^this
 			};
 			~instrument = format("dirt_sample_%_%", buffer.numChannels, ~numChannels);
-			~sample = sound.identityHash;
 			~buffer = buffer.bufnum;
 			~unitDuration = buffer.duration;
 
@@ -131,7 +131,7 @@ DirtEvent {
 				globalEffectBus: ~globalEffectBus,
 				amp: ~amp,
 				cutGroup: ~cutgroup.abs, // ignore negatives here!
-				sample: ~sample, // required for the cutgroup mechanism
+				sample: ~hash, // required for the cutgroup mechanism
 				sustain: ~sustain, // after sustain, free all synths and group
 				fadeTime: ~fadeTime // fade in and out
 			].asOSCArgArray // append all other args
@@ -185,7 +185,7 @@ DirtEvent {
 			this.updateGlobalEffects;
 
 			if(~cutgroup != 0) {
-				server.sendMsg(\n_set, dirtBus.group, \gateCutGroup, ~cutgroup, \gateSample, ~sample);
+				server.sendMsg(\n_set, dirtBus.group, \gateCutGroup, ~cutgroup, \gateSample, ~hash);
 			};
 
 			this.prepareSynthGroup;
