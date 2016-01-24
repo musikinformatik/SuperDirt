@@ -3,14 +3,6 @@
 SuperCollider implementation of Dirt
 version 0.2 (event-based)
 
-
-Open Qustions:
-
-* should accelerate reduce the playback time? (currently: yes)
-* should samples reverse when accelerate is negative and large? (currently: no)
-* is accelerate direction relative to rate or absolute? (currently: absolute)
-
-
 */
 
 SuperDirt {
@@ -130,6 +122,8 @@ SuperDirt {
 	}
 
 	// SynthDefs are signal processing graph definitions
+	// this is also where the modules are added
+
 	loadSynthDefs { |path|
 		var filePaths;
 		path = path ?? { "../synths".resolveRelative };
