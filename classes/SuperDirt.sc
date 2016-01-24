@@ -20,6 +20,8 @@ SuperDirt {
 	var <>dirtBusses;
 	var <>modules;
 
+	var  <port, <senderAddr, <replyAddr, netResponders;
+
 	classvar <>maxSampleNumChannels = 2;
 
 	*new { |numChannels = 2, server|
@@ -33,9 +35,9 @@ SuperDirt {
 		this.initVowels(\counterTenor);
 	}
 
-	start { |ports = 57120, outBusses = 0, senderAddrs = (NetAddr("127.0.0.1"))|
+	start { |port = 57120, outBusses = 0, senderAddr = (NetAddr("127.0.0.1"))|
 		if(dirtBusses.notNil) { this.stop };
-		this.connect(ports, outBusses, senderAddrs)
+		this.connect(port, outBusses, senderAddr)
 	}
 
 	stop {
@@ -43,13 +45,16 @@ SuperDirt {
 		dirtBusses = nil;
 	}
 
-	connect { |ports = 57120, outBusses = 0, senderAddrs = (NetAddr("127.0.0.1"))|
+	connect { |argPort = 57120, outBusses = 0, receivingFrom = (NetAddr("127.0.0.1"))|
 		var connections;
 		if(Main.scVersionMajor == 3 and: { Main.scVersionMinor == 6 }) {
 			"Please note: SC3.6 listens to any sender.".warn;
-			senderAddrs = nil;
+			senderAddr = nil;
 		};
-		connections = [ports, outBusses, senderAddrs].flop.collect(DirtBus(this, *_));
+		senderAddr = receivingFrom;
+		port = argPort;
+		this.openNetworkConnection; // start listen
+		connections = outBusses.collect(DirtBus(this, _));
 		dirtBusses = dirtBusses ++ connections;
 		^connections.unbubble
 	}
@@ -156,22 +161,74 @@ SuperDirt {
 	}
 
 
+	openNetworkConnection {
+
+		this.closeNetworkConnection;
+
+		netResponders.add(
+			OSCFunc({ |msg, time, tidalAddr|
+				var latency = time - Main.elapsedTime;
+				if(latency > 2) {
+					"The scheduling delay is too long. Your networks clocks may not be in sync".warn;
+					latency = 0.2;
+				};
+				replyAddr = tidalAddr; // collect tidal reply address
+
+				// only named parameters now support multiple dirt busses
+				dirtBusses[0].value2(latency, *msg[1..]);
+
+			}, '/play', senderAddr, recvPort: port).fix
+		);
+		netResponders.add(
+			// pairs of parameter names and values in arbitrary order
+			OSCFunc({ |msg, time, tidalAddr|
+				var latency = time - Main.elapsedTime;
+				var event = (), dirtBus;
+				if(latency > 2) {
+					"The scheduling delay is too long. Your networks clocks may not be in sync".warn;
+					latency = 0.2;
+				};
+				replyAddr = tidalAddr; // collect tidal reply address
+				event[\latency] = latency;
+				event.putPairs(msg[1..]);
+				dirtBus = dirtBusses @@ (event[\bus] ? 0);
+				dirtBus.value(event);
+			}, '/play2', senderAddr, recvPort: port).fix
+		);
+
+
+		"SuperDirt: listening to Tidal on port %".format(port).postln;
+	}
+
+	closeNetworkConnection {
+		netResponders.do { |x| x.free };
+		netResponders = List.new;
+	}
+
+	sendToTidal { |args|
+		if(replyAddr.notNil) {
+			replyAddr.sendMsg(*args);
+		} {
+			"Currently no connection back to tidal".warn;
+		}
+	}
+
+
 }
 
 
 DirtBus {
 
-	var <dirt, <port, <server;
-	var <outBus, <senderAddr, <replyAddr;
+	var <dirt, <server, <outBus;
 	var <synthBus, <globalEffectBus;
-	var <group, <globalEffects, netResponders;
+	var <group, <globalEffects;
 	var <>fadeTime = 0.001, <>amp = 0.4, <>minSustain;
 
 
 	var <>defaultParentEvent;
 
-	*new { |dirt, port = 57120, outBus = 0, senderAddr|
-		^super.newCopyArgs(dirt, port, dirt.server, outBus, senderAddr).init
+	*new { |dirt, outBus|
+		^super.newCopyArgs(dirt, dirt.server, outBus).init
 	}
 
 	init {
@@ -187,7 +244,6 @@ DirtBus {
 		this.initNodeTree;
 		this.makeDefaultParentEvent;
 
-		this.openNetworkConnection; // start listen
 		ServerTree.add(this, server); // synth node tree init
 	}
 
@@ -230,9 +286,8 @@ DirtBus {
 
 	// This implements an alternative API, to be accessed via OSC by "/play2"
 
-	value { |args| // args are in the shape [key, val, key, val ...]
-		//if(args.first.isKindOf(Symbol).not) { "wrong tidal format, please set 'namedParams = True'".warn; ^this };
-		DirtEvent(this, dirt.modules, args).play
+	value { |event|
+		DirtEvent(this, dirt.modules, event).play
 	}
 
 	// this implements the standard API, internally converting it
@@ -248,58 +303,13 @@ DirtBus {
 		bandqf = 0, bandq = 0,
 		unit = \r|
 
-		var args = [\latency, latency, \cps, cps, \sound, sound, \offset, offset, \begin, begin, \end, end, \speed, speed, \pan, pan, \velocity, velocity, \vowel, vowel, \cutoff, cutoff, \resonance, resonance, \accelerate, accelerate, \shape, shape, \krio, krio, \gain, gain, \cutgroup, cutgroup, \delay, delay, \delaytime, delaytime, \delayfeedback, delayfeedback, \crush, crush, \coarse, coarse, \hcutoff, hcutoff, \hresonance, hresonance, \bandqf, bandqf, \bandq, bandq, \unit, unit];
+		var event = ().putPairs([\latency, latency, \cps, cps, \sound, sound, \offset, offset, \begin, begin, \end, end, \speed, speed, \pan, pan, \velocity, velocity, \vowel, vowel, \cutoff, cutoff, \resonance, resonance, \accelerate, accelerate, \shape, shape, \krio, krio, \gain, gain, \cutgroup, cutgroup, \delay, delay, \delaytime, delaytime, \delayfeedback, delayfeedback, \crush, crush, \coarse, coarse, \hcutoff, hcutoff, \hresonance, hresonance, \bandqf, bandqf, \bandq, bandq, \unit, unit]);
 
-
-		this.value(args)
+		this.value(event)
 
 
 	}
 
-	openNetworkConnection {
-
-		this.closeNetworkConnection;
-
-		netResponders.add(
-			OSCFunc({ |msg, time, tidalAddr|
-				var latency = time - Main.elapsedTime;
-				if(latency > 2) {
-					"The scheduling delay is too long. Your networks clocks may not be in sync".warn;
-					latency = 0.2;
-				};
-				replyAddr = tidalAddr; // collect tidal reply address
-				this.value2(latency, *msg[1..]);
-			}, '/play', senderAddr, recvPort: port).fix
-		);
-		netResponders.add(
-			// an alternative protocol, uses pairs of parameter names and values in arbitrary order
-			OSCFunc({ |msg, time, tidalAddr|
-				var latency = time - Main.elapsedTime;
-				if(latency > 2) {
-					"The scheduling delay is too long. Your networks clocks may not be in sync".warn;
-					latency = 0.2;
-				};
-				replyAddr = tidalAddr; // collect tidal reply address
-				this.value([\latency, latency] ++ msg[1..]);
-			}, '/play2', senderAddr, recvPort: port).fix
-		);
-
-
-		"SuperDirt: listening to Tidal on port %".format(port).postln;
-	}
-
-	closeNetworkConnection {
-		netResponders.do { |x| x.free };
-		netResponders = List.new;
-	}
-
-	sendToTidal { |args|
-		if(replyAddr.notNil) {
-			replyAddr.sendMsg(*args);
-		} {
-			"Currently no connection back to tidal".warn;
-		}
-	}
 
 	set { |...pairs|
 		pairs.pairsDo { |key, val|

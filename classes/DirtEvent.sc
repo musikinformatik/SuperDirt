@@ -2,13 +2,12 @@ DirtEvent {
 
 	var <dirtBus, <modules, <event;
 
-	*new { |dirtBus, modules, args|
-		^super.newCopyArgs(dirtBus, modules).init(args)
+	*new { |dirtBus, modules, event|
+		^super.newCopyArgs(dirtBus, modules).init(event)
 	}
 
-
-	init { |args|
-		event = ().putPairs(args).parent_(dirtBus.defaultParentEvent);
+	init { |argEvent|
+		event = argEvent.parent_(dirtBus.defaultParentEvent);
 	}
 
 	play {
