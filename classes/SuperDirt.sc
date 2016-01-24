@@ -37,7 +37,8 @@ SuperDirt {
 
 	start { |port = 57120, outBusses = 0, senderAddr = (NetAddr("127.0.0.1"))|
 		if(dirtBusses.notNil) { this.stop };
-		this.connect(port, outBusses, senderAddr)
+		this.makeBusses(outBusses);
+		this.connect(senderAddr, port)
 	}
 
 	stop {
@@ -45,18 +46,11 @@ SuperDirt {
 		dirtBusses = nil;
 	}
 
-	connect { |argPort = 57120, outBusses = 0, receivingFrom = (NetAddr("127.0.0.1"))|
-		var connections;
-		if(Main.scVersionMajor == 3 and: { Main.scVersionMinor == 6 }) {
-			"Please note: SC3.6 listens to any sender.".warn;
-			senderAddr = nil;
-		};
-		senderAddr = receivingFrom;
-		port = argPort;
-		this.openNetworkConnection; // start listen
-		connections = outBusses.collect(DirtBus(this, _));
-		dirtBusses = dirtBusses ++ connections;
-		^connections.unbubble
+	makeBusses { |outBusses|
+		var new;
+		new = outBusses.collect(DirtBus(this, _));
+		dirtBusses = dirtBusses ++ new;
+		^new.unbubble
 	}
 
 	free {
@@ -161,7 +155,16 @@ SuperDirt {
 	}
 
 
-	openNetworkConnection {
+	connect { |argSenderAddr, argPort|
+
+		if(Main.scVersionMajor == 3 and: { Main.scVersionMinor == 6 }) {
+			"Please note: SC3.6 listens to any sender.".warn;
+			senderAddr = nil;
+		} {
+			senderAddr = argSenderAddr
+		};
+
+		port = argPort;
 
 		this.closeNetworkConnection;
 
@@ -284,32 +287,9 @@ DirtBus {
 		globalEffectBus.free;
 	}
 
-	// This implements an alternative API, to be accessed via OSC by "/play2"
-
 	value { |event|
 		DirtEvent(this, dirt.modules, event).play
 	}
-
-	// this implements the standard API, internally converting it
-
-	value2 {
-		|latency, cps = 1, sound, offset = 0, begin = 0, end = 1, speed = 1, pan = 0, velocity,
-		vowel, cutoff = 300, resonance = 0.5,
-		accelerate = 0, shape = 0, krio, gain = 1, cutgroup = 0,
-		delay = 0, delaytime = 0, delayfeedback = 0,
-		crush = 0,
-		coarse = 0,
-		hcutoff = 0, hresonance = 0,
-		bandqf = 0, bandq = 0,
-		unit = \r|
-
-		var event = ().putPairs([\latency, latency, \cps, cps, \sound, sound, \offset, offset, \begin, begin, \end, end, \speed, speed, \pan, pan, \velocity, velocity, \vowel, vowel, \cutoff, cutoff, \resonance, resonance, \accelerate, accelerate, \shape, shape, \krio, krio, \gain, gain, \cutgroup, cutgroup, \delay, delay, \delaytime, delaytime, \delayfeedback, delayfeedback, \crush, crush, \coarse, coarse, \hcutoff, hcutoff, \hresonance, hresonance, \bandqf, bandqf, \bandq, bandq, \unit, unit]);
-
-		this.value(event)
-
-
-	}
-
 
 	set { |...pairs|
 		pairs.pairsDo { |key, val|
