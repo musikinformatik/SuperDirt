@@ -169,20 +169,6 @@ SuperDirt {
 		this.closeNetworkConnection;
 
 		netResponders.add(
-			OSCFunc({ |msg, time, tidalAddr|
-				var latency = time - Main.elapsedTime;
-				if(latency > 2) {
-					"The scheduling delay is too long. Your networks clocks may not be in sync".warn;
-					latency = 0.2;
-				};
-				replyAddr = tidalAddr; // collect tidal reply address
-
-				// only named parameters now support multiple dirt busses
-				dirtBusses[0].value2(latency, *msg[1..]);
-
-			}, '/play', senderAddr, recvPort: port).fix
-		);
-		netResponders.add(
 			// pairs of parameter names and values in arbitrary order
 			OSCFunc({ |msg, time, tidalAddr|
 				var latency = time - Main.elapsedTime;
@@ -195,7 +181,7 @@ SuperDirt {
 				event[\latency] = latency;
 				event.putPairs(msg[1..]);
 				dirtBus = dirtBusses @@ (event[\bus] ? 0);
-				dirtBus.value(event);
+				DirtEvent(dirtBus, modules, event).play
 			}, '/play2', senderAddr, recvPort: port).fix
 		);
 
@@ -271,6 +257,16 @@ DirtBus {
 		outBus = bus;
 	}
 
+	value { |event|
+		DirtEvent(this, dirt.modules, event).play
+	}
+
+	set { |...pairs|
+		pairs.pairsDo { |key, val|
+			defaultParentEvent.put(key, val)
+		}
+	}
+
 	freeSynths {
 		server.bind {
 			server.sendMsg("/n_free", group);
@@ -286,17 +282,6 @@ DirtBus {
 		synthBus.free;
 		globalEffectBus.free;
 	}
-
-	value { |event|
-		DirtEvent(this, dirt.modules, event).play
-	}
-
-	set { |...pairs|
-		pairs.pairsDo { |key, val|
-			defaultParentEvent.put(key, val)
-		}
-	}
-
 
 	makeDefaultParentEvent {
 		defaultParentEvent = Event.make {
