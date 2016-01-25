@@ -183,7 +183,7 @@ DirtBus {
 		synthBus = Bus.audio(server, dirt.numChannels);
 		globalEffectBus = Bus.audio(server, dirt.numChannels);
 		minSustain = 8 / server.sampleRate;
-		this.initGlobalEffects;
+		this.initDefaultGlobalEffects;
 		this.initNodeTree;
 		this.makeDefaultParentEvent;
 
@@ -191,13 +191,16 @@ DirtBus {
 		ServerTree.add(this, server); // synth node tree init
 	}
 
-	initGlobalEffects {
-		var n = dirt.numChannels;
-		globalEffects = [
-			GlobalDirtEffect(\dirt_delay, n, [\delaytime, \delayfeedback, \wet, \delayInAmp]), // don't set \delay yet.
-			GlobalDirtEffect(\dirt_reverb, n, [\size, \room, \wet, \reverbInAmp]),
-			GlobalDirtEffect(\dirt_limiter, n)
+	initDefaultGlobalEffects {
+		this.globalEffects = [
+			GlobalDirtEffect(\dirt_delay, [\delaytime, \delayfeedback, \wet, \delayInAmp]), // don't set \delay yet.
+			GlobalDirtEffect(\dirt_reverb, [\size, \room, \wet, \reverbInAmp]),
+			GlobalDirtEffect(\dirt_limiter)
 		]
+	}
+
+	globalEffects_ { |array|
+		globalEffects = array.collect { |x| x.numChannels = dirt.numChannels }
 	}
 
 	doOnServerTree {
@@ -389,11 +392,11 @@ DirtModule {
 
 GlobalDirtEffect {
 
-	var <name, <numChannels, <paramNames, state;
+	var <>name, <>paramNames, <>numChannels, state;
 	var synth, defName;
 
-	*new { |name, numChannels, paramNames|
-		^super.newCopyArgs(name, numChannels, paramNames, ())
+	*new { |name, paramNames, numChannels|
+		^super.newCopyArgs(name, paramNames, numChannels, ())
 	}
 
 	play { |group, outBus, effectBus|
