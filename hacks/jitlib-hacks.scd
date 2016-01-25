@@ -30,7 +30,7 @@ The following examples assume that you have stored an instance of SuperDirt in ~
 // getting tidal output into node proxies
 
 Ndef(\dirty).ar(~dirt.numChannels); // make a place for a signal
-~dirt.dirtBusses.do { |each| each.outBus = Ndef(\dirty).bus };
+~dirt.orbits.do { |each| each.outBus = Ndef(\dirty).bus };
 
 // now tidal should be silently playing in Ndef(\dirty).
 
@@ -48,7 +48,7 @@ Ndef(\x, { RLPF.ar(Ndef.ar(\dirty), MouseX.kr(300, 8000, 1), 0.04) }).play; // e
 
 
 // go back to normal:
-~dirt.dirtBusses.do { |each| each.outBus = 0; };
+~dirt.orbits.do { |each| each.outBus = 0; };
 
 
 /*
@@ -58,7 +58,7 @@ using SuperDirt from sclang patterns
 */
 
 (
-var d = ~dirt.dirtBusses.first;
+var d = ~dirt.orbits.first;
 Event.addEventType(\dirt, {
 	~latency = s.latency;
 	d.value(currentEnvironment.asPairs)

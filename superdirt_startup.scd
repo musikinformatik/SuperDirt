@@ -22,8 +22,8 @@ s.waitForBoot {
 	// optional, needed for the sclang tests only:
 	(
 
-		~d1 = ~dirt.dirtBusses[0]; // one port
-		~d2 = ~dirt.dirtBusses[1]; // the other
+		~d1 = ~dirt.orbits[0]; // one orbit
+		~d2 = ~dirt.orbits[1];
 
 	);
 };

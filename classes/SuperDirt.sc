@@ -9,7 +9,7 @@ SuperDirt {
 
 	var <numChannels, <server;
 	var <buffers, <vowels;
-	var <>dirtBusses;
+	var <>orbits;
 	var <>modules;
 
 	var  <port, <senderAddr, <replyAddr, netResponders;
@@ -28,20 +28,20 @@ SuperDirt {
 	}
 
 	start { |port = 57120, outBusses = 0, senderAddr = (NetAddr("127.0.0.1"))|
-		if(dirtBusses.notNil) { this.stop };
+		if(orbits.notNil) { this.stop };
 		this.makeBusses(outBusses);
 		this.connect(senderAddr, port)
 	}
 
 	stop {
-		dirtBusses.do(_.free);
-		dirtBusses = nil;
+		orbits.do(_.free);
+		orbits = nil;
 	}
 
 	makeBusses { |outBusses|
 		var new;
-		new = outBusses.collect(DirtBus(this, _));
-		dirtBusses = dirtBusses ++ new;
+		new = outBusses.collect(DirtOrbit(this, _));
+		orbits = orbits ++ new;
 		^new.unbubble
 	}
 
@@ -166,7 +166,7 @@ SuperDirt {
 			// pairs of parameter names and values in arbitrary order
 			OSCFunc({ |msg, time, tidalAddr|
 				var latency = time - Main.elapsedTime;
-				var event = (), dirtBus;
+				var event = (), dirtOrbit;
 				if(latency > 2) {
 					"The scheduling delay is too long. Your networks clocks may not be in sync".warn;
 					latency = 0.2;
@@ -174,8 +174,8 @@ SuperDirt {
 				replyAddr = tidalAddr; // collect tidal reply address
 				event[\latency] = latency;
 				event.putPairs(msg[1..]);
-				dirtBus = dirtBusses @@ (event[\orbit] ? 0);
-				DirtEvent(dirtBus, modules, event).play
+				dirtOrbit = orbits @@ (event[\orbit] ? 0);
+				DirtEvent(dirtOrbit, modules, event).play
 			}, '/play2', senderAddr, recvPort: port).fix
 		);
 
@@ -200,7 +200,7 @@ SuperDirt {
 }
 
 
-DirtBus {
+DirtOrbit {
 
 	var <dirt, <server, <outBus;
 	var <synthBus, <globalEffectBus;
@@ -216,7 +216,7 @@ DirtBus {
 
 	init {
 		if(server.serverRunning.not) {
-			Error("SuperColldier server '%' not running. Couldn't start DirtBus".format(server.name)).warn;
+			Error("SuperColldier server '%' not running. Couldn't start DirtOrbit".format(server.name)).warn;
 			^this
 		};
 		group = server.nextPermNodeID;
@@ -299,7 +299,7 @@ DirtBus {
 			~dry = 0.0;
 
 			// values from the dirt bus
-			~dirtBus = this;
+			~dirtOrbit = this;
 			~dirt = dirt;
 			~out = synthBus;
 			~globalEffectBus = globalEffectBus;
@@ -327,8 +327,8 @@ DirtModule {
 		^super.newCopyArgs(name, func, test ? true)
 	}
 
-	value { |dirtBus|
-		if(test.value, { func.value(dirtBus) })
+	value { |dirtOrbit|
+		if(test.value, { func.value(dirtOrbit) })
 	}
 
 	== { arg that;

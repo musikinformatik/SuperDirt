@@ -39,8 +39,8 @@ SOME CONTROL
 // access separate dirt busses directly
 (
 
-~d1 = ~dirt.dirtBusses[0]; // one port
-~d2 = ~dirt.dirtBusses[1]; // the other
+~d1 = ~dirt.orbits[0]; // one orbit
+~d2 = ~dirt.orbits[1]; // the other orbit
 
 )
 

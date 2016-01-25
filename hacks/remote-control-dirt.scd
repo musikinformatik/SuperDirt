@@ -2,7 +2,7 @@
 
 Remote control Dirt from Tidal via OSC
 
-Open and close Dirt Channels (DirtBus instances) on the fly.
+Open and close Dirt Channels (DirtOrbit instances) on the fly.
 
 This assumes you have stored dirt in a variable ~dirt
 
@@ -22,7 +22,7 @@ OSCdef(\newdirt, { |msg, time, tidalAddr|
 	#name, port, outBus = msg[1..];
 	old = ~allChannels[name];
 	if(old.notNil) { old.free };
-	old[name] = DirtBus(~dirt, port, outBus, tidalAddr);
+	old[name] = DirtOrbit(~dirt, port, outBus, tidalAddr);
 }, '/new_dirt', srcID: nil).fix; // srcID you may want to add NetAddr("127.0.0.1", <dirt-port>)
 
 // send OSC: "/remove_dirt", name
