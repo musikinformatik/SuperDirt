@@ -148,6 +148,8 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		SynthDef("dirt_delay" ++ numChannels, { |out, effectBus, gate = 1, delaytime, delayfeedback, amp = 1, outAmp = 1|
 			var signal = In.ar(effectBus, numChannels) * amp.lag(0.01);
 
+			delayfeedback = delayfeedback.max(0);
+			delaytime = delaytime.max(0);
 			// from sc3-plugins
 			signal = SwitchDelay.ar(signal, 1, 1, delaytime, delayfeedback);
 
@@ -160,6 +162,9 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		SynthDef("dirt_delay" ++ numChannels, { |out, effectBus, gate = 1, delaytime, delayfeedback, delayInAmp = 1, wet = 1|
 			var signal = In.ar(effectBus, numChannels) * delayInAmp.lag(0.01);
 			var loop = LocalIn.ar(numChannels);
+
+			delayfeedback = delayfeedback.max(0);
+			delaytime = delaytime.max(0);
 
 			signal = signal + (loop * delayfeedback.lag(0.3));
 			signal = DelayC.ar(signal, 1, 1, delaytime.lag(1));
