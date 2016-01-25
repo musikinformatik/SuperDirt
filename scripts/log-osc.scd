@@ -23,11 +23,11 @@ thisProcess.removeOSCRecvFunc(~oscFunc);
 
 // incrementally play it:
 (
-~playLog = { |path, startFrom = 0.0, dirtOrbit| // seconds into the log
+~playLog = { |path, startFrom = 0.0, orbit| // seconds into the log
 	var file = File.open(path.standardizePath, "r");
 	var getArgs = { |str| str.split($,).collect(_.interpret) };
 	var nextLine = { getArgs.(file.getLine ? "") };
-	dirtOrbit = dirtOrbit ? ~d1;
+	orbit = orbit ? ~d1;
 	fork {
 		var list, time1, time2;
 		list = nextLine.value ? [];
@@ -38,7 +38,7 @@ thisProcess.removeOSCRecvFunc(~oscFunc);
 			time2.notNil
 		} {
 			if(startFrom <= 0) {
-				dirtOrbit.value2(s.latency, *list[1..].postln);
+				orbit.value2(s.latency, *list[1..].postln);
 				(time2 - time1).wait;
 			} {
 				startFrom = startFrom - (time2 - time1);

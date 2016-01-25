@@ -166,7 +166,7 @@ SuperDirt {
 			// pairs of parameter names and values in arbitrary order
 			OSCFunc({ |msg, time, tidalAddr|
 				var latency = time - Main.elapsedTime;
-				var event = (), dirtOrbit;
+				var event = (), orbit;
 				if(latency > 2) {
 					"The scheduling delay is too long. Your networks clocks may not be in sync".warn;
 					latency = 0.2;
@@ -174,8 +174,8 @@ SuperDirt {
 				replyAddr = tidalAddr; // collect tidal reply address
 				event[\latency] = latency;
 				event.putPairs(msg[1..]);
-				dirtOrbit = orbits @@ (event[\orbit] ? 0);
-				DirtEvent(dirtOrbit, modules, event).play
+				orbit = orbits @@ (event[\orbit] ? 0);
+				DirtEvent(orbit, modules, event).play
 			}, '/play2', senderAddr, recvPort: port).fix
 		);
 
@@ -299,7 +299,7 @@ DirtOrbit {
 			~dry = 0.0;
 
 			// values from the dirt bus
-			~dirtOrbit = this;
+			~orbit = this;
 			~dirt = dirt;
 			~out = synthBus;
 			~globalEffectBus = globalEffectBus;
@@ -327,8 +327,8 @@ DirtModule {
 		^super.newCopyArgs(name, func, test ? true)
 	}
 
-	value { |dirtOrbit|
-		if(test.value, { func.value(dirtOrbit) })
+	value { |orbit|
+		if(test.value, { func.value(orbit) })
 	}
 
 	== { arg that;

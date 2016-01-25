@@ -1,13 +1,13 @@
 DirtEvent {
 
-	var <dirtOrbit, <modules, <event;
+	var <orbit, <modules, <event;
 
-	*new { |dirtOrbit, modules, event|
-		^super.newCopyArgs(dirtOrbit, modules).init(event)
+	*new { |orbit, modules, event|
+		^super.newCopyArgs(orbit, modules).init(event)
 	}
 
 	init { |argEvent|
-		event = argEvent.parent_(dirtOrbit.defaultParentEvent);
+		event = argEvent.parent_(orbit.defaultParentEvent);
 	}
 
 	play {
@@ -32,7 +32,7 @@ DirtEvent {
 		var buffer, sound, synthDesc, sustainControl;
 		sound = ~s;
 		~hash = ~hash ?? { sound.identityHash };
-		buffer = dirtOrbit.dirt.getBuffer(sound, ~n);
+		buffer = orbit.dirt.getBuffer(sound, ~n);
 
 		if(buffer.notNil) {
 			if(buffer.sampleRate.isNil) {
@@ -96,11 +96,11 @@ DirtEvent {
 			{ Error("this unit ('%') is not defined".format(~unit)).throw };
 		);
 
-		if(sustain < dirtOrbit.minSustain) {
+		if(sustain < orbit.minSustain) {
 			^this // drop it.
 		};
 
-		~fadeTime = min(dirtOrbit.fadeTime, sustain * 0.19098);
+		~fadeTime = min(orbit.fadeTime, sustain * 0.19098);
 		~sustain = sustain - (2 * ~fadeTime);
 		~speed = speed;
 		~endSpeed = endSpeed;
@@ -125,8 +125,8 @@ DirtEvent {
 			3, // add action: addAfter
 			~synthGroup, // send to group
 			*[
-				in: dirtOrbit.synthBus,  // read from private
-				out: dirtOrbit.outBus,     // write to outBus,
+				in: orbit.synthBus,  // read from private
+				out: orbit.outBus,     // write to outBus,
 				globalEffectBus: ~globalEffectBus,
 				amp: ~amp,
 				cutGroup: ~cutgroup.abs, // ignore negatives here!
@@ -142,7 +142,7 @@ DirtEvent {
 		// these will need some refactoring
 
 		var id, wet;
-		id = dirtOrbit.globalEffects[\dirt_delay].nodeID;
+		id = orbit.globalEffects[\dirt_delay].nodeID;
 		wet = 1.0 - ~dry;
 		if(~delay.notNil  or: { ~delaytime > 0 } or: { ~delayfeedback > 0 }) {
 			~server.sendMsg(\n_set, id,
@@ -155,7 +155,7 @@ DirtEvent {
 			~server.sendMsg(\n_set, id, \amp, 0.0, \outAmp, wet);
 		};
 
-		id = dirtOrbit.globalEffects[\dirt_reverb].nodeID;
+		id = orbit.globalEffects[\dirt_reverb].nodeID;
 		if(~room.notNil) {
 			~server.sendMsg(\n_set, id,
 				\size, ~size,
@@ -169,14 +169,14 @@ DirtEvent {
 
 	prepareSynthGroup {
 		~synthGroup = ~server.nextNodeID;
-		~server.sendMsg(\g_new, ~synthGroup, 1, dirtOrbit.group);
+		~server.sendMsg(\g_new, ~synthGroup, 1, orbit.group);
 	}
 
 	playSynths {
 		var diverted, server = ~server;
 		var latency = ~latency + (~offset * ~speed); // ~server.latency +
 
-		~amp = pow(~gain, 4) * dirtOrbit.amp;
+		~amp = pow(~gain, 4) * orbit.amp;
 		~channel !? { ~pan = ~pan + (~channel / ~numChannels) };
 
 		server.makeBundle(latency, { // use this to build a bundle
@@ -184,7 +184,7 @@ DirtEvent {
 			this.updateGlobalEffects;
 
 			if(~cutgroup != 0) {
-				server.sendMsg(\n_set, dirtOrbit.group, \gateCutGroup, ~cutgroup, \gateSample, ~hash);
+				server.sendMsg(\n_set, orbit.group, \gateCutGroup, ~cutgroup, \gateSample, ~hash);
 			};
 
 			this.prepareSynthGroup;
