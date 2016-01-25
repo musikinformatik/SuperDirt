@@ -174,7 +174,7 @@ SuperDirt {
 				replyAddr = tidalAddr; // collect tidal reply address
 				event[\latency] = latency;
 				event.putPairs(msg[1..]);
-				dirtBus = dirtBusses @@ (event[\bus] ? 0);
+				dirtBus = dirtBusses @@ (event[\orbit] ? 0);
 				DirtEvent(dirtBus, modules, event).play
 			}, '/play2', senderAddr, recvPort: port).fix
 		);
