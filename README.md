@@ -52,11 +52,15 @@ d1 $ sound "[bd bd bd, sn cp sn cp]"
 d2 $ sound "[sn*2 imp bd*3]" |+| speed "1"
 ```
 
-##Options on startup
+## Automatic startup
+If you want SuperDirt to start automatically, you can load it from the startup file. To do this, open the sc startup file (```File>Open startup file```) and add: ```load("... path to your tidal startup file ...")```. This path you can get by dropping the file onto the text editor.
+
+
+## Options on startup
 - numChannels can be set to anything your soundcard supports
 - for server options, see ServerOptions helpfile: http://doc.sccode.org/Classes/ServerOptions.html
 
-##Options on-the-fly
+## Options on-the-fly
 - new channels can be created on the fly
 - you can pass the udp port on which superdirt is listenting and the output channel offset (```.start(ports, channels)```)
 - add or edit SynthDef files to add your own synthesis methods to be called from tidal: https://github.com/telephon/SuperDirt/blob/master/synths/default-synths.scd
