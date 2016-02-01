@@ -97,7 +97,6 @@ DirtEvent {
 			{ Error("this unit ('%') is not defined".format(~unit)).throw };
 		);
 
-		//BG
 		if (~loop > 0) { sustain = sustain * ~loop};
 
 		if(sustain < dirtBus.minSustain) {
