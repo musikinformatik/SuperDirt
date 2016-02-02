@@ -44,6 +44,8 @@ this may be refacored later.
 					speed: ~speed,
 					endSpeed: ~endSpeed,
 					begin: ~begin,
+					end: ~end,
+					loop: ~loop,
 					pan: ~pan,
 					out: ~out
 				])
