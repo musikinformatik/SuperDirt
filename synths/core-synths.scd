@@ -95,7 +95,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 	SynthDef("dirt_crush" ++ numChannels, { |out, crush = 4|
 		var signal = In.ar(out, numChannels);
-		signal = signal.round(0.5 ** crush);
+		signal = signal.round(0.5 ** (crush-1));
 		ReplaceOut.ar(out, signal)
 	}, [\ir, \ir]).add;
 
