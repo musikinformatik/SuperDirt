@@ -109,12 +109,12 @@ they respond to the existence of a value for one of the tidal parameters
 	{ |dirtEvent|
 		dirtEvent.sendSynth("dirt_bpf" ++ ~numChannels,
 			[
-				bandqf: ~bandqf,
+				bandqf: ~bandf,
 				bandq: ~bandq,
 				out: ~out
 		])
 
-}, { ~bandqf.notNil and: { ~bandqf != 0 } });
+}, { ~bandf.notNil and: { ~bandf != 0 } });
 
 ~dirt.addModule('crush',
 	{ |dirtEvent|

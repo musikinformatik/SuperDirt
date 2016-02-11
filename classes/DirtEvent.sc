@@ -181,6 +181,7 @@ DirtEvent {
 
 		~amp = pow(~gain, 4) * dirtBus.amp;
 		~channel !? { ~pan = ~pan + (~channel / ~numChannels) };
+		if (~cut.notNil) {~cutgroup = ~cut};
 
 		server.makeBundle(latency, { // use this to build a bundle
 
