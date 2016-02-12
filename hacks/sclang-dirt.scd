@@ -1,11 +1,16 @@
 
 
 (
-var db = ~d1;
+var dirt = ~dirt;
 Event.addEventType(\dirt, {
 	~latency = s.latency;
-	db.value(currentEnvironment)
+	dirt.dirtBusses.wrapAt(~which ? 0).value(currentEnvironment)
 });
+)
+
+(
+(type:\dirt, which:0, sound: \hh).play;
+(type:\dirt, which:1, sound: \hh).play;
 )
 
 
