@@ -148,14 +148,14 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 	if(\SwitchDelay.asClass.notNil) {
 
-
 		SynthDef("dirt_delay" ++ numChannels, { |out, effectBus, gate = 1, delaytime, delayfeedback, amp = 1, outAmp = 1|
 			var signal = In.ar(effectBus, numChannels) * amp.lag(0.01);
+			var maxDelayTime = 4;
 
 			delayfeedback = delayfeedback.max(0);
-			delaytime = delaytime.max(0);
+			delaytime = delaytime.clip(0, maxDelayTime); // just to be sure
 			// from sc3-plugins
-			signal = SwitchDelay.ar(signal, 1, 1, delaytime, delayfeedback);
+			signal = SwitchDelay.ar(signal, 1, 1, delaytime, delayfeedback, maxDelayTime);
 
 			signal = signal * EnvGen.kr(Env.asr, gate, doneAction:2);
 			signal = signal * outAmp.lag(0.01);

@@ -315,9 +315,6 @@ DirtOrbit {
 			~numChannels = dirt.numChannels;
 			~server = server;
 
-			// global effects
-			~delaytime = -1;
-			~delayfeedback = -1;
 		}
 	}
 

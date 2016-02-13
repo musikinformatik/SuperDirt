@@ -147,7 +147,7 @@ DirtEvent {
 		var id, wet;
 		id = orbit.globalEffects[\dirt_delay].nodeID;
 		wet = 1.0 - ~dry;
-		if(~delay.notNil  or: { ~delaytime > 0 } or: { ~delayfeedback > 0 }) {
+		if(~delay.notNil  or: { ~delaytime.notNil } or: { ~delayfeedback.notNil }) {
 			~server.sendMsg(\n_set, id,
 				\amp, ~delay,
 				\delaytime, ~delaytime,
