@@ -181,11 +181,14 @@ DirtEvent {
 
 		~amp = pow(~gain, 4) * orbit.amp;
 		~channel !? { ~pan = ~pan + (~channel / ~numChannels) };
-		if (~cut.notNil) {~cutgroup = ~cut};
+		if(~cut.notNil) { ~cutgroup = ~cut };
+		~wet = 1.0 - ~dry;
 
 		server.makeBundle(latency, { // use this to build a bundle
 
-			this.updateGlobalEffects;
+			// this will require tidal to set defaults to nil instead of -1.
+			~delayInAmp = ~delay;
+			orbit.globalEffects.do { |x| x.set(currentEnvironment) };
 
 			if(~cutgroup != 0) {
 				server.sendMsg(\n_set, orbit.group, \gateCutGroup, ~cutgroup, \gateSample, ~hash);

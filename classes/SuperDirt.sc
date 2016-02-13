@@ -220,14 +220,26 @@ DirtOrbit {
 			^this
 		};
 		group = server.nextPermNodeID;
-		globalEffects = ();
 		synthBus = Bus.audio(server, dirt.numChannels);
 		globalEffectBus = Bus.audio(server, dirt.numChannels);
 		minSustain = 8 / server.sampleRate;
+		this.initDefaultGlobalEffects;
 		this.initNodeTree;
 		this.makeDefaultParentEvent;
 
 		ServerTree.add(this, server); // synth node tree init
+	}
+
+	initDefaultGlobalEffects {
+		this.globalEffects = [
+			GlobalDirtEffect(\dirt_delay, [\delaytime, \delayfeedback, \wet, \delayInAmp]), // don't set \delay yet.
+			GlobalDirtEffect(\dirt_reverb, [\size, \room, \wet, \reverbInAmp]),
+			GlobalDirtEffect(\dirt_limiter)
+		]
+	}
+
+	globalEffects_ { |array|
+		globalEffects = array.collect { |x| x.numChannels = dirt.numChannels }
 	}
 
 	doOnServerTree {
@@ -237,17 +249,13 @@ DirtOrbit {
 
 	initNodeTree {
 		server.makeBundle(nil, { // make sure they are in order
-			server.sendMsg("/g_new", group, 0, 1);
-			[\dirt_delay, \dirt_reverb, \dirt_limiter].reverseDo { |name|
-				globalEffects[name] = Synth.after(group, name.asString ++ dirt.numChannels,
-					[\out, outBus, \effectBus, globalEffectBus]
-				);
-			}
+			server.sendMsg("/g_new", group, 0, 1); // make sure group exists
+			globalEffects.reverseDo { |x| x.play(group, outBus, globalEffectBus) };
 		})
 	}
 
 	outBus_ { |bus|
-		globalEffects.do { |synth| synth.set(\out, bus) };
+		globalEffects.do { |x| x.synth.set(\out, bus) };
 		outBus = bus;
 	}
 
@@ -348,3 +356,42 @@ DirtModule {
 		^[name, func, test]
 	}
 }
+
+// this keeps state of running synths that have a livespan of the DirtBus
+// sends only OSC when an update is necessary
+
+GlobalDirtEffect {
+
+	var <>name, <>paramNames, <>numChannels, state;
+	var synth, defName;
+
+	*new { |name, paramNames, numChannels|
+		^super.newCopyArgs(name, paramNames, numChannels, ())
+	}
+
+	play { |group, outBus, effectBus|
+		synth = Synth.after(group, name.asString ++ numChannels,
+			[\out, outBus, \effectBus, effectBus] ++ state.asPairs
+		)
+	}
+
+	release { |releaseTime|
+		synth.release(releaseTime)
+	}
+
+	set { |event|
+		var argsChanged;
+		paramNames.do { |key|
+			var value = event[key];
+			if(state[key] != value) {
+				argsChanged = argsChanged.add(key).add(value);
+				state[key] = value;
+			}
+		};
+		if(argsChanged.notNil) {
+			synth.set(*argsChanged);
+		}
+	}
+
+}
+
