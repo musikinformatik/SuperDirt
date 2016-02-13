@@ -1,3 +1,9 @@
+/*
+
+out of order, needs fixing
+
+*/
+
 (
 thisProcess.removeOSCRecvFunc(~oscFunc);
 ~oscFile !? { ~oscFile.close };
@@ -5,7 +11,7 @@ thisProcess.removeOSCRecvFunc(~oscFunc);
 ~oscFile = File("~/osc-log.txt".standardizePath, "w");
 
 ~oscFunc = { |x, time|
-	if(x[0] == '/play') {
+	if(x[0] == '/play2') {
 		~oscFile <<<* ([time] ++ x[1..]) << Char.nl
 	};
 
@@ -23,11 +29,11 @@ thisProcess.removeOSCRecvFunc(~oscFunc);
 
 // incrementally play it:
 (
-~playLog = { |path, startFrom = 0.0, dirtBus| // seconds into the log
+~playLog = { |path, startFrom = 0.0, orbit| // seconds into the log
 	var file = File.open(path.standardizePath, "r");
 	var getArgs = { |str| str.split($,).collect(_.interpret) };
 	var nextLine = { getArgs.(file.getLine ? "") };
-	dirtBus = dirtBus ? ~d1;
+	orbit = orbit ? ~d1;
 	fork {
 		var list, time1, time2;
 		list = nextLine.value ? [];
@@ -38,7 +44,7 @@ thisProcess.removeOSCRecvFunc(~oscFunc);
 			time2.notNil
 		} {
 			if(startFrom <= 0) {
-				dirtBus.value2(s.latency, *list[1..].postln);
+				orbit.value([\latency, s.latency] ++ list[1..].postln);
 				(time2 - time1).wait;
 			} {
 				startFrom = startFrom - (time2 - time1);
