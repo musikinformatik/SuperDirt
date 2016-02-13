@@ -43,7 +43,8 @@ s.waitForBoot {
 
 ## Setup from Tidal
 ```
-(d1, d2) <- superDirtSetters getNow
+(d1, t1) <- superDirtSetters getNow
+(d2, t2) <- superDirtSetters getNow
 ```
 Now you can run a pattern, e.g.
 ```
