@@ -43,6 +43,7 @@ s.waitForBoot {
 
 ## Setup from Tidal
 ```
+(cps, getNow) <- bpsUtils
 (d1, t1) <- superDirtSetters getNow
 (d2, t2) <- superDirtSetters getNow
 ```
