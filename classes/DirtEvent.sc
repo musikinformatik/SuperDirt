@@ -132,42 +132,12 @@ DirtEvent {
 				out: orbit.outBus,     // write to outBus,
 				globalEffectBus: ~globalEffectBus,
 				amp: ~amp,
-				cutGroup: ~cutgroup.abs, // ignore negatives here!
+				cutGroup: ~cut.abs, // ignore negatives here!
 				sample: ~hash, // required for the cutgroup mechanism
 				sustain: ~sustain, // after sustain, free all synths and group
 				fadeTime: ~fadeTime // fade in and out
 			].asOSCArgArray // append all other args
 		)
-	}
-
-	updateGlobalEffects {
-
-		// these will need some refactoring
-
-		var id, wet;
-		id = orbit.globalEffects[\dirt_delay].nodeID;
-		wet = 1.0 - ~dry;
-		if(~delay.notNil  or: { ~delaytime > 0 } or: { ~delayfeedback > 0 }) {
-			~server.sendMsg(\n_set, id,
-				\amp, ~delay,
-				\delaytime, ~delaytime,
-				\delayfeedback, ~delayfeedback,
-				\outAmp, wet
-			)
-		} {
-			~server.sendMsg(\n_set, id, \amp, 0.0, \outAmp, wet);
-		};
-
-		id = orbit.globalEffects[\dirt_reverb].nodeID;
-		if(~room.notNil) {
-			~server.sendMsg(\n_set, id,
-				\size, ~size,
-				\amp, ~room,
-				\outAmp, wet
-			)
-		} {
-			~server.sendMsg(\n_set, id, \amp, 0.0, \outAmp, wet);
-		}
 	}
 
 	prepareSynthGroup {
@@ -181,14 +151,15 @@ DirtEvent {
 
 		~amp = pow(~gain, 4) * orbit.amp;
 		~channel !? { ~pan = ~pan + (~channel / ~numChannels) };
-		if (~cut.notNil) {~cutgroup = ~cut};
+		~wet = 1.0 - ~dry;
 
 		server.makeBundle(latency, { // use this to build a bundle
 
-			this.updateGlobalEffects;
+			~delayInAmp = ~delay;
+			orbit.globalEffects.do { |x| x.set(currentEnvironment) };
 
-			if(~cutgroup != 0) {
-				server.sendMsg(\n_set, orbit.group, \gateCutGroup, ~cutgroup, \gateSample, ~hash);
+			if(~cut != 0) {
+				server.sendMsg(\n_set, orbit.group, \gateCutGroup, ~cut, \gateSample, ~hash);
 			};
 
 			this.prepareSynthGroup;
