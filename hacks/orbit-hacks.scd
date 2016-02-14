@@ -7,8 +7,8 @@
 // first you generate the synth defs for it
 (
 (1..SuperDirt.maxSampleNumChannels).do { |numChannels|
-	SynthDef("dirt_global_lpf" ++ numChannels, { |out, gate = 1|
-		var signal = In.ar(out, numChannels);
+	SynthDef("dirt_global_lpf" ++ numChannels, { |out, effectBus, gate = 1|
+		var signal = In.ar(effectBus, numChannels).asArray.sum;
 		signal = signal * EnvGen.kr(Env.asr, gate, doneAction:2);
 		signal = RLPF.ar(signal, LFNoise2.kr(LFNoise1.kr(0.1).exprange(0.05, 1)).exprange(60, 13000), 0.1);
 		ReplaceOut.ar(out, signal)
