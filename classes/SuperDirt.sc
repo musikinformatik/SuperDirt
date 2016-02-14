@@ -377,9 +377,10 @@ GlobalDirtEffect {
 	}
 
 	play { |group, outBus, effectBus|
+		if(synth.isPlaying) { synth.release };
 		synth = Synth.after(group, name.asString ++ numChannels,
 			[\out, outBus, \effectBus, effectBus] ++ state.asPairs
-		)
+		).register
 	}
 
 	release { |releaseTime|
@@ -398,6 +399,14 @@ GlobalDirtEffect {
 		if(argsChanged.notNil) {
 			synth.set(*argsChanged);
 		}
+	}
+
+	printOn { |stream|
+		stream  << this.class.name << "(" <<<* [name, paramNames] << ")"
+	}
+
+	storeArgs {
+		^[name, paramNames, numChannels]
 	}
 
 }
