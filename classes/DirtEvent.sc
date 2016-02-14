@@ -132,7 +132,7 @@ DirtEvent {
 				out: orbit.outBus,     // write to outBus,
 				globalEffectBus: ~globalEffectBus,
 				amp: ~amp,
-				cutGroup: ~cutgroup.abs, // ignore negatives here!
+				cutGroup: ~cut.abs, // ignore negatives here!
 				sample: ~hash, // required for the cutgroup mechanism
 				sustain: ~sustain, // after sustain, free all synths and group
 				fadeTime: ~fadeTime // fade in and out
@@ -151,7 +151,6 @@ DirtEvent {
 
 		~amp = pow(~gain, 4) * orbit.amp;
 		~channel !? { ~pan = ~pan + (~channel / ~numChannels) };
-		if(~cut.notNil) { ~cutgroup = ~cut };
 		~wet = 1.0 - ~dry;
 
 		server.makeBundle(latency, { // use this to build a bundle
@@ -160,8 +159,8 @@ DirtEvent {
 			~delayInAmp = ~delay;
 			orbit.globalEffects.do { |x| x.set(currentEnvironment) };
 
-			if(~cutgroup != 0) {
-				server.sendMsg(\n_set, orbit.group, \gateCutGroup, ~cutgroup, \gateSample, ~hash);
+			if(~cut != 0) {
+				server.sendMsg(\n_set, orbit.group, \gateCutGroup, ~cut, \gateSample, ~hash);
 			};
 
 			this.prepareSynthGroup;
