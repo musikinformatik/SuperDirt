@@ -140,36 +140,6 @@ DirtEvent {
 		)
 	}
 
-	updateGlobalEffects {
-
-		// these will need some refactoring
-
-		var id, wet;
-		id = orbit.globalEffects[\dirt_delay].nodeID;
-		wet = 1.0 - ~dry;
-		if(~delay.notNil  or: { ~delaytime.notNil } or: { ~delayfeedback.notNil }) {
-			~server.sendMsg(\n_set, id,
-				\amp, ~delay,
-				\delaytime, ~delaytime,
-				\delayfeedback, ~delayfeedback,
-				\outAmp, wet
-			)
-		} {
-			~server.sendMsg(\n_set, id, \amp, 0.0, \outAmp, wet);
-		};
-
-		id = orbit.globalEffects[\dirt_reverb].nodeID;
-		if(~room.notNil) {
-			~server.sendMsg(\n_set, id,
-				\size, ~size,
-				\amp, ~room,
-				\outAmp, wet
-			)
-		} {
-			~server.sendMsg(\n_set, id, \amp, 0.0, \outAmp, wet);
-		}
-	}
-
 	prepareSynthGroup {
 		~synthGroup = ~server.nextNodeID;
 		~server.sendMsg(\g_new, ~synthGroup, 1, orbit.group);
