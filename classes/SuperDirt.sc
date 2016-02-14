@@ -263,6 +263,10 @@ DirtOrbit {
 		DirtEvent(this, dirt.modules, event).play
 	}
 
+	valuePairs { |pairs|
+		this.value((latency: server.latency).putPairs(pairs));
+	}
+
 	set { |...pairs|
 		pairs.pairsDo { |key, val|
 			defaultParentEvent.put(key, val)
