@@ -13,7 +13,7 @@ s.waitForBoot {
 	~dirt = SuperDirt(2, s);
 	~dirt.loadSoundFiles;
 	s.sync; // wait until all soundfiles are really loaded
-	~dirt.start([57120, 57121]); // listen on two different ports
+	~dirt.start(57120, [0, 0]); // start two orbits
 }
 )
 
@@ -207,8 +207,8 @@ TEST CUTGROUPS
 ~d1.valuePairs([sound: 'cy:10', speed: 0.02, cutgroup: -8]); // ... again
 
  // this should add another one, as the cutgroups are independent between ~d1 and ~d2
-~d1.valuePairs([sound:'cy:10', speed: 0.02, cutgroup: -8]);
-~d1.valuePairs([sound:'cy:10', speed: 0.02, cutgroup: -8]); // cut the old one, add the new one, same synth count
+~d2.valuePairs([sound:'cy:10', speed: 0.02, cutgroup: -8]);
+~d2.valuePairs([sound:'cy:10', speed: 0.02, cutgroup: -8]); // cut the old one, add the new one, same synth count
 
 
 //  With negative, only stop the same sample from playing in the same cutgroup
