@@ -155,7 +155,6 @@ DirtEvent {
 
 		server.makeBundle(latency, { // use this to build a bundle
 
-			// this will require tidal to set defaults to nil instead of -1.
 			~delayInAmp = ~delay;
 			orbit.globalEffects.do { |x| x.set(currentEnvironment) };
 

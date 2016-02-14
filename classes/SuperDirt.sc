@@ -232,7 +232,7 @@ DirtOrbit {
 
 	initDefaultGlobalEffects {
 		this.globalEffects = [
-			GlobalDirtEffect(\dirt_delay, [\delaytime, \delayfeedback, \wet, \delayInAmp]), // don't set \delay yet.
+			GlobalDirtEffect(\dirt_delay, [\delaytime, \delayfeedback, \wet, \delayInAmp]),
 			GlobalDirtEffect(\dirt_reverb, [\size, \room, \wet, \reverbInAmp]),
 			GlobalDirtEffect(\dirt_limiter)
 		]
