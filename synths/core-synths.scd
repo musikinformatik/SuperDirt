@@ -68,7 +68,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		signal = signal * amp * env * DirtGateCutGroup.ar(sustain, fadeTime, doneAction: 3);
 		OffsetOut.ar(out, signal);
 		ReplaceOut.ar(in, Silent.ar(numChannels)) // clears bus signal for subsequent synths
-	}, [\ir, \ir, \ir, \ir, \ir, \ir, \ir]).add;
+	}, [\ir, \ir, \ir, \ir, \ir]).add;
 
 
 
@@ -160,7 +160,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 			signal = signal * delayAmp.lag(0.01);
 			Out.ar(effectBus, signal);
 
-		}, [\ir, \ir, \kr, \kr, \kr]).add;
+		}, [\ir, \ir, \kr, \kr, \kr, \kr]).add;
 	} {
 		SynthDef("dirt_delay" ++ numChannels, { |dryBus, effectBus, gate = 1, delaytime, delayfeedback, delayAmp = 1|
 			var signal = In.ar(dryBus, numChannels);
@@ -175,7 +175,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 			signal = LeakDC.ar(signal) * delayAmp.lag(0.01) * EnvGen.kr(Env.asr, gate, doneAction:2);
 			Out.ar(effectBus, signal);
-		}, [\ir, \ir, \kr, \kr, \kr]).add;
+		}, [\ir, \ir, \kr, \kr, \kr, \kr]).add;
 	};
 
 	SynthDef("dirt_monitor" ++ numChannels, { |dryBus, effectBus, outBus, gate = 1|
@@ -193,7 +193,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 		signal = signal * EnvGen.kr(Env.asr, gate, doneAction:2);
 		Out.ar(outBus, signal)
-	}).add;
+	}, [\ir, \ir, \kr, \kr]).add;
 
 	// thanks to Jost Muxfeld and James McCartney
 	// note that "size" is not room size, just a depth metaphor
@@ -228,7 +228,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 		Out.ar(effectBus, snd);
 
-	}, [\ir, \ir, \kr, \kr, \kr]).add;
+	}, [\ir, \ir, \kr, \kr, \kr, \kr]).add;
 
 
 	"---- core synth defs loaded ----".postln;
