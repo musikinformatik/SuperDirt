@@ -121,7 +121,7 @@ DirtEvent {
 		)
 	}
 
-	playGate {
+	sendGateSynth {
 		~server.sendMsg(\s_new,
 			"dirt_gate" ++ ~numChannels,
 			-1, // no id
@@ -163,7 +163,7 @@ DirtEvent {
 
 			this.prepareSynthGroup;
 			modules.do(_.value(this));
-			this.playGate; // this one needs to be last
+			this.sendGateSynth; // this one needs to be last
 
 
 		});
