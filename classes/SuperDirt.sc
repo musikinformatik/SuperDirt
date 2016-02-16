@@ -203,7 +203,7 @@ SuperDirt {
 DirtOrbit {
 
 	var <dirt, <server, <outBus;
-	var <synthBus, <globalEffectBus;
+	var <synthBus, <globalEffectBus, <dryBus;
 	var <group, <globalEffects;
 	var <>fadeTime = 0.001, <>amp = 0.4, <>minSustain;
 
@@ -221,6 +221,7 @@ DirtOrbit {
 		};
 		group = server.nextPermNodeID;
 		synthBus = Bus.audio(server, dirt.numChannels);
+		dryBus = Bus.audio(server, dirt.numChannels);
 		globalEffectBus = Bus.audio(server, dirt.numChannels);
 		minSustain = 8 / server.sampleRate;
 		this.initDefaultGlobalEffects;
@@ -232,9 +233,9 @@ DirtOrbit {
 
 	initDefaultGlobalEffects {
 		this.globalEffects = [
-			GlobalDirtEffect(\dirt_delay, [\delaytime, \delayfeedback, \wet, \delayInAmp]),
-			GlobalDirtEffect(\dirt_reverb, [\size, \room, \wet, \reverbInAmp]),
-			GlobalDirtEffect(\dirt_limiter)
+			GlobalDirtEffect(\dirt_delay, [\delaytime, \delayfeedback, \delayAmp]),
+			GlobalDirtEffect(\dirt_reverb, [\size, \room, \dry]),
+			GlobalDirtEffect(\dirt_monitor, [\dirtOut])
 		]
 	}
 
@@ -250,13 +251,8 @@ DirtOrbit {
 	initNodeTree {
 		server.makeBundle(nil, { // make sure they are in order
 			server.sendMsg("/g_new", group, 0, 1); // make sure group exists
-			globalEffects.reverseDo { |x| x.play(group, outBus, globalEffectBus) };
+			globalEffects.reverseDo { |x| x.play(group, outBus, dryBus, globalEffectBus) };
 		})
-	}
-
-	outBus_ { |bus|
-		globalEffects.do { |x| x.synth.set(\out, bus) };
-		outBus = bus;
 	}
 
 	value { |event|
@@ -315,7 +311,8 @@ DirtOrbit {
 			~orbit = this;
 			~dirt = dirt;
 			~out = synthBus;
-			~globalEffectBus = globalEffectBus;
+			~dryBus = dryBus;
+			~effectBus = globalEffectBus;
 			~numChannels = dirt.numChannels;
 			~server = server;
 
@@ -369,17 +366,17 @@ DirtModule {
 
 GlobalDirtEffect {
 
-	var <>name, <>paramNames, <>numChannels, state;
+	var <>name, <>paramNames, <>numChannels, <state;
 	var synth, defName;
 
 	*new { |name, paramNames, numChannels|
 		^super.newCopyArgs(name, paramNames, numChannels, ())
 	}
 
-	play { |group, outBus, effectBus|
+	play { |group, outBus, dryBus, effectBus|
 		if(synth.isPlaying) { synth.release };
 		synth = Synth.after(group, name.asString ++ numChannels,
-			[\out, outBus, \effectBus, effectBus] ++ state.asPairs
+			[\outBus, outBus, \dryBus, dryBus, \effectBus, effectBus] ++ state.asPairs
 		).register
 	}
 

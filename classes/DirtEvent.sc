@@ -121,16 +121,15 @@ DirtEvent {
 		)
 	}
 
-	playMonitor {
+	sendGateSynth {
 		~server.sendMsg(\s_new,
-			"dirt_monitor" ++ ~numChannels,
+			"dirt_gate" ++ ~numChannels,
 			-1, // no id
 			3, // add action: addAfter
 			~synthGroup, // send to group
 			*[
-				in: orbit.synthBus,  // read from private
-				out: orbit.outBus,     // write to outBus,
-				globalEffectBus: ~globalEffectBus,
+				in: orbit.synthBus, // read from synth bus, which is reused
+				out: orbit.dryBus, // write to orbital dry bus
 				amp: ~amp,
 				cutGroup: ~cut.abs, // ignore negatives here!
 				sample: ~hash, // required for the cutgroup mechanism
@@ -151,11 +150,11 @@ DirtEvent {
 
 		~amp = pow(~gain, 4) * orbit.amp;
 		~channel !? { ~pan = ~pan + (~channel / ~numChannels) };
-		~wet = 1.0 - ~dry;
 
 		server.makeBundle(latency, { // use this to build a bundle
 
-			~delayInAmp = ~delay;
+			~delayAmp = ~delay ? 0.0; // for clarity
+
 			orbit.globalEffects.do { |x| x.set(currentEnvironment) };
 
 			if(~cut != 0) {
@@ -164,7 +163,7 @@ DirtEvent {
 
 			this.prepareSynthGroup;
 			modules.do(_.value(this));
-			this.playMonitor; // this one needs to be last
+			this.sendGateSynth; // this one needs to be last
 
 
 		});
