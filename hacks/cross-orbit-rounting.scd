@@ -13,9 +13,10 @@ SynthDef(\orb, { |out, amp = 1, n = 0| // number
 
 	bus = Select.kr(n, busses);
 	sound = InFeedback.ar(bus, ~dirt.numChannels);
+	//sound = CombL.ar(sound, 0.2, 0.03, 1);
 
 	Out.ar(out,
-		sound * amp
+		sound * (amp * 2.5)
 	)
 }).add;
 );
