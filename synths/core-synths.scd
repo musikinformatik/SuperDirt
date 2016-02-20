@@ -154,7 +154,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 			delayfeedback = delayfeedback.max(0);
 			delaytime = delaytime.clip(0, maxDelayTime); // just to be sure
 			// from sc3-plugins
-			signal = SwitchDelay.ar(signal, 1, 1, delaytime, delayfeedback, maxDelayTime);
+			signal = \SwitchDelay.asClass.ar(signal, 1, 1, delaytime, delayfeedback, maxDelayTime);
 
 			signal = signal * EnvGen.kr(Env.asr, gate, doneAction:2);
 			signal = signal * delayAmp.lag(0.01);
@@ -162,16 +162,20 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 		}, [\ir, \ir, \kr, \kr, \kr, \kr]).add;
 	} {
+		"\n\n ---- SC3-Plugins not found. This is not a problem."
+		"Note that we are using a comb delay, which may not sound the same as SwitchDelay from the plugins".postln;
+
 		SynthDef("dirt_delay" ++ numChannels, { |dryBus, effectBus, gate = 1, delaytime, delayfeedback, delayAmp = 1|
 			var signal = In.ar(dryBus, numChannels);
-			var loop = LocalIn.ar(numChannels);
+			var maxDelayTime = 4;
+			var decayTime;
 
-			delayfeedback = delayfeedback.max(0);
-			delaytime = delaytime.max(0);
+			delayfeedback = delayfeedback.clip(0, 0.99);
+			delaytime = delaytime.max(0); // just to be sure
+			decayTime = log2(-60.dbamp) / log2(delayfeedback) * delaytime;
+			decayTime = decayTime.clip(0, 20);
 
-			signal = signal + (loop * delayfeedback.lag(0.3));
-			signal = DelayC.ar(signal, 1, 1, delaytime.lag(1));
-			LocalOut.ar(signal);
+			signal = CombL.ar(signal, maxDelayTime, delaytime.lag(1), decayTime);
 
 			signal = LeakDC.ar(signal) * delayAmp.lag(0.01) * EnvGen.kr(Env.asr, gate, doneAction:2);
 			Out.ar(effectBus, signal);
