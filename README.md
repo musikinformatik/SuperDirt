@@ -1,12 +1,7 @@
-# SuperDirt 0.1 (event based branch)
+# SuperDirt 0.7
 SuperCollider implementation of the Dirt sampler for the Tidal programming language
 
 Alex McLean and Julian Rohrhuber
-
-This is still experimental, more than the master branch.
-
-This branch works like master, but is less efficient (about half), so only use with moderate speeds. But also it is very easily extendible with effect [modules] (https://github.com/musikinformatik/SuperDirt/blob/event-based/synths/core-modules.scd). Some changes in Tidal may make it faster.
-
 
 ## Requirements
 
@@ -64,6 +59,6 @@ If you want SuperDirt to start automatically, you can load it from the startup f
 
 ## Options on-the-fly
 - new channels can be created on the fly
-- you can pass the udp port on which superdirt is listenting and the output channel offset (```.start(ports, channels)```)
+- you can pass the udp port on which superdirt is listenting and the output channel offsets (```.start(port, channels)```)
 - add or edit SynthDef files to add your own synthesis methods to be called from tidal: https://github.com/telephon/SuperDirt/blob/master/synths/default-synths.scd
 - you can live rewrite the core synths (but take care not to break them ...): https://github.com/musikinformatik/SuperDirt/blob/master/synths/core-synths.scd
