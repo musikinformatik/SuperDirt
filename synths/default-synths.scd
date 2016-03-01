@@ -15,8 +15,8 @@ If your SuperDirt instance is assigned to the variable ~dirt, you can livecode t
 // modulated band limited impulse
 SynthDef(\imp, { |out, sustain = 1, note = 0, speed = 1, begin=0, end=1, pan, accelerate, amp = 1, offset|
 	var env, sound, rate, phase;
-	env = EnvGen.ar(Env.perc(0.001, sustain, amp * 0.1, -1), doneAction:2);
-	phase = Line.ar(begin, end, sustain);
+	env = EnvGen.ar(Env.perc(0.01, 0.99, amp * 0.1, -1), timeScale:sustain, doneAction:2);
+	phase = Line.kr(begin, end, sustain);
 	rate = (begin + 1) * (speed + Sweep.kr(1, accelerate));
 	sound = Blip.ar(rate.linexp(0, 1, 1, 220) * [1, 1.25, 1.51, 1.42] * note.midiratio, ExpRand(80, 118) * phase).sum;
 	OffsetOut.ar(out,
