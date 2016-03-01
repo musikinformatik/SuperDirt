@@ -220,20 +220,18 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		loop = DelayN.ar(loop, 0.3, [0.19, 0.26] + { Rand(-0.003, 0.003) }.dup(2));
 		loop = AllpassN.ar(loop, 0.05, { Rand(0.03, 0.15) }.dup(numChannels), 2);
 
-		loop = LeakDC.ar(loop);
 		loop = loop + in;
+		loop = LeakDC.ar(loop);
 
 		LocalOut.ar(loop);
 
-		snd = Delay2.ar(loop);
-
+		snd = loop;
 		snd = snd * (1 - dry).lag(LFNoise1.kr(1).range(0.01, 0.02));
 		snd = snd * EnvGen.kr(Env.asr, gate, doneAction:2);
 
 		Out.ar(effectBus, snd);
 
 	}, [\ir, \ir, \kr, \kr, \kr, \kr]).add;
-
 
 	"---- core synth defs loaded ----".postln;
 
