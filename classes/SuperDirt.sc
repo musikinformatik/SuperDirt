@@ -263,6 +263,11 @@ DirtOrbit {
 		this.value((latency: server.latency).putPairs(pairs));
 	}
 
+	outBus_ { |bus|
+		outBus = bus;
+		this.initNodeTree;
+	}
+
 	set { |...pairs|
 		pairs.pairsDo { |key, val|
 			defaultParentEvent.put(key, val)
@@ -374,14 +379,21 @@ GlobalDirtEffect {
 	}
 
 	play { |group, outBus, dryBus, effectBus|
-		if(synth.isPlaying) { synth.release };
+		this.release;
 		synth = Synth.after(group, name.asString ++ numChannels,
 			[\outBus, outBus, \dryBus, dryBus, \effectBus, effectBus] ++ state.asPairs
-		).register
+		)
 	}
 
-	release { |releaseTime|
-		synth.release(releaseTime)
+	release { |releaseTime = 0.2|
+		if(synth.notNil) {
+			// surpress error, because we don't keep track of server state
+			synth.server.sendBundle(nil,
+				['/error', -1],
+				[15, synth.nodeID, \gate, -1.0 - releaseTime],
+				['/error', -2]
+			);
+		};
 	}
 
 	set { |event|
