@@ -12,11 +12,15 @@ DirtEvent {
 
 	play {
 		event.use {
+			// s and n stand for synth/sample and note/number
 			~s ?? { this.splitName };
-			this.getBuffer;
-			this.orderRange;
-			this.calcRange;
-			this.playSynths;
+			// unless diversion returns something, we proceed as usual
+			~diversion.value ?? {
+				this.getBuffer;
+				this.orderRange;
+				this.calcRange;
+				this.playSynths;
+			}
 		}
 	}
 
