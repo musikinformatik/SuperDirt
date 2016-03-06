@@ -1,7 +1,6 @@
 /*
 
 SuperCollider implementation of Dirt
-version 0.2 (event-based)
 
 */
 
