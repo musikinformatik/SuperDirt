@@ -281,7 +281,7 @@ DirtOrbit {
 	}
 
 	free {
-		this.closeNetworkConnection;
+		dirt.closeNetworkConnection;
 		ServerTree.remove(this, server);
 		globalEffects.do(_.release);
 		server.freePermNodeID(group);
