@@ -232,7 +232,7 @@ DirtOrbit {
 
 	initDefaultGlobalEffects {
 		this.globalEffects = [
-			GlobalDirtEffect(\dirt_delay, [\delaytime, \delayfeedback, \delayAmp]),
+			GlobalDirtEffect(\dirt_delay, [\delaytime, \delayfeedback, \delayAmp, \lock, \cps]),
 			GlobalDirtEffect(\dirt_reverb, [\size, \room, \dry]),
 			GlobalDirtEffect(\dirt_monitor, [\dirtOut])
 		]
@@ -310,6 +310,7 @@ DirtOrbit {
 			~sustain = 1.0;
 			~unitDuration = 1.0;
 			~dry = 0.0;
+			~lock = 0; // if set to 1, syncs delay times with cps
 
 			// values from the dirt bus
 			~orbit = this;

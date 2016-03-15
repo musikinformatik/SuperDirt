@@ -147,11 +147,12 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 	if(\SwitchDelay.asClass.notNil) {
 
-		SynthDef("dirt_delay" ++ numChannels, { |dryBus, effectBus, gate = 1, delaytime, delayfeedback, delayAmp = 1|
+		SynthDef("dirt_delay" ++ numChannels, { |dryBus, effectBus, gate = 1, delaytime, delayfeedback, delayAmp = 1, lock = 0, cps = 1|
 			var signal = In.ar(dryBus, numChannels);
 			var maxDelayTime = 4;
 
 			delayfeedback = delayfeedback.max(0);
+			delaytime = delaytime * if(lock, reciprocal(cps), 1);
 			delaytime = delaytime.clip(0, maxDelayTime); // just to be sure
 			// from sc3-plugins
 			signal = \SwitchDelay.asClass.ar(signal, 1, 1, delaytime, delayfeedback, maxDelayTime);
@@ -165,13 +166,14 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		"\n\n ---- SC3-Plugins not found. This is not a problem."
 		"Note that we are using a comb delay, which may not sound the same as SwitchDelay from the plugins".postln;
 
-		SynthDef("dirt_delay" ++ numChannels, { |dryBus, effectBus, gate = 1, delaytime, delayfeedback, delayAmp = 1|
+		SynthDef("dirt_delay" ++ numChannels, { |dryBus, effectBus, gate = 1, delaytime, delayfeedback, delayAmp = 1, lock = 0, cps = 1|
 			var signal = In.ar(dryBus, numChannels);
 			var maxDelayTime = 4;
 			var decayTime;
 
 			delayfeedback = delayfeedback.clip(0, 0.99);
-			delaytime = delaytime.max(0); // just to be sure
+			delaytime = delaytime * if(lock, reciprocal(cps), 1);
+			delaytime = delaytime.clip(0, maxDelayTime); // just to be sure
 			decayTime = log2(-60.dbamp) / log2(delayfeedback) * delaytime;
 			decayTime = decayTime.clip(0, 20);
 
