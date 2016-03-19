@@ -102,14 +102,16 @@ SuperDirt {
 			"Superdirt: server not running - cannot load sound files.".warn; ^this
 		};
 		path = path ?? { "../../Dirt-Samples/".resolveRelative };
-		folderPaths = pathMatch(standardizePath(path +/+ "**"));
+		folderPaths = pathMatch(standardizePath(path +/+ "*"));
 		if(folderPaths.isEmpty) {
 			"no files found in path: '%'".format(path).warn; ^this
 		};
-		"\nloading sample banks:\n".post;
+		"\nloading % sample bank%:\n".postf(folderPaths.size, if(folderPaths.size > 1) { "s" } { "" });
 		folderPaths.do { |folderPath|
 			var files = PathName(folderPath).files;
-			if(files.notEmpty) { "% (%) ".postf(folderPath.basename, files.size) };
+			if(files.notEmpty) { "% (%) ".postf(folderPath.basename, files.size) } {
+				if(verbose) { "empty sample folder: %\n".postf(folderPath) }
+			};
 			files.do { |filepath|
 				var buf, name, ext;
 				ext = filepath.extension.toLower;
@@ -123,7 +125,7 @@ SuperDirt {
 				};
 			};
 		};
-		"\nfiles loaded\n\n".post;
+		"\n... file reading complete\n\n".post;
 	}
 
 	freeSoundFiles {
