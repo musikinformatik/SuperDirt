@@ -52,9 +52,9 @@ d2 $ sound "[sn*2 imp bd*3]" |+| speed "1"
 ## Loading different sample folders
 `~dirt.loadSoundFiles(<put your path here>); // you can drag and drop folders into the editor.`
 
-Note that the path should be a path to a folder that has subfolders with samples in it:
+Samples are categorised by their immediate parent folder, irrespective of the depth.
 
-e.g. pass `samples/`to load `samples/basie/basie01.aif`, etc.
+e.g. passing `samples/` to load `samples/jazz/basie/basie01.aif`, etc. and `samples/fish/stoer.wav` will add an enty for `basie` and `fish`.
 
 
 ## Automatic startup
