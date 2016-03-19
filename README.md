@@ -28,7 +28,7 @@ s.options.numInputBusChannels = 2; // set this to your hardware output channel s
 // boot the server and start SuperDirt
 s.waitForBoot {
 	~dirt = SuperDirt(2, s); // two output channels, increase if you want to pan across more channels
-	~dirt.loadSoundFiles;   // load samples (path can be passed in. You can drag and drop folders into the editor.)
+	~dirt.loadSoundFiles;   // load samples
 	s.sync; // wait for samples to be read
 	~dirt.start(57120, [0, 0]);   // start listening on port 57120, create two busses each sending audio to channel 0
 }
@@ -48,6 +48,14 @@ d1 $ sound "[bd bd bd, sn cp sn cp]"
 
 d2 $ sound "[sn*2 imp bd*3]" |+| speed "1"
 ```
+
+## Loading different sample folders
+`~dirt.loadSoundFiles(<put your path here>); // you can drag and drop folders into the editor.`
+
+Note that the path should be a path to a folder that has subfolders with samples in it:
+
+e.g. pass `samples/`to load `samples/basie/basie01.aif`, etc.
+
 
 ## Automatic startup
 If you want SuperDirt to start automatically, you can load it from the startup file. To do this, open the sc startup file (```File>Open startup file```) and add: ```load("... path to your tidal startup file ...")```. This path you can get by dropping the file onto the text editor.
