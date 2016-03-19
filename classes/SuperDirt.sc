@@ -11,7 +11,9 @@ SuperDirt {
 	var <>orbits;
 	var <>modules;
 
-	var  <port, <senderAddr, <replyAddr, netResponders;
+	var <port, <senderAddr, <replyAddr, netResponders;
+	var <>fileExtensions;
+	var <>verbose = false;
 
 	classvar <>maxSampleNumChannels = 2;
 
@@ -24,6 +26,7 @@ SuperDirt {
 		modules = [];
 		this.loadSynthDefs;
 		this.initVowels(\counterTenor);
+		fileExtensions = #["wav", "aif", "aiff", "aifc"];
 	}
 
 	start { |port = 57120, outBusses = 0, senderAddr = (NetAddr("127.0.0.1"))|
@@ -93,24 +96,32 @@ SuperDirt {
 		^allbufs.wrapAt(index.asInteger)
 	}
 
-	loadSoundFiles { |path, fileExtension = "wav"|
+	loadSoundFiles { |path|
 		var folderPaths;
 		if(server.serverRunning.not) {
 			"Superdirt: server not running - cannot load sound files.".warn; ^this
 		};
 		path = path ?? { "../../Dirt-Samples/".resolveRelative };
 		folderPaths = pathMatch(standardizePath(path +/+ "**"));
+		if(folderPaths.isEmpty) {
+			"no files found in path: '%'".format(path).warn; ^this
+		};
 		"\nloading sample banks:\n".post;
 		folderPaths.do { |folderPath|
-			PathName(folderPath).filesDo { |filepath|
-				var buf, name;
-				if(filepath.extension.find(fileExtension, true).notNil) {
+			var files = PathName(folderPath).files;
+			if(files.notEmpty) { folderPath.basename.post; " ".post };
+			files.do { |filepath|
+				var buf, name, ext;
+				ext = filepath.extension.toLower;
+				if(fileExtensions.includesEqual(ext)) {
 					buf = Buffer.readWithInfo(server, filepath.fullPath);
 					name = filepath.folderName.toLower;
 					buffers[name.asSymbol] = buffers[name.asSymbol].add(buf);
-				}
+
+				} {
+					if(verbose) { "\nignored file: %\n".postf(filepath.fileName) };
+				};
 			};
-			folderPath.basename.post; " ".post;
 		};
 		"\nfiles loaded\n\n".post;
 	}
