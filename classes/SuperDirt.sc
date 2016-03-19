@@ -96,19 +96,13 @@ SuperDirt {
 		^allbufs.wrapAt(index.asInteger)
 	}
 
-	getSortedDeepFolderPaths { |path|
-		var filePaths;
-		filePaths = PathName(standardizePath(path +/+ "*")).deepFiles;
-		^filePaths.collect({ |x| x.parentPath }).as(Set).as(Array).sort;
-	}
-
 	loadSoundFiles { |path|
 		var folderPaths;
 		if(server.serverRunning.not) {
 			"Superdirt: server not running - cannot load sound files.".warn; ^this
 		};
-		path = path ?? { "../../Dirt-Samples/".resolveRelative };
-		folderPaths = this.getSortedDeepFolderPaths(path);
+		path = path ?? { "../../Dirt-Samples/*".resolveRelative };
+		folderPaths = pathMatch(path);
 		if(folderPaths.isEmpty) {
 			"no files found in path: '%'".format(path).warn; ^this
 		};
