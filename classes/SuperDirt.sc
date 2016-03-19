@@ -109,7 +109,7 @@ SuperDirt {
 		"\nloading sample banks:\n".post;
 		folderPaths.do { |folderPath|
 			var files = PathName(folderPath).files;
-			if(files.notEmpty) { folderPath.basename.post; " ".post };
+			if(files.notEmpty) { "% (%) ".postf(folderPath.basename, files.size) };
 			files.do { |filepath|
 				var buf, name, ext;
 				ext = filepath.extension.toLower;
