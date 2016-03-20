@@ -96,7 +96,7 @@ SuperDirt {
 		^allbufs.wrapAt(index.asInteger)
 	}
 
-	loadSoundFiles { |path|
+	loadSoundFiles { |path, appendToExisting = false|
 		var folderPaths;
 		if(server.serverRunning.not) {
 			"Superdirt: server not running - cannot load sound files.".warn; ^this
@@ -109,20 +109,27 @@ SuperDirt {
 		"\nloading % sample bank%:\n".postf(folderPaths.size, if(folderPaths.size > 1) { "s" } { "" });
 		folderPaths.do { |folderPath|
 			var files = PathName(folderPath).files;
-			if(files.notEmpty) { "% (%) ".postf(folderPath.basename, files.size) } {
-				if(verbose) { "empty sample folder: %\n".postf(folderPath) }
+			var folderName = PathName(folderPath).folderName;
+			var name = folderName.toLower.asSymbol;
+			if(buffers[name].notNil and: { appendToExisting != true }) {
+				"\nremoving %: ".postf(buffers[name].size);
+				buffers[name] = nil;
 			};
 			files.do { |filepath|
-				var buf, name, ext;
+				var buf, ext;
 				ext = filepath.extension.toLower;
 				if(fileExtensions.includesEqual(ext)) {
 					buf = Buffer.readWithInfo(server, filepath.fullPath);
-					name = filepath.folderName.toLower;
-					buffers[name.asSymbol] = buffers[name.asSymbol].add(buf);
+					buffers[name] = buffers[name].add(buf);
 
 				} {
 					if(verbose) { "\nignored file: %\n".postf(filepath.fileName) };
 				};
+			};
+			if(files.notEmpty) {
+				"% (%) ".postf(name, buffers[name].size)
+			} {
+				if(verbose) { "empty sample folder: %\n".postf(folderPath) }
 			};
 		};
 		"\n... file reading complete\n\n".post;
