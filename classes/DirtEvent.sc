@@ -109,7 +109,8 @@ DirtEvent {
 			^this // drop it.
 		};
 
-		~fadeTime = min(orbit.fadeTime, sustain * 0.19098);
+		~fadeTime = if(~end != 1) { min(orbit.fadeTime, sustain * 0.19098) } { 0.0 };
+		~fadeInTime = if(~begin != 0) { ~fadeTime } { 0.0 };
 		~sustain = sustain - (2 * ~fadeTime);
 		~speed = speed;
 		~endSpeed = endSpeed;
@@ -140,7 +141,8 @@ DirtEvent {
 				cutGroup: ~cut.abs, // ignore negatives here!
 				sample: ~hash, // required for the cutgroup mechanism
 				sustain: ~sustain, // after sustain, free all synths and group
-				fadeTime: ~fadeTime // fade in and out
+				fadeInTime: ~fadeInTime, // fade in
+				fadeTime: ~fadeTime // fade out
 			].asOSCArgArray // append all other args
 		)
 	}
