@@ -20,18 +20,20 @@ DirtPan {
 		// where N = number of input channels
 		// M = number of output channels to pan across
 
-		// wrapped mutual crossfade
+		 // mono mixdown
 		defaultMixingFunction = #{ |channels|
-			channels.flop.collect { |ch, i| ch[i] ?? { DC.ar(0) } }
+			channels.sum
 		};
 
 		/*
 		a variant:
 
-		 // mono mixdown
+		// wrapped mutual crossfade
 		defaultMixingFunction = #{ |channels|
-			channels.sum
-		}
+			channels.flop.collect { |ch, i| ch[i] ?? { DC.ar(0) } }
+		};
+
+
 
 
 		you can set them via DirtPan.defaultMixingFunction = { ... your function ... }
