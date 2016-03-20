@@ -20,21 +20,19 @@ DirtPan {
 		// where N = number of input channels
 		// M = number of output channels to pan across
 
+		// wrapped mutual crossfade
 		defaultMixingFunction = #{ |channels|
-			channels.sum { |ch, i| ch.rotate(i) } // mixdown with one speaker offset per input channel
-		}
+			channels.flop.collect { |ch, i| ch[i] ?? { DC.ar(0) } }
+		};
 
 		/*
-		variants are:
+		a variant:
 
 		 // mono mixdown
 		defaultMixingFunction = #{ |channels|
 			channels.sum
 		}
-		// wrapped mutual crossfade
-		defaultMixingFunction = #{ |channels|
-			channels.flop.collect { |ch, i| ch[i] }
-		}
+
 
 		you can set them via DirtPan.defaultMixingFunction = { ... your function ... }
 		and/or pass in a synth specific mixingFunction in the SynthDef
@@ -47,6 +45,7 @@ DirtPan {
 
 		pan = pan * 2 - 1; // convert unipolar (0..1) range into bipolar compatible one
 		signal = signal.asArray; // always keep the same shape
+
 
 		if(numChannels == 2) {
 			output = Pan2.ar(signal, pan, mul)
