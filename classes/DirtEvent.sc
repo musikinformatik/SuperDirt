@@ -109,7 +109,7 @@ DirtEvent {
 			^this // drop it.
 		};
 
-		~fadeTime = if(~end != 1) { min(orbit.fadeTime, sustain * 0.19098) } { 0.0 };
+		~fadeTime = min(orbit.fadeTime, sustain * 0.19098);
 		~fadeInTime = if(~begin != 0) { ~fadeTime } { 0.0 };
 		~sustain = sustain - (~fadeTime + ~fadeInTime);
 		~speed = speed;
