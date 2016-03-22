@@ -41,7 +41,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 				numChannels: sampleNumChannels,
 				bufnum: bufnum,
 				phase: phase,
-				loop: 0, // should we loop?
+				loop: 0,
 				interpolation: 4 // cubic interpolation
 			);
 
