@@ -35,7 +35,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 			numFrames = BufFrames.ir(bufnum);
 			sawrate = rate * BufSampleRate.ir(bufnum) / (absdif(begin, end) * numFrames);
-			phase = LFSaw.ar(sawrate, 1).range(begin,end) * numFrames;
+			phase = (speed.sign * LFSaw.ar(sawrate, 1)).range(begin,end) * numFrames;
 
 			sound = BufRd.ar(
 				numChannels: sampleNumChannels,
