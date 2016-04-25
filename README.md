@@ -28,7 +28,7 @@ s.options.numInputBusChannels = 2; // set this to your hardware output channel s
 // boot the server and start SuperDirt
 s.waitForBoot {
 	~dirt = SuperDirt(2, s); // two output channels, increase if you want to pan across more channels
-	~dirt.loadSoundFiles;   // load samples (path can be passed in. You can drag and drop folders into the editor.)
+	~dirt.loadSoundFiles;   // load samples (path can be passed in. You can drag and drop folders into the editor and add a wildcard (*) after it)
 	s.sync; // wait for samples to be read
 	~dirt.start(57120, [0, 0]);   // start listening on port 57120, create two busses each sending audio to channel 0
 }
