@@ -28,7 +28,7 @@ s.options.numInputBusChannels = 2; // set this to your hardware output channel s
 // boot the server and start SuperDirt
 s.waitForBoot {
 	~dirt = SuperDirt(2, s); // two output channels, increase if you want to pan across more channels
-	~dirt.loadSoundFiles;   // load samples
+	~dirt.loadSoundFiles;   // load samples (path can be passed in. You can drag and drop folders into the editor and add a wildcard (*) after it)
 	s.sync; // wait for samples to be read
 	~dirt.start(57120, [0, 0]);   // start listening on port 57120, create two busses each sending audio to channel 0
 }
@@ -59,7 +59,7 @@ If you want SuperDirt to start automatically, you can load it from the startup f
 - for server options, see ServerOptions helpfile: http://doc.sccode.org/Classes/ServerOptions.html
 
 ## Loading different sample folders
-`~dirt.loadSoundFiles(<put your path here>); // you can drag and drop folders into the editor. 
+`~dirt.loadSoundFiles(<put your path here>); // you can drag and drop folders into the editor.
 
 If you want to load all subfolders in a path, add a wildcard (`*`).
 
@@ -78,7 +78,7 @@ e.g. passing `samples/jazz/*` to load `samples/jazz/basie/basie01.aif`, etc. wil
 ## Using SuperDirt with SuperCollider 3.6
 It is possible to use SuperCollider 3.6, but startup will be much slower by comparison.
 
-The install works differently: don't do `include("SuperDirt")`, but instead download the three quarks to the SuperCollider `Extensions` folder: 
+The install works differently: don't do `include("SuperDirt")`, but instead download the three quarks to the SuperCollider `Extensions` folder:
 - https://github.com/musikinformatik/SuperDirt
 - https://github.com/tidalcycles/Dirt-Samples
 - https://github.com/supercollider-quarks/Vowel
