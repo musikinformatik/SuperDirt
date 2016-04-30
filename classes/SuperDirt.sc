@@ -2,6 +2,12 @@
 
 SuperCollider implementation of Dirt
 
+This object handles sound file loading, OSC communication and local effects.
+These are relative to a server and a number of output channels
+It keeps a number of dirt orbits (see below).
+
+valid fileExtensions can be extended, currently they are ["wav", "aif", "aiff", "aifc"]
+
 */
 
 SuperDirt {
@@ -218,6 +224,23 @@ SuperDirt {
 
 }
 
+/*
+
+An orbit encapsulates a continuous state that affects all sounds played in it.
+It has default parameters for all sounds, which can be set, e.g. pan, and which can be overridden from tidal.
+Its globalEffects are e.g. delay, reverb, and also the monitor which handles the audio output routing.
+You can add and remove effects at runtime.
+
+Settable parameters are also:
+
+- fadeTime (fade in and out of each sample grain)
+- amp (gain)
+- minSustain (samples shorter than that are dropped).
+- outBus (channel offset for the audio output)
+
+
+*/
+
 
 DirtOrbit {
 
@@ -380,7 +403,7 @@ DirtModule {
 	}
 }
 
-// this keeps state of running synths that have a livespan of the DirtBus
+// this keeps state of running synths that have a livespan of the DirtOrbit
 // sends only OSC when an update is necessary
 
 // "name" is the name of the SynthDef
