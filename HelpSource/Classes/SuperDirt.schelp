@@ -56,6 +56,27 @@ Specifies the maximum number of channels your sound files have (default is 2: st
 INSTANCEMETHODS::
 
 
+method::loadSoundFiles
+Read a number of sound file from disk and load them into the server memory. The buffer information is also kept in link::#buffers::, a dictionary.
+
+note::
+The naming scheme works as follows:
+
+Given a path like: code::"path/to/my/basedrum/*"::
+
+The dictionary will contain under the key code::'basedrum':: an link::Classes/Array:: of all the link::Classes/Buffer::s from the samples found in the folder.
+
+From tidal, they can be accessed e.g. by code::d1 $ sound $ "basedrum:1 basedrum:4"::. Sample numbers below zero or above the number of samples in the folder will wrap, i.e. if you have a folder of 4 samples, 5 will play 0.
+
+::
+
+
+argument::path
+This is a string to a number of files, which usually contains a wildcard (code::*::).
+
+argument::appendToExisting
+If set to true, this will keep existing dictionary keys (see above) and add the new samples to any existing ones. This allows you to load different folders with the same name.
+
 
 method::start
 This method starts SuperDirt. It creates a number of link::Classes/DirtOrbit::s (each of which has global effects, output busses, and settings). It also opens a network connection.
