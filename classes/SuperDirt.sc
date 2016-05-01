@@ -18,7 +18,7 @@ SuperDirt {
 	var <>modules;
 
 	var <port, <senderAddr, <replyAddr, netResponders;
-	var <>fileExtensions;
+	var <>fileExtensions = #["wav", "aif", "aiff", "aifc"];
 	var <>verbose = false;
 
 	classvar <>maxSampleNumChannels = 2;
@@ -32,7 +32,6 @@ SuperDirt {
 		modules = [];
 		this.loadSynthDefs;
 		this.initVowels(\counterTenor);
-		fileExtensions = #["wav", "aif", "aiff", "aifc"];
 	}
 
 	start { |port = 57120, outBusses = 0, senderAddr = (NetAddr("127.0.0.1"))|
