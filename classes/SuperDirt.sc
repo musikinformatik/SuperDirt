@@ -53,6 +53,10 @@ SuperDirt {
 		^new.unbubble
 	}
 
+	set { |...pairs|
+		orbits.do(_.set(*pairs))
+	}
+
 	free {
 		this.freeSoundFiles;
 		this.stop;
