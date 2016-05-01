@@ -2,7 +2,7 @@ CLASS::DirtEvent
 summary::A representation of a sound event in SuperDirt
 categories::Live Coding
 
-related::DirtOrbit, SuperDirt
+related::Classes/DirtOrbit, Classes/SuperDirt
 
 DESCRIPTION::
 

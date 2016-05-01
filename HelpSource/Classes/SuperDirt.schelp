@@ -2,7 +2,7 @@ CLASS::SuperDirt
 summary::Synth and Sampler for the Tidal programming language
 categories::Live Coding
 
-related::DirtOrbit, DirtEvent
+related::Classes/DirtOrbit, Classes/DirtEvent
 
 DESCRIPTION::
 This is a SuperCollider variant of strong::Dirt::, the sound engine for the link::Tidal:: programming language by Alex McLean.
@@ -42,8 +42,10 @@ s.waitForBoot {
 CLASSMETHODS::
 method::new
 Return a new instance, ready to be started
+
 argument::numChannels
 The number of channels of the internal link::Classes/Bus##bus:: (this is also the maximal number of output channels).
+
 argument::server
 link::Classes/Server:: to play on.
 
@@ -70,7 +72,8 @@ argument::senderAddr
 The program to run (a link::Classes/String::).
 
 
-
+method::stop
+End all audio processes and close network responder.
 
 
 
