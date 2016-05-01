@@ -1,0 +1,80 @@
+CLASS::SuperDirt
+summary::Synth and Sampler for the Tidal programming language
+categories::Live Coding
+
+related::DirtOrbit, DirtEvent
+
+DESCRIPTION::
+This is a SuperCollider variant of strong::Dirt::, the sound engine for the link::Tidal:: programming language by Alex McLean.
+
+
+note::
+This system is experimental, and you may encounter problems.
+::
+
+
+code::
+
+// starting up
+
+(
+// configure the sound server: here you could add hardware specific options
+// see http://doc.sccode.org/Classes/ServerOptions.html
+s.options.numBuffers = 1024 * 16; // increase this if you need to load more samples
+s.options.memSize = 8192 * 16; // increase this if you get "alloc failed" messages
+s.options.maxNodes = 1024 * 32; // increase this if you are getting drop outs and the message "too many nodes"
+s.options.numOutputBusChannels = 2; // set this to your hardware output channel size, if necessary
+s.options.numInputBusChannels = 2; // set this to your hardware input channel size, if necessary
+// boot the server and start SuperDirt
+s.waitForBoot {
+    ~dirt = SuperDirt(2, s); // two output channels, increase if you want to pan across more channels
+    ~dirt.loadSoundFiles;   // load samples (path containing a wildcard can be passed in)
+    s.sync; // wait for samples to be read
+    ~dirt.start(57120, [0, 0]);
+	// start listening on port 57120, create two orbits, each sending audio to channel 0.
+	// You can direct sounds to the orbits from tidal e.g. by: `# orbit "0 1 1"
+}
+)
+// now you should be able to send from tidal via port 57120
+::
+
+
+CLASSMETHODS::
+method::new
+Return a new instance, ready to be started
+argument::numChannels
+The number of channels of the internal link::Classes/Bus##bus:: (this is also the maximal number of output channels).
+argument::server
+link::Classes/Server:: to play on.
+
+
+method::maxSampleNumChannels
+Specifies the maximum number of channels your sound files have (default is 2: stereo samples)
+
+INSTANCEMETHODS::
+
+
+
+method::start
+This method starts SuperDirt. It creates a number of link::Classes/DirtOrbit::s (each of which has global effects, output busses, and settings). It also opens a network connection.
+
+argument::port
+The port to listen on (default is 57120)
+
+argument::outBusses
+
+An (a link::Classes/Array::) of audio output channels: it determines how many link::Classes/DirtOrbit::s there will be.
+
+argument::senderAddr
+
+The program to run (a link::Classes/String::).
+
+
+
+
+
+
+
+
+
+
