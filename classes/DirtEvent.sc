@@ -154,7 +154,7 @@ DirtEvent {
 
 	playSynths {
 		var diverted, server = ~server;
-		var latency = ~latency + (~offset * ~speed); // ~server.latency +
+		var latency = ~latency + ~lag + (~offset * ~speed);
 
 		~amp = pow(~gain, 4) * orbit.amp;
 		~channel !? { ~pan = ~pan + (~channel / ~numChannels) };

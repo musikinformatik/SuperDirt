@@ -353,6 +353,7 @@ DirtOrbit {
 			~loop = 0;
 
 			~latency = 0.0;
+			~lag = 0.0;
 			~length = 1.0;
 			~sustain = 1.0;
 			~unitDuration = 1.0;
