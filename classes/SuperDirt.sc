@@ -37,7 +37,7 @@ SuperDirt {
 
 	start { |port = 57120, outBusses = 0, senderAddr = (NetAddr("127.0.0.1"))|
 		if(orbits.notNil) { this.stop };
-		this.makeBusses(outBusses);
+		this.makeOrbits(outBusses);
 		this.connect(senderAddr, port)
 	}
 
@@ -47,7 +47,7 @@ SuperDirt {
 		this.closeNetworkConnection;
 	}
 
-	makeBusses { |outBusses|
+	makeOrbits { |outBusses|
 		var new;
 		new = outBusses.collect(DirtOrbit(this, _));
 		orbits = orbits ++ new;
