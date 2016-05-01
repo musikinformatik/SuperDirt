@@ -44,6 +44,7 @@ SuperDirt {
 	stop {
 		orbits.do(_.free);
 		orbits = nil;
+		this.closeNetworkConnection;
 	}
 
 	makeBusses { |outBusses|
