@@ -68,6 +68,8 @@ link::Classes/Server:: to play on.
 method::maxSampleNumChannels
 Specifies the maximum number of channels your sound files have (default is 2: stereo samples)
 
+
+
 INSTANCEMETHODS::
 
 
@@ -85,13 +87,15 @@ From tidal, they can be accessed e.g. by code::d1 $ sound $ "basedrum:1 basedrum
 
 ::
 
-
 argument::path
 This is a string to a number of files, which usually contains a wildcard (code::*::).
 
 argument::appendToExisting
 If set to true, this will keep existing dictionary keys (see above) and add the new samples to any existing ones. This allows you to load different folders with the same name.
 
+
+method::fileExtensions
+A list of valid sound file extensions, which can be extended (default: ["wav", "aif", "aiff", "aifc"]). In theory, all libsndfile formats should be supported link::http://www.mega-nerd.com/libsndfile/#Features::.
 
 method::start
 This method starts SuperDirt. It creates a number of link::Classes/DirtOrbit::s (each of which has global effects, output busses, and settings). It also opens a network connection.
@@ -111,8 +115,12 @@ The program to run (a link::Classes/String::).
 method::stop
 End all audio processes and close network responder.
 
+method::free
+End all audio processes, close network responder, and free sound file resources.
 
 
+method::orbits
+A list of link::Classes/DirtOrbit::s. Each orbit has its own global effects and global settings.
 
 
 
