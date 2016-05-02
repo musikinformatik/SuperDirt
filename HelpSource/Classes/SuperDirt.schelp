@@ -5,11 +5,15 @@ categories::Live Coding
 related::Classes/DirtOrbit, Classes/DirtEvent
 
 DESCRIPTION::
-This is a SuperCollider variant of strong::Dirt::, the sound engine for the link::Tidal:: programming language by Alex McLean.
+This is a SuperCollider variant of strong::Dirt::, the sound engine for the Tidal link::http://tidalcycles.org/:: programming language by Alex McLean. Most of SuperDirt can be rewritten at runtime: you can add and modify effects, synth defs, load samples incrementally, and spatialise to any number of channels. You can use SuperCollider as usual.
 
 
 note::
-This system is experimental, and you may encounter problems.
+This system is experimental.
+
+Many examples can be found in the folders teletype::hacks/:: and teletype::scripts/::
+
+The examples suppose that environment variables are accessible. If you want to use link::Classes/ProxySpace:: or similar redirect environments, see below.
 ::
 
 
@@ -37,6 +41,17 @@ s.waitForBoot {
 )
 // now you should be able to send from tidal via port 57120
 ::
+
+
+SECTION::Using SuperDirt examples together with ProxySpace
+
+All startup files and examples use the environment variables, like code::~dirt::.
+If you want to use link::Classes/ProxySpace:: or similar redirect environments, you should bind these to their respective file (which needs to be saved to disk):
+
+code::
+p = ProxySpace.push(s).linkDoc; // now the proxyspace is only active in that document
+::
+
 
 
 CLASSMETHODS::
