@@ -4,8 +4,10 @@
 // because the default startup file use the default current Environment, you need a little trick to use ProxySpace directly.
 // when you switch to a different file, your environment will be the "normal" one.
 (
-q = currentEnvironment;
-p = ProxySpace(~dirt.server).linkDoc;
+if(currentEnvironment.isKindOf(ProxySpace).not) {
+	q = currentEnvironment;
+	p = ProxySpace(~dirt.server).linkDoc;
+};
 );
 
 ~out = { BrownNoise.ar(0.2 ! 2) };
