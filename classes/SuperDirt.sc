@@ -242,6 +242,11 @@ Settable parameters are also:
 - minSustain (samples shorter than that are dropped).
 - outBus (channel offset for the audio output)
 
+Via the defaultParentEvent, you can also set parameters (use the set message):
+
+- lag (offset all events)
+- lock (if set to 1, syncs delay times with cps)
+
 
 */
 
