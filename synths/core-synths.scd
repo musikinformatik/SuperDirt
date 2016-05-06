@@ -139,6 +139,12 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		ReplaceOut.ar(out, signal)
 	}, [\ir, \ir, \ir]).add;
 
+	SynthDef("dirt_envelope" ++ numChannels, { |out, attack = 0, hold = 0, release = 100 |
+		var signal;
+		signal = In.ar(out, numChannels);
+		ReplaceOut.ar(out, signal * EnvGen.ar(Env.linen(attack, hold, release, 1, -3)) );
+	}).add;
+
 
 
 	// global synth defs: these synths run in each DirtOrbit and are only released when it is stopped

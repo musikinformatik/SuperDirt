@@ -149,5 +149,17 @@ they respond to the existence of a value for one of the tidal parameters
 }, { ~cutoff.notNil });
 
 
+~dirt.addModule('envelope', { |dirtEvent|
+    dirtEvent.sendSynth('dirt_envelope' ++ ~dirt.numChannels,
+        [
+			attack: ~attack,
+			hold: ~hold,
+			release: ~release,
+			out: ~out
+		]
+	)
+}, { ~attack.notNil and: { ~release.notNil }});
+
+
 
 );
