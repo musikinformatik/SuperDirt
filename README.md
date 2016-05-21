@@ -49,7 +49,6 @@ d1 $ sound "[bd bd bd, sn cp sn cp]"
 d2 $ sound "[sn*2 imp bd*3]" |+| speed "1"
 ```
 
-
 ## Automatic startup
 If you want SuperDirt to start automatically, you can load it from the startup file. To do this, open the sc startup file (```File>Open startup file```) and add: ```load("... path to your tidal startup file ...")```. This path you can get by dropping the file onto the text editor.
 
@@ -57,16 +56,6 @@ If you want SuperDirt to start automatically, you can load it from the startup f
 ## Options on startup
 - `numChannels` can be set to anything your soundcard supports
 - for server options, see `ServerOptions` helpfile: http://doc.sccode.org/Classes/ServerOptions.html
-
-## Loading different sample folders
-`~dirt.loadSoundFiles(<put your path here>); // you can drag and drop folders into the editor.
-
-If you want to load all subfolders in a path, add a wildcard (`*`).
-
-Samples are categorised by their immediate parent folder.
-
-e.g. passing `samples/jazz/*` to load `samples/jazz/basie/basie01.aif`, etc. will add an entry for `basie`.
-
 
 ## Options on-the-fly
 - add sound files. `~dirt.loadSoundFiles("path/to/my/samples/*")` You can drag and drop folders into the editor and add a wildcard (*) after it.
@@ -79,7 +68,7 @@ e.g. passing `samples/jazz/*` to load `samples/jazz/basie/basie01.aif`, etc. wil
 ## Using SuperDirt with SuperCollider 3.6
 It is possible to use SuperCollider 3.6, but startup will be much slower by comparison.
 
-The install works differently: don't do `include("SuperDirt")`, but instead download the three quarks to the SuperCollider `Extensions` folder:
+The install works differently: don't do `include("SuperDirt")`, but instead download the three quarks to the SuperCollider `Extensions` folder: 
 - https://github.com/musikinformatik/SuperDirt
 - https://github.com/tidalcycles/Dirt-Samples
 - https://github.com/supercollider-quarks/Vowel
