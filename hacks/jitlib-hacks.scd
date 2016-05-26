@@ -61,7 +61,7 @@ using SuperDirt from sclang patterns
 var d = ~dirt.orbits.first;
 Event.addEventType(\dirt, {
 	~latency = s.latency;
-	d.value(currentEnvironment.asPairs)
+	d.value(currentEnvironment)
 })
 )
 
@@ -70,11 +70,47 @@ Pdef(\x,
 	Pbind(
 		\type, \dirt,
 		\s, Prand([\bd, \hh, \cp, ], inf),
-		\begin, Pn(Pseries(0, 0.002, 20))
+		\begin, Pn(Pseries(0, 0.002, 20)),
 		\dur, 0.2,
 	)
 ).play;
 )
+
+// using a filter
+(
+Pdef(\x,
+	Pbind(
+		\type, \dirt,
+		\s, Prand([\bd, \hh, \cp, ], inf),
+		\begin, Pn(Pseries(0, 0.002, 20)),
+		\bandf, Pfunc { exprand(30, 1000) },
+		\dur, 0.2,
+	)
+).play;
+)
+
+
+// using a continuous control mapping
+b = Bus.control(s, 1);
+b.set(500);
+
+
+(
+Pdef(\x,
+	Pbind(
+		\type, \dirt,
+		\s, Prand([\bd, \hh, \cp, ], inf),
+		\begin, Pn(Pseries(0, 0.002, 20)),
+		\bandf,b.asMap,
+		\dur, 0.2,
+	)
+).play;
+)
+
+b.set(5000);
+
+{ Out.kr(b, MouseX.kr(20, 800, 1)) }.play;
+
 
 (
 var keys = ~dirt.buffers.keys;
