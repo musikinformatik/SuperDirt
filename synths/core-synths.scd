@@ -117,7 +117,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 	SynthDef("dirt_bpf" ++ numChannels, { |out, bandqf = 440, bandq = 10|
 		var signal = In.ar(out, numChannels);
-		bandq = max(0.1, bandq);  // limit quality, avoid division by zero
+		bandq = max(1, bandq);  // limit quality, avoid division by zero
 		bandqf = max(20, bandqf); // limit lower end, avoid blow up
 		signal = BPF.ar(signal, bandqf, 1/bandq) * max(bandq, 1.0);
 		ReplaceOut.ar(out, signal)
