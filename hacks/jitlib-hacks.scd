@@ -102,6 +102,7 @@ Pdef(\x,
 		\s, Prand([\bd, \hh, \cp, ], inf),
 		\begin, Pn(Pseries(0, 0.002, 20)),
 		\bandf,b.asMap,
+		\bandq, Pfunc { exprand(1, 100) },
 		\dur, 0.2,
 	)
 ).play;
@@ -109,7 +110,7 @@ Pdef(\x,
 
 b.set(5000);
 
-{ Out.kr(b, MouseX.kr(20, 800, 1)) }.play;
+{ Out.kr(b, MouseX.kr(20, 8000, 1)) }.play;
 
 
 (
