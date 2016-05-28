@@ -124,7 +124,7 @@ SynthDef(\tutorial4, {|out, begin=0, end=1, pan, speed=1, accelerate, n |
 }).add;
 
 // finally, as an example of how to add your own parameters, let's say we want precise control over frequency
-// we'll make a new "f" parameter instead of "n" (don't use "freq", it's already used internally in SuperDirt)
+// we'll make a new "f" parameter instead of "n"
 // to do this, we first need to this in Tidal: let (f, f_p) = pF "f" (Just 440)
 // then "f" is usable as an argument to the synthdef, and in Tidal you can try
 // d1 $ s "tutorial5/2" # f "[550,555]" # speed "1"
