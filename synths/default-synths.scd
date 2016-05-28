@@ -77,8 +77,6 @@ SynthDef(\gabor, { |out, sustain = 0.03, note = 0, amp = 1, pan = 0, width = 0.3
 );
 
 (
-var numChannels = ~dirt.numChannels;
-
 // list of new SynthDefs, and in parentheses the special parameters they accept
 // ("!" means it's not a standard Tidal param and needs to be defined)
 // most SynthDefs use speed to scale the overall envelope, and many use accelerate to provide a pitch glide
