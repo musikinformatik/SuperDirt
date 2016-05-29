@@ -107,14 +107,14 @@ SynthDef(\tutorial2, {|out, sustain, pan |
 // in Tidal we'll need to say something like `sound "tutorial3:69"` to hear a reasonably high pitch
 SynthDef(\tutorial3, {|out, sustain, pan, accelerate, n |
 	var env = EnvGen.ar(Env.linen(0.01, 0.98, 0.01, 1, -3), timeScale:sustain, doneAction:2);
-	var sound = SinOsc.ar(n.midicps * Line.kr(1,1+accelerate));
+	var sound = SinOsc.ar(n.midicps * Line.kr(1,1+accelerate, sustain));
 	OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
 }).add;
 
 // we can also make the envelope a more interesting percussive shape
 SynthDef(\tutorial4, {|out, sustain, pan, accelerate, n |
 	var env = EnvGen.ar(Env.perc(0.001, 0.999, 1, -4), timeScale:sustain, doneAction:2);
-	var sound = SinOsc.ar(n.midicps * Line.kr(1,1+accelerate));
+	var sound = SinOsc.ar(n.midicps * Line.kr(1,1+accelerate, sustain));
 	OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
 }).add;
 
@@ -125,7 +125,7 @@ SynthDef(\tutorial4, {|out, sustain, pan, accelerate, n |
 // d1 $ s "tutorial5/2" # f "[550,555]"
 SynthDef(\tutorial5, {|out, sustain, pan, accelerate, f |
 	var env = EnvGen.ar(Env.perc(0.001, 0.999, 1, -4), timeScale:sustain, doneAction:2);
-	var sound = SinOsc.ar(f * Line.kr(1,1+accelerate));
+	var sound = SinOsc.ar(f * Line.kr(1,1+accelerate, sustain));
 	OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
 }).add;
 
@@ -135,7 +135,7 @@ SynthDef(\tutorial5, {|out, sustain, pan, accelerate, f |
 SynthDef(\supermandolin, {|out, sustain, pan, accelerate, n, detune=0.2 |
 	var env = EnvGen.ar(Env.linen(0.002, 0.996, 0.002, 1,-3), timeScale:sustain, doneAction:2);
 	var sound = Decay.ar(Impulse.ar(0,0,0.1), 0.1*n/69) * WhiteNoise.ar;
-	var pitch = n.midicps * Line.kr(1, 1+accelerate);
+	var pitch = n.midicps * Line.kr(1, 1+accelerate, sustain);
 	sound = CombL.ar(sound, 0.05, pitch.reciprocal*(1-(detune/100)), sustain)
 	          + CombL.ar(sound, 0.05, pitch.reciprocal*(1+(detune/100)), sustain);
 	OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env))
@@ -173,7 +173,7 @@ SynthDef(\superpiano,{|out, sustain, pan, velocity=1, detune=0.1, muffle=1, ster
 // waveguide mesh, hexagonal drum-like membrane
 SynthDef(\superhex,{|out, speed=1, sustain, pan, n, accelerate |
 	var env = EnvGen.ar(Env.linen(0.02, 0.96, 0.02, 1,-3), timeScale:sustain, doneAction:2);
-	var tension = 0.05*n.midicps/400 * Line.kr(1,accelerate+1);
+	var tension = 0.05*n.midicps/400 * Line.kr(1,accelerate+1, sustain);
 	var loss = 1.0 - (0.01 * speed / n.midicps);
 	var sound = MembraneHexagon.ar(Decay.ar(Impulse.ar(0,0,1), 0.01), tension, loss);
 	OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env))
