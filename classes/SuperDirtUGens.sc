@@ -68,7 +68,7 @@ Before we start the new synth, we send a /set message to all synths, and those t
 
 DirtGateCutGroup {
 
-	*ar { |sustain = 1, releaseTime = 0.02, doneAction = 2|
+	*ar { |releaseTime = 0.02, doneAction = 2|
 		// this is necessary because the message "==" tests for objects, not for signals
 		var same = { |a, b| BinaryOpUGen('==', a, b) };
 		var sameCutGroup = same.(\cutGroup.ir(0), abs(\gateCutGroup.kr(0)));
