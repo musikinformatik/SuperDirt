@@ -68,7 +68,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		signal = signal * env * DirtGateCutGroup.ar(fadeTime, doneAction: 3);
 		OffsetOut.ar(out, signal);
 		ReplaceOut.ar(in, Silent.ar(numChannels)) // clears bus signal for subsequent synths
-	}, [\ir, \ir, \ir, \ir, \ir]).add;
+	}, [\ir, \ir, \ir, \ir, \ir, \ir]).add;
 
 
 
@@ -143,7 +143,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		var signal = In.ar(out, numChannels);
 		signal = signal * EnvGen.ar(Env.linen(attack, hold, release, 1, -3));
 		ReplaceOut.ar(out, signal);
-	}).add;
+	}, [\ir, \ir, \ir, \ir]).add;
 
 
 	// global synth defs: these synths run in each DirtOrbit and are only released when it is stopped
@@ -166,7 +166,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 			signal = signal * delayAmp.lag(0.01);
 			Out.ar(effectBus, signal);
 
-		}, [\ir, \ir, \kr, \kr, \kr, \kr]).add;
+		}, [\ir, \ir]).add;
 	} {
 		"\n\n ---- SC3-Plugins not found. This is not a problem."
 		"Note that we are using a comb delay, which may not sound the same as SwitchDelay from the plugins".postln;
@@ -186,7 +186,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 			signal = LeakDC.ar(signal) * delayAmp.lag(0.01) * EnvGen.kr(Env.asr, gate, doneAction:2);
 			Out.ar(effectBus, signal);
-		}, [\ir, \ir, \kr, \kr, \kr, \kr]).add;
+		}, [\ir, \ir]).add;
 	};
 
 	SynthDef("dirt_monitor" ++ numChannels, { |dryBus, effectBus, outBus, gate = 1|
@@ -238,7 +238,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 		Out.ar(effectBus, snd);
 
-	}, [\ir, \ir, \kr, \kr, \kr, \kr]).add;
+	}, [\ir, \ir]).add;
 
 	"---- core synth defs loaded ----".postln;
 
