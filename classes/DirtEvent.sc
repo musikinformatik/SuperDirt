@@ -74,16 +74,20 @@ DirtEvent {
 
 	calcRange {
 
-		var sustain, avgSpeed;
+		var sustain;
 		var speed = ~speed;
 		var accelerate = ~accelerate;
-		var endSpeed;
+		var avgSpeed, endSpeed;
 
 		if (~unit == \c) { speed = speed * ~unitDuration * ~cps };
 
-		endSpeed = speed * (1.0 + (accelerate.abs.linexp(0.01, 4, 0.001, 20, nil) * accelerate.sign));
-		if(endSpeed.sign != speed.sign) { endSpeed = 0.0 }; // never turn back
-		avgSpeed = speed.abs + endSpeed.abs * 0.5;
+		if(accelerate.isNil) {
+			avgSpeed = endSpeed = speed;
+		} {
+			endSpeed = speed * (1.0 + (accelerate.abs.linexp(0.01, 4, 0.001, 20, nil) * accelerate.sign));
+			if(endSpeed.sign != speed.sign) { endSpeed = 0.0 }; // never turn back
+			avgSpeed = speed.abs + endSpeed.abs * 0.5;
+		};
 
 		if(~unit == \rate) { ~unit = \r }; // API adaption to tidal output
 

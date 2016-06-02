@@ -350,7 +350,6 @@ DirtOrbit {
 			~end = 1.0;
 			~speed = 1.0;
 			~pan = 0.5;
-			~accelerate = 0.0;
 			~gain = 1.0;
 			~cut = 0.0;
 			~unit = \r;
