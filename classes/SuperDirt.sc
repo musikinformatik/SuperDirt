@@ -355,7 +355,6 @@ DirtOrbit {
 			~cut = 0.0;
 			~unit = \r;
 			~n = 0; // sample number or note
-			~freq = #{ (~n + 60).midicps };
 			~loop = 0;
 
 			~latency = 0.0;
@@ -375,7 +374,9 @@ DirtOrbit {
 			~numChannels = dirt.numChannels;
 			~server = server;
 
-		}
+		};
+
+		defaultParentEvent.parent_(Event.partialEvents[\pitchEvent]);
 	}
 
 }
