@@ -102,8 +102,7 @@ DirtEvent {
 			{ Error("this unit ('%') is not defined".format(~unit)).throw };
 		);
 
-
-		if (~loop > 0) { sustain = sustain * ~loop };
+		~loop !? { sustain = sustain * ~loop.abs };
 
 		if(sustain < orbit.minSustain) {
 			^this // drop it.
