@@ -74,16 +74,20 @@ DirtEvent {
 
 	calcRange {
 
-		var sustain, avgSpeed;
+		var sustain;
 		var speed = ~speed;
 		var accelerate = ~accelerate;
-		var endSpeed;
+		var avgSpeed, endSpeed;
 
 		if (~unit == \c) { speed = speed * ~unitDuration * ~cps };
 
-		endSpeed = speed * (1.0 + (accelerate.abs.linexp(0.01, 4, 0.001, 20, nil) * accelerate.sign));
-		if(endSpeed.sign != speed.sign) { endSpeed = 0.0 }; // never turn back
-		avgSpeed = speed.abs + endSpeed.abs * 0.5;
+		if(accelerate.isNil) {
+			avgSpeed = endSpeed = speed;
+		} {
+			endSpeed = speed * (1.0 + (accelerate.abs.linexp(0.01, 4, 0.001, 20, nil) * accelerate.sign));
+			if(endSpeed.sign != speed.sign) { endSpeed = 0.0 }; // never turn back
+			avgSpeed = speed.abs + endSpeed.abs * 0.5;
+		};
 
 		if(~unit == \rate) { ~unit = \r }; // API adaption to tidal output
 
@@ -102,8 +106,7 @@ DirtEvent {
 			{ Error("this unit ('%') is not defined".format(~unit)).throw };
 		);
 
-
-		if (~loop > 0) { sustain = sustain * ~loop };
+		~loop !? { sustain = sustain * ~loop.abs };
 
 		if(sustain < orbit.minSustain) {
 			^this // drop it.

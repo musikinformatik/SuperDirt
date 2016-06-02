@@ -350,13 +350,11 @@ DirtOrbit {
 			~end = 1.0;
 			~speed = 1.0;
 			~pan = 0.5;
-			~accelerate = 0.0;
 			~gain = 1.0;
 			~cut = 0.0;
 			~unit = \r;
 			~n = 0; // sample number or note
 			~freq = #{ (~n + 60).midicps };
-			~loop = 0;
 
 			~latency = 0.0;
 			~lag = 0.0;
