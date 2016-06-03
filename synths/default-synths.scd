@@ -68,7 +68,7 @@ SynthDef(\inr, { |out, sustain = 1, freq = 440, speed = 1, begin=0, end=1, pan, 
 SynthDef(\gabor, { |out, sustain = 0.03, freq = 440, amp = 1, pan = 0, width = 0.3|
 	var env, sound;
 	sound = SinOsc.ar(freq, 0.5pi);
-	env = LFGauss.ar(sustain, width, loop: 0);
+	env = LFGauss.ar(sustain, width, loop: 0).range(0, 1);
 	OffsetOut.ar(out,
 		DirtPan.ar(env * sound, ~dirt.numChannels, pan, amp)
 	)
