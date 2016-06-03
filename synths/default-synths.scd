@@ -75,6 +75,15 @@ SynthDef(\gabor, { |out, sustain = 0.03, freq = 440, amp = 1, pan = 0, width = 0
 }).add;
 );
 
+// dirac delta function approximation
+(
+SynthDef(\dirac, { |out, sustain = 0.03, amp = 1, pan = 0|
+	OffsetOut.ar(out,
+		DirtPan.ar(Impulse.ar(0), ~dirt.numChannels, pan, amp)
+	)
+}).add;
+);
+
 (
 // list of new SynthDefs, and in parentheses the special parameters they accept
 // ("!" means it's not a standard Tidal param and needs to be defined)
