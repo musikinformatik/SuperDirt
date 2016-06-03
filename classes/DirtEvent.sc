@@ -53,8 +53,10 @@ DirtEvent {
 				~instrument = sound;
 				~note = ~note ? ~n;
 				~freq = ~freq.value;
-				sustainControl = synthDesc.controlDict.at(\sustain);
-				~unitDuration = ~sustain ?? { if(sustainControl.isNil) { 1.0 } { sustainControl.defaultValue ? 1.0 }}; // use definition, if defined.
+				~unitDuration = ~sustain ?? {
+					sustainControl =  synthDesc.controlDict.at(\sustain).postln;
+					if(sustainControl.isNil) { 1.0 } { sustainControl.defaultValue ? 1.0 }; // use definition, if defined.
+				};
 			} {
 				"no synth or sample named '%' could be found.".format(sound).postln;
 			}
