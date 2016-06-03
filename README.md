@@ -1,4 +1,4 @@
-# SuperDirt 0.7
+# SuperDirt 0.8
 SuperCollider implementation of the Dirt sampler for the Tidal programming language
 
 Alex McLean and Julian Rohrhuber
@@ -15,7 +15,13 @@ Alex McLean and Julian Rohrhuber
 include("SuperDirt");
 ```
 
-## Setup
+## Simple Setup
+
+`SuperDirt.start`
+
+You can pass `port`, `outBusses`, `senderAddr` as arguments.
+
+## Setup with options
 ```
 (
 // configure the sound server: here you could add hardware specific options
@@ -68,7 +74,7 @@ If you want SuperDirt to start automatically, you can load it from the startup f
 ## Using SuperDirt with SuperCollider 3.6
 It is possible to use SuperCollider 3.6, but startup will be much slower by comparison.
 
-The install works differently: don't do `include("SuperDirt")`, but instead download the three quarks to the SuperCollider `Extensions` folder: 
+The install works differently: don't do `include("SuperDirt")`, but instead download the three quarks to the SuperCollider `Extensions` folder:
 - https://github.com/musikinformatik/SuperDirt
 - https://github.com/tidalcycles/Dirt-Samples
 - https://github.com/supercollider-quarks/Vowel

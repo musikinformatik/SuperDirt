@@ -2,6 +2,12 @@
 
 SuperCollider implementation of Dirt
 
+This object handles sound file loading, OSC communication and local effects.
+These are relative to a server and a number of output channels
+It keeps a number of dirt orbits (see below).
+
+valid fileExtensions can be extended, currently they are ["wav", "aif", "aiff", "aifc"]
+
 */
 
 SuperDirt {
@@ -11,7 +17,9 @@ SuperDirt {
 	var <>orbits;
 	var <>modules;
 
-	var  <port, <senderAddr, <replyAddr, netResponders;
+	var <port, <senderAddr, <replyAddr, netResponders;
+	var <>fileExtensions = #["wav", "aif", "aiff", "aifc"];
+	var <>verbose = false;
 
 	classvar <>maxSampleNumChannels = 2;
 
@@ -28,20 +36,25 @@ SuperDirt {
 
 	start { |port = 57120, outBusses = 0, senderAddr = (NetAddr("127.0.0.1"))|
 		if(orbits.notNil) { this.stop };
-		this.makeBusses(outBusses);
+		this.makeOrbits(outBusses);
 		this.connect(senderAddr, port)
 	}
 
 	stop {
 		orbits.do(_.free);
 		orbits = nil;
+		this.closeNetworkConnection;
 	}
 
-	makeBusses { |outBusses|
+	makeOrbits { |outBusses|
 		var new;
 		new = outBusses.collect(DirtOrbit(this, _));
 		orbits = orbits ++ new;
 		^new.unbubble
+	}
+
+	set { |...pairs|
+		orbits.do(_.set(*pairs))
 	}
 
 	free {
@@ -93,26 +106,43 @@ SuperDirt {
 		^allbufs.wrapAt(index.asInteger)
 	}
 
-	loadSoundFiles { |path, fileExtension = "wav"|
+	loadSoundFiles { |path, appendToExisting = false|
 		var folderPaths;
 		if(server.serverRunning.not) {
 			"Superdirt: server not running - cannot load sound files.".warn; ^this
 		};
-		path = path ?? { "../../Dirt-Samples/".resolveRelative };
-		folderPaths = pathMatch(standardizePath(path +/+ "**"));
-		"\nloading sample banks:\n".post;
-		folderPaths.do { |folderPath|
-			PathName(folderPath).filesDo { |filepath|
-				var buf, name;
-				if(filepath.extension.find(fileExtension, true).notNil) {
-					buf = Buffer.readWithInfo(server, filepath.fullPath);
-					name = filepath.folderName.toLower;
-					buffers[name.asSymbol] = buffers[name.asSymbol].add(buf);
-				}
-			};
-			folderPath.basename.post; " ".post;
+		path = path ?? { "../../Dirt-Samples/*".resolveRelative };
+		folderPaths = pathMatch(path);
+		if(folderPaths.isEmpty) {
+			"no files found in path: '%'".format(path).warn; ^this
 		};
-		"\nfiles loaded\n\n".post;
+		"\nloading % sample bank%:\n".postf(folderPaths.size, if(folderPaths.size > 1) { "s" } { "" });
+		folderPaths.do { |folderPath|
+			var files = PathName(folderPath).files;
+			var folderName = PathName(folderPath).folderName;
+			var name = folderName.toLower.asSymbol;
+			if(buffers[name].notNil and: { appendToExisting != true }) {
+				"\nremoving %: ".postf(buffers[name].size);
+				buffers[name] = nil;
+			};
+			files.do { |filepath|
+				var buf, ext;
+				ext = filepath.extension.toLower;
+				if(fileExtensions.includesEqual(ext)) {
+					buf = Buffer.readWithInfo(server, filepath.fullPath);
+					buffers[name] = buffers[name].add(buf);
+
+				} {
+					if(verbose) { "\nignored file: %\n".postf(filepath.fileName) };
+				};
+			};
+			if(files.notEmpty) {
+				"% (%) ".postf(name, buffers[name].size)
+			} {
+				if(verbose) { "empty sample folder: %\n".postf(folderPath) }
+			};
+		};
+		"\n... file reading complete\n\n".post;
 	}
 
 	freeSoundFiles {
@@ -198,6 +228,28 @@ SuperDirt {
 
 }
 
+/*
+
+An orbit encapsulates a continuous state that affects all sounds played in it.
+It has default parameters for all sounds, which can be set, e.g. pan, and which can be overridden from tidal.
+Its globalEffects are e.g. delay, reverb, and also the monitor which handles the audio output routing.
+You can add and remove effects at runtime.
+
+Settable parameters are also:
+
+- fadeTime (fade in and out of each sample grain)
+- amp (gain)
+- minSustain (samples shorter than that are dropped).
+- outBus (channel offset for the audio output)
+
+Via the defaultParentEvent, you can also set parameters (use the set message):
+
+- lag (offset all events)
+- lock (if set to 1, syncs delay times with cps)
+
+
+*/
+
 
 DirtOrbit {
 
@@ -232,7 +284,7 @@ DirtOrbit {
 
 	initDefaultGlobalEffects {
 		this.globalEffects = [
-			GlobalDirtEffect(\dirt_delay, [\delaytime, \delayfeedback, \delayAmp]),
+			GlobalDirtEffect(\dirt_delay, [\delaytime, \delayfeedback, \delayAmp, \lock, \cps]),
 			GlobalDirtEffect(\dirt_reverb, [\size, \room, \dry]),
 			GlobalDirtEffect(\dirt_monitor, [\dirtOut])
 		]
@@ -303,13 +355,16 @@ DirtOrbit {
 			~cut = 0.0;
 			~unit = \r;
 			~n = 0; // sample number or note
-			~loop = 0;
+			~octave = 5;
+			~midinote = #{ ~n + (~octave * 12) };
+			~freq = #{ ~midinote.midicps };
 
 			~latency = 0.0;
+			~lag = 0.0;
 			~length = 1.0;
-			~sustain = 1.0;
 			~unitDuration = 1.0;
 			~dry = 0.0;
+			~lock = 0; // if set to 1, syncs delay times with cps
 
 			// values from the dirt bus
 			~orbit = this;
@@ -359,7 +414,7 @@ DirtModule {
 	}
 }
 
-// this keeps state of running synths that have a livespan of the DirtBus
+// this keeps state of running synths that have a livespan of the DirtOrbit
 // sends only OSC when an update is necessary
 
 // "name" is the name of the SynthDef

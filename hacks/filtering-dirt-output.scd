@@ -13,7 +13,7 @@ This assumes that you have SuperDirt running and accesible in ~dirt
 
 ~bus = Bus.audio(s, numChannels:2); // assuming stereo, expand if needed
 
-~d1.outBus = ~bus; // play into that bus.
+~dirt.orbits[0].outBus = ~bus; // play into that bus.
 
 
 /*
@@ -40,13 +40,24 @@ Ndef(\x, {
 // ... and so on.
 
 
+// make a side chain controlled by second orbit, affecting the first
+
+(
+Ndef(\x, {
+	var control = InBus.ar(~dirt.orbits[1].dryBus, 2).sum;
+	var dirt = InBus.ar(~bus, 2);
+	Compander.ar(dirt, control, thresh:0.006, slopeBelow:1, slopeAbove: 0.1, clampTime:0.05, relaxTime:0.1)
+	//dirt * (1 - (Amplitude.kr(control) > 0.007).poll.lag(0.01));
+}).play;
+)
+
 
 
 /*
 cleaning up when you're done:
 */
 
-~d1.outBus = 0;
+~dirt.orbits[0].outBus = 0;
 ~bus.free;
 
 
@@ -93,4 +104,6 @@ Ndef(\x).clear;
 ~busses.do { |x| x.free };
 ~dirt.orbits.do { |x| x.outBus = 0 };
 );
+
+
 

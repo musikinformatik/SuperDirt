@@ -20,21 +20,21 @@ DirtPan {
 		// where N = number of input channels
 		// M = number of output channels to pan across
 
-		defaultMixingFunction = #{ |channels|
-			channels.sum { |ch, i| ch.rotate(i) } // mixdown with one speaker offset per input channel
-		}
-
-		/*
-		variants are:
-
 		 // mono mixdown
 		defaultMixingFunction = #{ |channels|
 			channels.sum
-		}
+		};
+
+		/*
+		a variant:
+
 		// wrapped mutual crossfade
 		defaultMixingFunction = #{ |channels|
-			channels.flop.collect { |ch, i| ch[i] }
-		}
+			channels.flop.collect { |ch, i| ch[i] ?? { DC.ar(0) } }
+		};
+
+
+
 
 		you can set them via DirtPan.defaultMixingFunction = { ... your function ... }
 		and/or pass in a synth specific mixingFunction in the SynthDef
@@ -47,6 +47,7 @@ DirtPan {
 
 		pan = pan * 2 - 1; // convert unipolar (0..1) range into bipolar compatible one
 		signal = signal.asArray; // always keep the same shape
+
 
 		if(numChannels == 2) {
 			output = Pan2.ar(signal, pan, mul)
@@ -67,7 +68,7 @@ Before we start the new synth, we send a /set message to all synths, and those t
 
 DirtGateCutGroup {
 
-	*ar { |sustain = 1, releaseTime = 0.02, doneAction = 2|
+	*ar { |releaseTime = 0.02, doneAction = 2|
 		// this is necessary because the message "==" tests for objects, not for signals
 		var same = { |a, b| BinaryOpUGen('==', a, b) };
 		var sameCutGroup = same.(\cutGroup.ir(0), abs(\gateCutGroup.kr(0)));

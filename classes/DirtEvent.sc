@@ -19,7 +19,7 @@ DirtEvent {
 				this.getBuffer;
 				this.orderRange;
 				this.calcRange;
-				this.playSynths;
+				if(~sustain >= orbit.minSustain) { this.playSynths }; // otherwise drop it.
 			}
 		}
 	}
@@ -51,10 +51,12 @@ DirtEvent {
 			synthDesc = SynthDescLib.at(sound);
 			if(synthDesc.notNil) {
 				~instrument = sound;
-				~note = ~n;
-				~freq = (~note + 60).midicps;
-				sustainControl = synthDesc.controlDict.at(\sustain);
-				~unitDuration = if(sustainControl.isNil) { 1.0 } { sustainControl.defaultValue ? 1.0 }; // use definition, if defined.
+				~note = ~note ? ~n;
+				~freq = ~freq.value;
+				~unitDuration = ~sustain ?? {
+					sustainControl =  synthDesc.controlDict.at(\sustain).postln;
+					if(sustainControl.isNil) { 1.0 } { sustainControl.defaultValue ? 1.0 }; // use definition, if defined.
+				};
 			} {
 				"no synth or sample named '%' could be found.".format(sound).postln;
 			}
@@ -103,11 +105,8 @@ DirtEvent {
 		);
 
 
-		if (~loop > 0) { sustain = sustain * ~loop };
+		~loop !? { sustain = sustain * ~loop.abs };
 
-		if(sustain < orbit.minSustain) {
-			^this // drop it.
-		};
 
 		~fadeTime = min(orbit.fadeTime, sustain * 0.19098);
 		~fadeInTime = if(~begin != 0) { ~fadeTime } { 0.0 };
@@ -154,7 +153,7 @@ DirtEvent {
 
 	playSynths {
 		var diverted, server = ~server;
-		var latency = ~latency + (~offset * ~speed); // ~server.latency +
+		var latency = ~latency + ~lag + (~offset * ~speed);
 
 		~amp = pow(~gain, 4) * orbit.amp;
 		~channel !? { ~pan = ~pan + (~channel / ~numChannels) };

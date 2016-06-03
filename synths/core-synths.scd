@@ -64,11 +64,11 @@ live coding them requires that you have your SuperDirt instance in an environmen
 	SynthDef("dirt_gate" ++ numChannels, { |out, in, sustain = 1, fadeInTime = 0.001, fadeTime = 0.001, amp = 1|
 		var signal = In.ar(in, numChannels);
 		 //  doneAction: 3: free node before, which is the group with sample player and effects
-		var env = EnvGen.ar(Env([0, 1, 1, 0], [fadeInTime, sustain, fadeTime], \sin), doneAction: 3);
-		signal = signal * amp * env * DirtGateCutGroup.ar(sustain, fadeTime, doneAction: 3);
+		var env = EnvGen.ar(Env([0, 1, 1, 0], [fadeInTime, sustain, fadeTime], \sin), levelScale: amp, doneAction: 3);
+		signal = signal * env * DirtGateCutGroup.ar(fadeTime, doneAction: 3);
 		OffsetOut.ar(out, signal);
 		ReplaceOut.ar(in, Silent.ar(numChannels)) // clears bus signal for subsequent synths
-	}, [\ir, \ir, \ir, \ir, \ir]).add;
+	}, [\ir, \ir, \ir, \ir, \ir, \ir]).add;
 
 
 
@@ -117,7 +117,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 	SynthDef("dirt_bpf" ++ numChannels, { |out, bandqf = 440, bandq = 10|
 		var signal = In.ar(out, numChannels);
-		bandq = max(0.1, bandq);  // limit quality, avoid division by zero
+		bandq = max(1, bandq);  // limit quality, avoid division by zero
 		bandqf = max(20, bandqf); // limit lower end, avoid blow up
 		signal = BPF.ar(signal, bandqf, 1/bandq) * max(bandq, 1.0);
 		ReplaceOut.ar(out, signal)
@@ -139,6 +139,11 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		ReplaceOut.ar(out, signal)
 	}, [\ir, \ir, \ir]).add;
 
+	SynthDef("dirt_envelope" ++ numChannels, { |out, attack = 0, hold = 0, release = 100 |
+		var signal = In.ar(out, numChannels);
+		signal = signal * EnvGen.ar(Env.linen(attack, hold, release, 1, -3));
+		ReplaceOut.ar(out, signal);
+	}, [\ir, \ir, \ir, \ir]).add;
 
 
 	// global synth defs: these synths run in each DirtOrbit and are only released when it is stopped
@@ -147,11 +152,12 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 	if(\SwitchDelay.asClass.notNil) {
 
-		SynthDef("dirt_delay" ++ numChannels, { |dryBus, effectBus, gate = 1, delaytime, delayfeedback, delayAmp = 1|
+		SynthDef("dirt_delay" ++ numChannels, { |dryBus, effectBus, gate = 1, delaytime, delayfeedback, delayAmp = 1, lock = 0, cps = 1|
 			var signal = In.ar(dryBus, numChannels);
 			var maxDelayTime = 4;
 
 			delayfeedback = delayfeedback.max(0);
+			delaytime = delaytime * if(lock, reciprocal(cps), 1);
 			delaytime = delaytime.clip(0, maxDelayTime); // just to be sure
 			// from sc3-plugins
 			signal = \SwitchDelay.asClass.ar(signal, 1, 1, delaytime, delayfeedback, maxDelayTime);
@@ -160,18 +166,19 @@ live coding them requires that you have your SuperDirt instance in an environmen
 			signal = signal * delayAmp.lag(0.01);
 			Out.ar(effectBus, signal);
 
-		}, [\ir, \ir, \kr, \kr, \kr, \kr]).add;
+		}, [\ir, \ir]).add;
 	} {
 		"\n\n ---- SC3-Plugins not found. This is not a problem."
 		"Note that we are using a comb delay, which may not sound the same as SwitchDelay from the plugins".postln;
 
-		SynthDef("dirt_delay" ++ numChannels, { |dryBus, effectBus, gate = 1, delaytime, delayfeedback, delayAmp = 1|
+		SynthDef("dirt_delay" ++ numChannels, { |dryBus, effectBus, gate = 1, delaytime, delayfeedback, delayAmp = 1, lock = 0, cps = 1|
 			var signal = In.ar(dryBus, numChannels);
 			var maxDelayTime = 4;
 			var decayTime;
 
 			delayfeedback = delayfeedback.clip(0, 0.99);
-			delaytime = delaytime.max(0); // just to be sure
+			delaytime = delaytime * if(lock, reciprocal(cps), 1);
+			delaytime = delaytime.clip(0, maxDelayTime); // just to be sure
 			decayTime = log2(-60.dbamp) / log2(delayfeedback) * delaytime;
 			decayTime = decayTime.clip(0, 20);
 
@@ -179,7 +186,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 			signal = LeakDC.ar(signal) * delayAmp.lag(0.01) * EnvGen.kr(Env.asr, gate, doneAction:2);
 			Out.ar(effectBus, signal);
-		}, [\ir, \ir, \kr, \kr, \kr, \kr]).add;
+		}, [\ir, \ir]).add;
 	};
 
 	SynthDef("dirt_monitor" ++ numChannels, { |dryBus, effectBus, outBus, gate = 1|
@@ -220,20 +227,18 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		loop = DelayN.ar(loop, 0.3, [0.19, 0.26] + { Rand(-0.003, 0.003) }.dup(2));
 		loop = AllpassN.ar(loop, 0.05, { Rand(0.03, 0.15) }.dup(numChannels), 2);
 
-		loop = LeakDC.ar(loop);
 		loop = loop + in;
+		loop = LeakDC.ar(loop);
 
 		LocalOut.ar(loop);
 
-		snd = Delay2.ar(loop);
-
+		snd = loop;
 		snd = snd * (1 - dry).lag(LFNoise1.kr(1).range(0.01, 0.02));
 		snd = snd * EnvGen.kr(Env.asr, gate, doneAction:2);
 
 		Out.ar(effectBus, snd);
 
-	}, [\ir, \ir, \kr, \kr, \kr, \kr]).add;
-
+	}, [\ir, \ir]).add;
 
 	"---- core synth defs loaded ----".postln;
 
