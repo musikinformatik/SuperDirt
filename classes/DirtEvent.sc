@@ -51,7 +51,7 @@ DirtEvent {
 			synthDesc = SynthDescLib.at(sound);
 			if(synthDesc.notNil) {
 				~instrument = sound;
-				~note = ~n;
+				~note = ~note ? ~n;
 				~freq = ~freq.value;
 				sustainControl = synthDesc.controlDict.at(\sustain);
 				~unitDuration = if(sustainControl.isNil) { 1.0 } { sustainControl.defaultValue ? 1.0 }; // use definition, if defined.
