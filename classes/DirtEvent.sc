@@ -19,7 +19,9 @@ DirtEvent {
 				this.getBuffer;
 				this.orderRange;
 				this.calcRange;
-				this.playSynths;
+				if(~sustain >= orbit.minSustain) {
+					this.playSynths;
+				}; // otherwise drop it.
 			}
 		}
 	}
@@ -105,9 +107,6 @@ DirtEvent {
 
 		~loop !? { sustain = sustain * ~loop.abs };
 
-		if(sustain < orbit.minSustain) {
-			^this // drop it.
-		};
 
 		~fadeTime = min(orbit.fadeTime, sustain * 0.19098);
 		~fadeInTime = if(~begin != 0) { ~fadeTime } { 0.0 };
