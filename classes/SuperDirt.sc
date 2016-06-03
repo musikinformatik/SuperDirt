@@ -355,7 +355,7 @@ DirtOrbit {
 			~cut = 0.0;
 			~unit = \r;
 			~n = 0; // sample number or note
-			~freq = #{ ~n.midicps };
+			~freq = #{ (~n + 60).midicps };
 
 			~latency = 0.0;
 			~lag = 0.0;

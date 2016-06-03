@@ -32,20 +32,18 @@ d1 $ slow 2 $ sound "testnote*16" # n (run 16)
 
 // post what we have
 
-~dirt.orbits[0].set(\freq, #{ ~n.postln.midicps.postln });
+~dirt.orbits[0].set(\freq, #{ (~n.postln + 60).midicps.postln });
 
 // play half note higher
 
-~dirt.orbits[0].set(\freq, #{ (~n + 1).midicps });
+~dirt.orbits[0].set(\freq, #{ (~n + 61).midicps });
 
 // detune by a random frequency between -10 and 10 Hz
 
-~dirt.orbits[0].set(\freq, #{ ~n.midicps + 10.0.rand2 });
+~dirt.orbits[0].set(\freq, #{ (~n + 60).midicps + 10.0.rand2 });
 
 
 // use an extended ocatve and an 11 TET scale
-
-// note: for now, you should hen use values in the note range, not midinotes.
 
 ~dirt.orbits[0].set(\freq, #{ 440 * (2.1 ** (~n / 11)) });
 
@@ -100,7 +98,7 @@ d1 $ slow 2 $ sound "testnote*16" # n (run 16)
 
 
 // back to default.
-~dirt.orbits[0].set(\freq, #{ ~n.midicps });
+~dirt.orbits[0].set(\freq, #{ (~n + 60).midicps });
 
 
 
