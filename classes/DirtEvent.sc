@@ -19,9 +19,7 @@ DirtEvent {
 				this.getBuffer;
 				this.orderRange;
 				this.calcRange;
-				if(~sustain >= orbit.minSustain) {
-					this.playSynths;
-				}; // otherwise drop it.
+				if(~sustain >= orbit.minSustain) { this.playSynths }; // otherwise drop it.
 			}
 		}
 	}
