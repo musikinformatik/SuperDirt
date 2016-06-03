@@ -372,11 +372,11 @@ SynthDef(\superchip, {|out, sustain=1, pan, freq, speed=1, slide=0, pitch2=2, pi
 // "pitch1" scales the bandpass frequency (which tracks "n")
 // "slide" works like accelerate on the bandpass
 // "resonance" is the filter resonance
-SynthDef(\supernoise, {|out, sustain=1, pan, n, accelerate, slide=0, pitch1=1, speed=1, resonance=0, voice=0|
+SynthDef(\supernoise, {|out, sustain=1, pan, freq, accelerate, slide=0, pitch1=1, speed=1, resonance=0, voice=0|
 	var env, basefreq, sound, ffreq, acc;
 	env = EnvGen.ar(Env.linen(0.01, 0.98, 0.01,1,-1), timeScale:sustain, doneAction:2);
-	acc = accelerate * (n+36).midicps * 0.5;
-	basefreq = (n+96).midicps + wrap2(acc* Line.kr(-1,1+(2*speed-2), sustain), acc);
+	acc = accelerate * freq * 4;
+	basefreq = freq * 8 + wrap2(acc* Line.kr(-1,1+(2*speed-2), sustain), acc);
 	ffreq = basefreq*5*pitch1* Line.kr(1,1+slide, sustain);
 	ffreq = clip(ffreq, 60,20000);
 	sound = XFade2.ar( LFDNoise0.ar(basefreq.min(22000), 0.5),
