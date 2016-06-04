@@ -22,13 +22,15 @@
 
 // then add the effect to the orbit
 (
-~dirt.orbits[0].globalEffects = ~dirt.orbits[0].globalEffects.addFirst(
-	GlobalDirtEffect(\dirt_global_lpf, [\dry])
-);
+~dirt.orbits.do { |x|
+	x.globalEffects = ~dirt.orbits[0].globalEffects.addFirst(
+		GlobalDirtEffect(\dirt_global_lpf, [\dry])
+	)
+};
 ~dirt.orbits[0].initNodeTree;
 )
 
-~dirt.orbits.do { |x| x.globalEffects.postln }
+~dirt.orbits.do { |x| x.globalEffects.postln; " ----------".postln; }
 
 // then play some tidal pattern ...
 // in tidal
