@@ -54,7 +54,7 @@ DirtEvent {
 				~note = ~note ? ~n;
 				~freq = ~freq.value;
 				~unitDuration = ~sustain ?? {
-					sustainControl =  synthDesc.controlDict.at(\sustain).postln;
+					sustainControl =  synthDesc.controlDict.at(\sustain);
 					if(sustainControl.isNil) { 1.0 } { sustainControl.defaultValue ? 1.0 }; // use definition, if defined.
 				};
 			} {
