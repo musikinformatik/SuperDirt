@@ -6,6 +6,7 @@
 	// start listening on port 57120, create two orbits each sending audio to channel 0
 
 	*start { |numChannels = 2, server, numOrbits = 2, port = 57120, senderAddr, path|
+		~dirt.free;
 		server = server ? Server.default;
 		server.options.numBuffers = 1024 * 16;
 		server.options.memSize = 8192 * 16;
