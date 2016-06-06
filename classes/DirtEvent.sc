@@ -54,9 +54,20 @@ DirtEvent {
 				~note = ~note ? ~n;
 				~freq = ~freq.value;
 				~unitDuration = ~sustain ?? {
-					sustainControl =  synthDesc.controlDict.at(\sustain);
-					if(sustainControl.isNil) { 1.0 } { sustainControl.defaultValue ? 1.0 }; // use definition, if defined.
+					if(~legato > 0) {
+						~delta * ~legato
+					} {
+						sustainControl =  synthDesc.controlDict.at(\sustain);
+						if(sustainControl.isNil) { 1.0 } { sustainControl.defaultValue ? 1.0 }; // use definition, if defined.
+					}
 				};
+
+				/*
+				~unitDuration = ~sustain ?? {
+					sustainControl =  synthDesc.controlDict.at(\sustain);
+					if(sustainControl.isNil) { ~delta } { sustainControl.defaultValue ? ~delta }; // use definition, if defined.
+				};
+				*/
 			} {
 				"no synth or sample named '%' could be found.".format(sound).postln;
 			}
