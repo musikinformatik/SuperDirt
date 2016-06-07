@@ -13,6 +13,7 @@ If your SuperDirt instance is assigned to the variable ~dirt, you can livecode t
 (
 
 // modulated band limited impulse
+(
 SynthDef(\imp, { |out, sustain = 1, freq = 440, speed = 1, begin=0, end=1, pan, accelerate, offset|
 	var env, sound, rate, phase;
 	env = EnvGen.ar(Env.perc(0.01, 0.99, 1, -1), timeScale:sustain, doneAction:2);
@@ -22,9 +23,27 @@ SynthDef(\imp, { |out, sustain = 1, freq = 440, speed = 1, begin=0, end=1, pan, 
 	OffsetOut.ar(out,
 		DirtPan.ar(sound, ~dirt.numChannels, pan, env)
 	)
-}).add;
+}).add
+);
+
+
+// modulated phase mod sines
+(
+SynthDef(\psin, { |out, sustain = 1, freq = 440, speed = 1, begin=0, end=1, pan, accelerate, offset, modfreq = 40|
+	var env, sound, rate, phase, amp;
+	amp = AmpCompA.kr(freq);
+	env = EnvGen.ar(Env.perc(0.002, sustain, 1, -1), doneAction:2);
+	phase = Line.ar(begin, end, sustain);
+	rate = speed + Sweep.kr(1, accelerate);
+	sound = SinOsc.ar(freq, SinOsc.ar(modfreq * (1..5), 0, 1 - phase * 10 * env / (1..5), 0.5pi)).sum;
+	OffsetOut.ar(out,
+		DirtPan.ar(sound, ~dirt.numChannels, pan, env)
+	)
+}).add
+);
 
 // cursor modulated phase mod sines
+(
 SynthDef(\pmsin, { |out, sustain = 1, freq = 440, speed = 1, begin=0, end=1, pan, accelerate, offset|
 	var env, sound, rate, phase, modfreq, amp;
 	freq = (MouseX.kr(30, 80).round + freq);
@@ -37,9 +56,11 @@ SynthDef(\pmsin, { |out, sustain = 1, freq = 440, speed = 1, begin=0, end=1, pan
 	OffsetOut.ar(out,
 		DirtPan.ar(sound, ~dirt.numChannels, pan, env)
 	)
-}).add;
+}).add
+);
 
 // live audio input
+(
 SynthDef(\in, { |out, sustain = 1, speed = 1, begin = 0, end = 1, pan, accelerate, offset|
 	var env, sound, rate, phase;
 	phase = Line.ar(begin, end, sustain);
@@ -48,9 +69,11 @@ SynthDef(\in, { |out, sustain = 1, speed = 1, begin = 0, end = 1, pan, accelerat
 	OffsetOut.ar(out,
 		DirtPan.ar(sound, ~dirt.numChannels, pan)
 	)
-}).add;
+}).add
+);
 
 // pitch shifted live audio input
+(
 SynthDef(\inr, { |out, sustain = 1, freq = 440, speed = 1, begin=0, end=1, pan, accelerate, offset|
 	var env, sound, rate, phase;
 	phase = Line.ar(begin, end, sustain);
@@ -84,7 +107,7 @@ SynthDef(\dirac, { |out, sustain = 0.03, pan = 0|
 }).add;
 );
 
-(
+
 // list of new SynthDefs, and in parentheses the special parameters they accept
 // ("!" means it's not a standard Tidal param and needs to be defined)
 // most of these SynthDefs use sustain to scale the overall envelope, and many use accelerate to provide a pitch glide
