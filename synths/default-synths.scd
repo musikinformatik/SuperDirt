@@ -25,12 +25,12 @@ SynthDef(\imp, { |out, sustain = 1, freq = 440, speed = 1, begin=0, end=1, pan, 
 }).add;
 
 // cursor modulated phase mod sines
-SynthDef(\pmsin, { |out, sustain = 1, freq = 440, speed = 1, begin=0, end=1, pan, accelerate, amp = 1, offset|
-	var env, sound, rate, phase, modfreq;
+SynthDef(\pmsin, { |out, sustain = 1, freq = 440, speed = 1, begin=0, end=1, pan, accelerate, offset|
+	var env, sound, rate, phase, modfreq, amp;
 	freq = (MouseX.kr(30, 80).round + freq);
 	modfreq = MouseY.kr(1, 200, 1);
-	amp = AmpCompA.kr(freq) * amp;
-	env = EnvGen.ar(Env.perc(0.002, sustain, amp * 0.1, -1), doneAction:2);
+	amp = AmpCompA.kr(freq);
+	env = EnvGen.ar(Env.perc(0.002, sustain, 1, -1), doneAction:2);
 	phase = Line.ar(begin, end, sustain);
 	rate = speed + Sweep.kr(1, accelerate);
 	sound = SinOsc.ar(freq, SinOsc.ar(modfreq * (1..5), 0, 1 - phase * 10 * env / (1..5), 0.5pi)).sum;
