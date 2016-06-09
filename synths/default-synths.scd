@@ -61,7 +61,6 @@ SynthDef(\inr, { |out, sustain = 1, freq = 440, speed = 1, begin=0, end=1, pan, 
 		DirtPan.ar(sound, ~dirt.numChannels, pan, amp)
 	)
 }).add;
-);
 
 // gabor grain
 (
