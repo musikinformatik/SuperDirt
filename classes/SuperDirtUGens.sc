@@ -88,5 +88,13 @@ DirtGateCutGroup {
 }
 
 
+DirtPause {
+
+	*ar { |signal, graceTime = 1|
+		PauseSelf.kr(Impulse.kr(0));
+		DetectSilence.ar(signal, time:graceTime, doneAction:1);
+	}
+
+}
 
 
