@@ -227,7 +227,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 		in = in * room.lag(LFNoise1.kr(1).range(0.01, 0.02)); // regulate input
 
-		40.do { in = AllpassN.ar(in, 0.03, { Rand(0.005, 0.02) }.dup(numChannels), 1) };
+		4.do { in = AllpassN.ar(in, 0.03, { Rand(0.005, 0.02) }.dup(numChannels), 1) };
 
 		depth = size.lag(0.02).linexp(0, 1, 0.01, 0.98); // change depth between 0.1 and 0.98
 		loop = LocalIn.ar(numChannels) * { depth + Rand(0, 0.05) }.dup(numChannels);
