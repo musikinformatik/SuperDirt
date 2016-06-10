@@ -153,17 +153,25 @@ live coding them requires that you have your SuperDirt instance in an environmen
 	if(\SwitchDelay.asClass.notNil) {
 
 		SynthDef("dirt_delay" ++ numChannels, { |dryBus, effectBus, gate = 1, delaytime, delayfeedback, delayAmp = 1, lock = 0, cps = 1|
-			var signal = In.ar(dryBus, numChannels);
+			var signal;
+			var input = In.ar(dryBus, numChannels);
 			var maxDelayTime = 4;
 
 			delayfeedback = delayfeedback.max(0);
 			delaytime = delaytime * if(lock, reciprocal(cps), 1);
 			delaytime = delaytime.clip(0, maxDelayTime); // just to be sure
 			// from sc3-plugins
-			signal = \SwitchDelay.asClass.ar(signal, 1, 1, delaytime, delayfeedback, maxDelayTime);
+			signal = \SwitchDelay.asClass.ar(input, 1, 1, delaytime, delayfeedback, maxDelayTime);
+
+			DetectSilence.ar(signal, time:1, doneAction: 1);
+			// doesn't work properly. We don't really know when it's not used anymore.
+			// this would have to be an explicit signal from sclang
 
 			signal = signal * EnvGen.kr(Env.asr, gate, doneAction:2);
 			signal = signal * delayAmp.lag(0.01);
+
+			DirtPause.ar(signal, graceTime:4);
+
 			Out.ar(effectBus, signal);
 
 		}, [\ir, \ir, \kr, \kr, \kr, \kr]).add;
@@ -185,6 +193,9 @@ live coding them requires that you have your SuperDirt instance in an environmen
 			signal = CombL.ar(signal, maxDelayTime, delaytime.lag(1), decayTime);
 
 			signal = LeakDC.ar(signal) * delayAmp.lag(0.01) * EnvGen.kr(Env.asr, gate, doneAction:2);
+
+			DirtPause.ar(signal, graceTime:4);
+
 			Out.ar(effectBus, signal);
 		}, [\ir, \ir, \kr, \kr, \kr, \kr]).add;
 	};
@@ -216,7 +227,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 		in = in * room.lag(LFNoise1.kr(1).range(0.01, 0.02)); // regulate input
 
-		4.do { in = AllpassN.ar(in, 0.03, { Rand(0.005, 0.02) }.dup(numChannels), 1) };
+		40.do { in = AllpassN.ar(in, 0.03, { Rand(0.005, 0.02) }.dup(numChannels), 1) };
 
 		depth = size.lag(0.02).linexp(0, 1, 0.01, 0.98); // change depth between 0.1 and 0.98
 		loop = LocalIn.ar(numChannels) * { depth + Rand(0, 0.05) }.dup(numChannels);
@@ -234,9 +245,14 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 		snd = loop;
 		snd = snd * (1 - dry).lag(LFNoise1.kr(1).range(0.01, 0.02));
+
+		DirtPause.ar(snd, graceTime:4);
+
 		snd = snd * EnvGen.kr(Env.asr, gate, doneAction:2);
 
 		Out.ar(effectBus, snd);
+
+
 
 	}, [\ir, \ir, \kr, \kr, \kr, \kr]).add;
 

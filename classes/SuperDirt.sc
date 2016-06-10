@@ -459,6 +459,7 @@ GlobalDirtEffect {
 			}
 		};
 		if(argsChanged.notNil) {
+			synth.run;
 			synth.set(*argsChanged);
 		}
 	}
