@@ -83,7 +83,8 @@ SynthDef(\inr, { |out, sustain = 1, freq = 440, speed = 1, begin=0, end=1, pan, 
 	OffsetOut.ar(out,
 		DirtPan.ar(sound, ~dirt.numChannels, pan)
 	)
-}).add;
+}).add
+);
 
 // gabor grain
 (
