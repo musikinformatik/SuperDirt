@@ -135,7 +135,7 @@ DirtEvent {
 		~server.sendMsg(\s_new,
 			"dirt_gate" ++ ~numChannels,
 			-1, // no id
-			3, // add action: addAfter
+			1, // add action: addToTail
 			~synthGroup, // send to group
 			*[
 				in: orbit.synthBus, // read from synth bus, which is reused
