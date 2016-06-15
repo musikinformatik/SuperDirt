@@ -14,6 +14,7 @@ Alex McLean and Julian Rohrhuber
 ```
 include("SuperDirt");
 ```
+Note: this also automatically installs the DirtSamples quark, which contains a large collection of sound files. It downloads them as a zip file. Sometimes, git fails to unpack these samples and they don't get listed. In this case, you have to unpack them "manually".
 
 ## Simple Setup
 
