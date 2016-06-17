@@ -112,7 +112,7 @@ DirtEvent {
 		~loop !? { sustain = sustain * ~loop.abs };
 
 
-		~fadeTime = min(orbit.fadeTime, sustain * 0.19098);
+		~fadeTime = min(~fadeTime, sustain * 0.19098);
 		~fadeInTime = if(~begin != 0) { ~fadeTime } { 0.0 };
 		~sustain = sustain - (~fadeTime + ~fadeInTime);
 		~speed = speed;
@@ -159,7 +159,7 @@ DirtEvent {
 		var diverted, server = ~server;
 		var latency = ~latency + ~lag + (~offset * ~speed);
 
-		~amp = pow(~gain, 4) * orbit.amp;
+		~amp = pow(~gain, 4) * ~amp;
 		~channel !? { ~pan = ~pan + (~channel / ~numChannels) };
 
 		server.makeBundle(latency, { // use this to build a bundle

@@ -256,7 +256,7 @@ DirtOrbit {
 	var <dirt, <server, <outBus;
 	var <synthBus, <globalEffectBus, <dryBus;
 	var <group, <globalEffects;
-	var <>fadeTime = 0.001, <>amp = 0.4, <>minSustain;
+	var <>minSustain;
 
 
 	var <>defaultParentEvent;
@@ -325,6 +325,26 @@ DirtOrbit {
 		}
 	}
 
+	get { |key|
+		^defaultParentEvent.at(key)
+	}
+
+	amp_ { |val|
+		this.set(\amp, val)
+	}
+
+	amp {
+		^this.get(\amp)
+	}
+
+	fadeTime_ { |val|
+		this.set(\fadeTime, val)
+	}
+
+	fadeTime {
+		^this.get(\fadeTime)
+	}
+
 	freeSynths {
 		server.bind {
 			server.sendMsg("/n_free", group);
@@ -366,6 +386,10 @@ DirtOrbit {
 			~unitDuration = 1.0;
 			~dry = 0.0;
 			~lock = 0; // if set to 1, syncs delay times with cps
+
+			~amp = 0.4;
+			~fadeTime = 0.001;
+
 
 			// values from the dirt bus
 			~orbit = this;
