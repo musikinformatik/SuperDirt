@@ -11,7 +11,7 @@ This is a SuperCollider variant of strong::Dirt::, the sound engine for the Tida
 note::
 This system is experimental.
 
-Many examples can be found in the folders teletype::hacks/:: and teletype::scripts/::
+Many examples can be found in the folders: teletype::hacks/:: and teletype::scripts/::
 
 The examples suppose that environment variables are accessible. If you want to use link::Classes/ProxySpace:: or similar redirect environments, see below.
 ::
@@ -21,7 +21,7 @@ code::
 
 // starting up
 
-(
+((
 // configure the sound server: here you could add hardware specific options
 // see http://doc.sccode.org/Classes/ServerOptions.html
 s.options.numBuffers = 1024 * 16; // increase this if you need to load more samples
@@ -31,12 +31,10 @@ s.options.numOutputBusChannels = 2; // set this to your hardware output channel 
 s.options.numInputBusChannels = 2; // set this to your hardware input channel size, if necessary
 // boot the server and start SuperDirt
 s.waitForBoot {
-    ~dirt = SuperDirt(2, s); // two output channels, increase if you want to pan across more channels
-    ~dirt.loadSoundFiles;   // load samples (path containing a wildcard can be passed in)
-    s.sync; // wait for samples to be read
-    ~dirt.start(57120, [0, 0]);
-	// start listening on port 57120, create two orbits, each sending audio to channel 0.
-	// You can direct sounds to the orbits from tidal e.g. by: `# orbit "0 1 1"
+	~dirt = SuperDirt(2, s); // two output channels, increase if you want to pan across more channels
+	~dirt.loadSoundFiles;   // load samples (path containing a wildcard can be passed in)
+	s.sync; // wait for samples to be read
+	~dirt.start(57120, [0, 0]);   // start listening on port 57120, create two orbits, each sending audio to channel 0. You can direct sounds to the orbits from tidal e.g. by: `# orbit "0 1 1"
 }
 )
 // now you should be able to send from tidal via port 57120
@@ -69,12 +67,55 @@ method::maxSampleNumChannels
 Specifies the maximum number of channels your sound files have (default is 2: stereo samples)
 
 
+method::start
+Convenience method that gives defaults for many situations. It configures the server and starts SuperDirt with a number of orbits. It allows you to pass a few parameters:
+
+argument::numChannels
+The number of channels of the SuperDirt instance (see above).
+
+argument::server
+link::Classes/Server:: to play on.
+
+argument::numOrbits
+number of orbits to create on startup (see: link::Classes/DirtOrbit::). You can add or remove them later.
+
+argument::port
+The port to listen on (default is 57120)
+
+argument::senderAddr
+The address to listen to (a link::Classes/String::).
+
+argument::path
+A path that is used to load some sound files. This is a string, a path pointing to a number of files, which usually contains a wildcard (code::*::). E.g. code::"~/samples/special/*"::
+
 
 INSTANCEMETHODS::
 
+method::orbits
+A list of link::Classes/DirtOrbit::s. Orbits are the basic elements of dirt. Each  has its own global effects and global settings. You can start any number of orbits any time. From tidal, you can direct sounds into an orbit by the parameter: code::# orbit "7":: (this sends to orbit 7, if it exists, otherwise it'll wrap to whatever is available.)
+
+code::
+// in the default startup, dirt is kept in the ~dirt environment variable
+// you can access the orbit by index:
+
+~dirt.orbits[0].set(\amp, 0.1) // reduce the amplitude of one orbit
+
+// make a mixer for the orbits, using dB scaling
+(
+var w, spec;
+spec = \db.asSpec;
+w = Window("orbital volume", Rect(240, 240, 300, 500)).front;
+
+w.view.layout = HLayout(*~dirt.orbits.collect { |x|
+	var val = spec.unmap(x.get(\amp).ampdb);
+	Slider().value_(val).action_({ |v| x.set(\amp, spec.map(v.value).dbamp.postln) })
+});
+)
+
+::
 
 method::loadSoundFiles
-Read a number of sound file from disk and load them into the server memory. The buffer information is also kept in link::#buffers::, a dictionary.
+Read a number of sound file from disk and load them into the server memory. The buffer information is also kept in link::#buffers::, a dictionary. You can do this any time while running, and incrementally add more files.
 
 note::
 The naming scheme works as follows:
@@ -83,19 +124,27 @@ Given a path like: code::"path/to/my/basedrum/*"::
 
 The dictionary will contain under the key code::'basedrum':: an link::Classes/Array:: of all the link::Classes/Buffer::s from the samples found in the folder.
 
-From tidal, they can be accessed e.g. by code::d1 $ sound $ "basedrum:1 basedrum:4"::. Sample numbers below zero or above the number of samples in the folder will wrap, i.e. if you have a folder of 4 samples, 5 will play 0.
+From tidal, they can be accessed e.g. by code::d1 $ sound $ "basedrum:1 basedrum:4"::, or alternatively by the code::n:: parameter. Sample numbers below zero or above the number of samples in the folder will wrap, i.e. if you have a folder of 4 samples, 5 will play 0.
 
 ::
 
 argument::path
-This is a string to a number of files, which usually contains a wildcard (code::*::).
+A path that is used to load some sound files. This is a string, a path pointing to a number of files, which usually contains a wildcard (code::*::). E.g. code::"~/samples/special/*"::
 
 argument::appendToExisting
-If set to true, this will keep existing dictionary keys (see above) and add the new samples to any existing ones. This allows you to load different folders with the same name.
+If set to true, this will keep existing dictionary keys (see above) and add the new samples to any existing ones. This allows you to load different folders with the same name. Otherwise it will only keep those existing names which are not found in the new set of samples.
 
 
 method::fileExtensions
-A list of valid sound file extensions, which can be extended (default: ["wav", "aif", "aiff", "aifc"]). In theory, all libsndfile formats should be supported link::http://www.mega-nerd.com/libsndfile/#Features::.
+A list of valid sound file extensions, which can be extended (default: code::["wav", "aif", "aiff", "aifc"]::). In theory, all libsndfile formats should be supported link::http://www.mega-nerd.com/libsndfile/#Features::.
+
+
+method::loadSynthDefs
+Load a number of files, usually containing link::Classes/SynthDef::s.
+
+argument::path
+This is a string, a path pointing as´file or a to a number of files, which then contains a wildcard (code::*::). E.g. code::"~/synths/special/*"::
+
 
 method::start
 This method starts SuperDirt. It creates a number of link::Classes/DirtOrbit::s (each of which has global effects, output busses, and settings). It also opens a network connection.
@@ -109,7 +158,7 @@ An (a link::Classes/Array::) of audio output channels: it determines how many li
 
 argument::senderAddr
 
-The program to run (a link::Classes/String::).
+The address to listen to (a link::Classes/String::).
 
 
 method::stop
@@ -117,11 +166,3 @@ End all audio processes and close network responder.
 
 method::free
 End all audio processes, close network responder, and free sound file resources.
-
-
-method::orbits
-A list of link::Classes/DirtOrbit::s. Each orbit has its own global effects and global settings.
-
-
-
-
