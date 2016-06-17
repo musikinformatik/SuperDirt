@@ -1,0 +1,127 @@
+CLASS::SuperDirt
+summary::Synth and Sampler for the Tidal programming language
+categories::Live Coding
+
+related::Classes/DirtOrbit, Classes/DirtEvent
+
+DESCRIPTION::
+This is a SuperCollider variant of strong::Dirt::, the sound engine for the Tidal link::http://tidalcycles.org/:: programming language by Alex McLean. Most of SuperDirt can be rewritten at runtime: you can add and modify effects, synth defs, load samples incrementally, and spatialise to any number of channels. You can use SuperCollider as usual.
+
+
+note::
+This system is experimental.
+
+Many examples can be found in the folders teletype::hacks/:: and teletype::scripts/::
+
+The examples suppose that environment variables are accessible. If you want to use link::Classes/ProxySpace:: or similar redirect environments, see below.
+::
+
+
+code::
+
+// starting up
+
+(
+// configure the sound server: here you could add hardware specific options
+// see http://doc.sccode.org/Classes/ServerOptions.html
+s.options.numBuffers = 1024 * 16; // increase this if you need to load more samples
+s.options.memSize = 8192 * 16; // increase this if you get "alloc failed" messages
+s.options.maxNodes = 1024 * 32; // increase this if you are getting drop outs and the message "too many nodes"
+s.options.numOutputBusChannels = 2; // set this to your hardware output channel size, if necessary
+s.options.numInputBusChannels = 2; // set this to your hardware input channel size, if necessary
+// boot the server and start SuperDirt
+s.waitForBoot {
+    ~dirt = SuperDirt(2, s); // two output channels, increase if you want to pan across more channels
+    ~dirt.loadSoundFiles;   // load samples (path containing a wildcard can be passed in)
+    s.sync; // wait for samples to be read
+    ~dirt.start(57120, [0, 0]);
+	// start listening on port 57120, create two orbits, each sending audio to channel 0.
+	// You can direct sounds to the orbits from tidal e.g. by: `# orbit "0 1 1"
+}
+)
+// now you should be able to send from tidal via port 57120
+::
+
+
+SECTION::Using SuperDirt examples together with ProxySpace
+
+All startup files and examples use the environment variables, like code::~dirt::.
+If you want to use link::Classes/ProxySpace:: or similar redirect environments, you should bind these to their respective file (which needs to be saved to disk):
+
+code::
+p = ProxySpace.push(s).linkDoc; // now the proxyspace is only active in that document
+::
+
+
+
+CLASSMETHODS::
+method::new
+Return a new instance, ready to be started
+
+argument::numChannels
+The number of channels of the internal link::Classes/Bus##bus:: (this is also the maximal number of output channels).
+
+argument::server
+link::Classes/Server:: to play on.
+
+
+method::maxSampleNumChannels
+Specifies the maximum number of channels your sound files have (default is 2: stereo samples)
+
+
+
+INSTANCEMETHODS::
+
+
+method::loadSoundFiles
+Read a number of sound file from disk and load them into the server memory. The buffer information is also kept in link::#buffers::, a dictionary.
+
+note::
+The naming scheme works as follows:
+
+Given a path like: code::"path/to/my/basedrum/*"::
+
+The dictionary will contain under the key code::'basedrum':: an link::Classes/Array:: of all the link::Classes/Buffer::s from the samples found in the folder.
+
+From tidal, they can be accessed e.g. by code::d1 $ sound $ "basedrum:1 basedrum:4"::. Sample numbers below zero or above the number of samples in the folder will wrap, i.e. if you have a folder of 4 samples, 5 will play 0.
+
+::
+
+argument::path
+This is a string to a number of files, which usually contains a wildcard (code::*::).
+
+argument::appendToExisting
+If set to true, this will keep existing dictionary keys (see above) and add the new samples to any existing ones. This allows you to load different folders with the same name.
+
+
+method::fileExtensions
+A list of valid sound file extensions, which can be extended (default: ["wav", "aif", "aiff", "aifc"]). In theory, all libsndfile formats should be supported link::http://www.mega-nerd.com/libsndfile/#Features::.
+
+method::start
+This method starts SuperDirt. It creates a number of link::Classes/DirtOrbit::s (each of which has global effects, output busses, and settings). It also opens a network connection.
+
+argument::port
+The port to listen on (default is 57120)
+
+argument::outBusses
+
+An (a link::Classes/Array::) of audio output channels: it determines how many link::Classes/DirtOrbit::s there will be.
+
+argument::senderAddr
+
+The program to run (a link::Classes/String::).
+
+
+method::stop
+End all audio processes and close network responder.
+
+method::free
+End all audio processes, close network responder, and free sound file resources.
+
+
+method::orbits
+A list of link::Classes/DirtOrbit::s. Each orbit has its own global effects and global settings.
+
+
+
+
