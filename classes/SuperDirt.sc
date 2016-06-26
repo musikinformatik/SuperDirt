@@ -345,6 +345,10 @@ DirtOrbit : BusPlug {
 		^this.get(\fadeTime)
 	}
 
+	playEvent { |event|
+		DirtEvent(this, dirt.modules, event).play
+	}
+
 	freeSynths {
 		server.bind {
 			server.sendMsg("/n_free", group);
