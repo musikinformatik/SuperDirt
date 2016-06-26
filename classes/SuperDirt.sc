@@ -251,9 +251,9 @@ Via the defaultParentEvent, you can also set parameters (use the set message):
 */
 
 
-DirtOrbit {
+DirtOrbit : BusPlug {
 
-	var <dirt, <server, <outBus;
+	var <dirt, <outBus;
 	var <synthBus, <globalEffectBus, <dryBus;
 	var <group, <globalEffects;
 	var <>minSustain;
@@ -262,18 +262,20 @@ DirtOrbit {
 	var <>defaultParentEvent;
 
 	*new { |dirt, outBus|
-		^super.newCopyArgs(dirt, dirt.server, outBus).init
+		^super.new(dirt.server).init(dirt, outBus)
 	}
 
-	init {
-		if(server.serverRunning.not) {
-			Error("SuperColldier server '%' not running. Couldn't start DirtOrbit".format(server.name)).warn;
-			^this
-		};
-		group = server.nextPermNodeID;
+	init { |argDirt, argOutBus|
+
+		dirt = argDirt;
+		outBus = argOutBus;
+
+		this.defineBus(\audio, dirt.numChannels);
 		synthBus = Bus.audio(server, dirt.numChannels);
 		dryBus = Bus.audio(server, dirt.numChannels);
 		globalEffectBus = Bus.audio(server, dirt.numChannels);
+		group = server.nextPermNodeID;
+
 		minSustain = 8 / server.sampleRate;
 		this.initDefaultGlobalEffects;
 		this.initNodeTree;
@@ -302,7 +304,8 @@ DirtOrbit {
 	initNodeTree {
 		server.makeBundle(nil, { // make sure they are in order
 			server.sendMsg("/g_new", group, 0, 1); // make sure group exists
-			globalEffects.reverseDo { |x| x.play(group, outBus, dryBus, globalEffectBus) };
+			globalEffects.reverseDo { |x| x.play(group, bus, dryBus, globalEffectBus) };
+			if(outBus.notNil) { this.play(outBus) };
 		})
 	}
 
@@ -314,9 +317,15 @@ DirtOrbit {
 		this.value((latency: server.latency).putPairs(pairs));
 	}
 
+
 	outBus_ { |bus|
 		outBus = bus;
 		this.initNodeTree;
+	}
+
+
+	copy {
+		^this.notYetImplemented(thisMethod)
 	}
 
 	set { |...pairs|
@@ -353,6 +362,7 @@ DirtOrbit {
 	}
 
 	free {
+		super.freeBus;
 		dirt.closeNetworkConnection;
 		ServerTree.remove(this, server);
 		globalEffects.do(_.release);
