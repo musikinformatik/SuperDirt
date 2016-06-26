@@ -53,6 +53,10 @@ SuperDirt {
 		^new.unbubble
 	}
 
+	asUGenInput {
+		^Mix(orbits.collect(_.ar))
+	}
+
 	set { |...pairs|
 		orbits.do(_.set(*pairs))
 	}
