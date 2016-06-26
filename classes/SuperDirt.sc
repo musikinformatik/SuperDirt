@@ -309,15 +309,6 @@ DirtOrbit : BusPlug {
 		})
 	}
 
-	value { |event|
-		DirtEvent(this, dirt.modules, event).play
-	}
-
-	valuePairs { |pairs|
-		this.value((latency: server.latency).putPairs(pairs));
-	}
-
-
 	outBus_ { |bus|
 		outBus = bus;
 		this.initNodeTree;
