@@ -29,19 +29,18 @@ The following examples assume that you have stored an instance of SuperDirt in ~
 
 // stop directly monitoring:
 
-~dirt.orbits[0].stop; // it's still running in the background
-~d1 = ~dirt.orbits[0]; // make it easier accessible
+~dirt.orbits.do(_.stop); // it's still running in the background
 
 
 // use output in other Ndefs
 
-Ndef(\x, { RLPF.ar(~d1, MouseX.kr(300, 8000, 1), 0.04) }).play; // etc.
+Ndef(\x, { RLPF.ar(~dirt, MouseX.kr(300, 8000, 1), 0.04) }).play; // etc.
 
 
 // go back to normal: resume direct monitor:
 
 Ndef(\x).clear;
-~d1.play;
+~dirt.orbits.do(_.play);
 
 
 
