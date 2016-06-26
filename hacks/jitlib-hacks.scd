@@ -27,28 +27,22 @@ The following examples assume that you have stored an instance of SuperDirt in ~
 */
 
 
-// getting tidal output into node proxies
+// stop directly monitoring:
 
-Ndef(\dirty).ar(~dirt.numChannels); // make a place for a signal
-~dirt.orbits.do { |each| each.outBus = Ndef(\dirty).bus };
+~dirt.orbits[0].stop; // it's still running in the background
+~d1 = ~dirt.orbits[0]; // make it easier accessible
 
-// now tidal should be silently playing in Ndef(\dirty).
-
-// listen directly:
-
-Ndef(\dirty).play;
-
-// stop listening
-
-Ndef(\dirty).stop;
 
 // use output in other Ndefs
 
-Ndef(\x, { RLPF.ar(Ndef.ar(\dirty), MouseX.kr(300, 8000, 1), 0.04) }).play; // etc.
+Ndef(\x, { RLPF.ar(~d1, MouseX.kr(300, 8000, 1), 0.04) }).play; // etc.
 
 
-// go back to normal:
-~dirt.orbits.do { |each| each.outBus = 0; };
+// go back to normal: resume direct monitor:
+
+Ndef(\x).clear;
+~d1.play;
+
 
 
 /*
@@ -61,7 +55,7 @@ using SuperDirt from sclang patterns
 var d = ~dirt.orbits.first;
 Event.addEventType(\dirt, {
 	~latency = s.latency;
-	d.value(currentEnvironment)
+	d.playEvent(currentEnvironment)
 })
 )
 
@@ -101,7 +95,7 @@ Pdef(\x,
 		\type, \dirt,
 		\s, Prand([\bd, \hh, \cp, ], inf),
 		\begin, Pn(Pseries(0, 0.002, 20)),
-		\bandf,b.asMap,
+		\bandf, b.asMap,
 		\bandq, Pfunc { exprand(1, 100) },
 		\dur, 0.2,
 	)
