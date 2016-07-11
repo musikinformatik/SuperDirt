@@ -378,12 +378,13 @@ DirtOrbit {
 			~octave = 5;
 			~midinote = #{ ~n + (~octave * 12) };
 			~freq = #{ ~midinote.midicps };
-			~legato = 1.0;
+			~delta = 1.0;
 
 			~latency = 0.0;
 			~lag = 0.0;
 			~length = 1.0;
 			~unitDuration = 1.0;
+			~loop = 1.0;
 			~dry = 0.0;
 			~lock = 0; // if set to 1, syncs delay times with cps
 

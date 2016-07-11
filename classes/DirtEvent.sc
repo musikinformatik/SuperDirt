@@ -54,13 +54,9 @@ DirtEvent {
 				~note = ~note ? ~n;
 				~freq = ~freq.value;
 				~unitDuration = ~sustain ?? {
-					if(~legato > 0) {
-						~delta * ~legato
-					} {
-						sustainControl =  synthDesc.controlDict.at(\sustain);
-						if(sustainControl.isNil) { 1.0 } { sustainControl.defaultValue ? 1.0 }; // use definition, if defined.
-					}
-				}
+					sustainControl =  synthDesc.controlDict.at(\sustain);
+					if(sustainControl.isNil) { 1.0 } { sustainControl.defaultValue ? 1.0 }
+				};
 			} {
 				"no synth or sample named '%' could be found.".format(sound).postln;
 			}
@@ -80,7 +76,7 @@ DirtEvent {
 
 	calcRange {
 
-		var sustain, avgSpeed;
+		var sustain, unitDuration, avgSpeed;
 		var speed = ~speed;
 		var accelerate = ~accelerate;
 		var endSpeed;
@@ -93,24 +89,25 @@ DirtEvent {
 
 		if(~unit == \rate) { ~unit = \r }; // API adaption to tidal output
 
-
 		// sustain is the duration of the sample
 		switch(~unit,
 			\r, {
-				sustain = ~unitDuration * ~length / avgSpeed;
+				unitDuration = ~unitDuration * ~length / avgSpeed;
 			},
 			\c, {
-				sustain = ~unitDuration * ~length / avgSpeed;
+				unitDuration = ~unitDuration * ~length / avgSpeed;
 			},
 			\s, {
-				sustain = ~length;
+				unitDuration = ~length;
 			},
 			{ Error("this unit ('%') is not defined".format(~unit)).throw };
 		);
 
+		~loop !? { unitDuration = unitDuration * ~loop.abs };
+		sustain = ~sustain ?? { if(~legato.notNil) { ~delta * ~legato } { unitDuration } };
 
-		~loop !? { sustain = sustain * ~loop.abs };
-
+		// let samples end if needed
+		~buffer !? { sustain = min(unitDuration, sustain) };
 
 		~fadeTime = min(~fadeTime, sustain * 0.19098);
 		~fadeInTime = if(~begin != 0) { ~fadeTime } { 0.0 };
