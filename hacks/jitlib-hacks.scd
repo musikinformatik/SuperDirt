@@ -69,9 +69,10 @@ Event.addEventType(\dirt, {
 Pdef(\x,
 	Pbind(
 		\type, \dirt,
-		\s, Prand([\bd, \hh, \cp, ], inf),
+		\s, Pn(Pshuf([\bd, \hh, \cp, \imp], 5)),
 		\begin, Pn(Pseries(0, 0.002, 20)),
-		\dur, 0.2,
+		\dur, 0.1,
+		\legato, Pwhite(0.01, 0.4)
 	)
 ).play;
 )
@@ -81,10 +82,11 @@ Pdef(\x,
 Pdef(\x,
 	Pbind(
 		\type, \dirt,
-		\s, Prand([\bd, \hh, \cp, ], inf),
+		\s, Pn(Pshuf([\bd, \hh, \cp, \imp], 5)),
 		\begin, Pn(Pseries(0, 0.002, 20)),
-		\bandf, Pfunc { exprand(30, 1000) },
-		\dur, 0.2,
+		\bandf, Pfunc { exprand(130, 10000) },
+		\dur, 0.1,
+		\legato, Pwhite(0.01, 0.4)
 	)
 ).play;
 )
