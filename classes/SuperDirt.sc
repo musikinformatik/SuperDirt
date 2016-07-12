@@ -364,6 +364,7 @@ DirtOrbit {
 			~length = 1.0;
 			~legato = 1.0;
 			~unitDuration = 1.0;
+			~delta = 1.0;
 			~dry = 0.0;
 			~lock = 0; // if set to 1, syncs delay times with cps
 
