@@ -61,6 +61,7 @@ using SuperDirt from sclang patterns
 var d = ~dirt.orbits.first;
 Event.addEventType(\dirt, {
 	~latency = s.latency;
+	~s = ~s ? ~instrument;
 	d.value(currentEnvironment)
 })
 )
@@ -85,6 +86,7 @@ Pdef(\x,
 		\s, Pn(Pshuf([\bd, \hh, \cp, \imp], 5)),
 		\begin, Pn(Pseries(0, 0.002, 20)),
 		\bandf, Pfunc { exprand(130, 10000) },
+		\room, Pseq([0, 0.2, 2], inf),
 		\dur, 0.1,
 		\legato, Pwhite(0.01, 0.4)
 	)
