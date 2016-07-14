@@ -157,7 +157,7 @@ they respond to the existence of a value for one of the tidal parameters
 				release:~release,
 				out: ~out
 		])
-}, { ~attack.notNil and: { ~release.notNil }});
+}, { ~attack.notNil or: { ~release.notNil }});
 
 
 );
