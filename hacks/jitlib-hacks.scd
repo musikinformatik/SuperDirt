@@ -61,6 +61,7 @@ using SuperDirt from sclang patterns
 var d = ~dirt.orbits.first;
 Event.addEventType(\dirt, {
 	~latency = s.latency;
+	~delta = ~dur.value;
 	d.value(currentEnvironment)
 })
 )
