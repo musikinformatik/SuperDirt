@@ -84,8 +84,9 @@ DirtEvent {
 
 		if (~unit == \c) { speed = speed * ~unitDuration * ~cps };
 
-		endSpeed = speed * (1.0 + (accelerate.abs.linexp(0.01, 4, 0.001, 20, nil) * accelerate.sign));
-		if(endSpeed.sign != speed.sign) { endSpeed = 0.0 }; // never turn back
+		// endSpeed = speed * (1.0 + (accelerate.abs.linexp(0.01, 4, 0.001, 20, nil) * accelerate.sign));
+		// if(endSpeed.sign != speed.sign) { endSpeed = 0.0 }; // never turn back
+		endSpeed = speed * (1.0 + accelerate);
 		avgSpeed = speed.abs + endSpeed.abs * 0.5;
 
 		if(~unit == \rate) { ~unit = \r }; // API adaption to tidal output
