@@ -19,7 +19,7 @@ SuperDirt {
 
 	var <port, <senderAddr, <replyAddr, netResponders;
 	var <>fileExtensions = #["wav", "aif", "aiff", "aifc"];
-	var <>verbose = false;
+	var <>verbose = false, <>maxLatency = 42;
 
 	classvar <>maxSampleNumChannels = 2;
 
@@ -196,7 +196,7 @@ SuperDirt {
 			OSCFunc({ |msg, time, tidalAddr|
 				var latency = time - Main.elapsedTime;
 				var event = (), orbit;
-				if(latency > 2) {
+				if(latency > maxLatency) {
 					"The scheduling delay is too long. Your networks clocks may not be in sync".warn;
 					latency = 0.2;
 				};
