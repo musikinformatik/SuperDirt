@@ -145,6 +145,19 @@ SuperDirt {
 		"\n... file reading complete\n\n".post;
 	}
 
+	postSampleInfo {
+		var keys = buffers.keys.asArray.sort;
+		keys.do { |name|
+			var all = buffers[name];
+			"% (%) %-% sec\n".postf(
+				name,
+				buffers[name].size,
+				all.minItem { |x| x.duration }.duration.round(0.1),
+				all.maxItem { |x| x.duration }.duration.round(0.1)
+			)
+		}
+	}
+
 	freeSoundFiles {
 		buffers.do { |x| x.asArray.do { |buf| buf.free } };
 		buffers = ();

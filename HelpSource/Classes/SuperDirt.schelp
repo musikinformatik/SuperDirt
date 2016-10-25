@@ -138,6 +138,8 @@ If set to true, this will keep existing dictionary keys (see above) and add the 
 method::fileExtensions
 A list of valid sound file extensions, which can be extended (default: code::["wav", "aif", "aiff", "aifc"]::). In theory, all libsndfile formats should be supported link::http://www.mega-nerd.com/libsndfile/#Features::.
 
+method::postSampleInfo
+	Post a list of all existing sample names, the number of variants and the range of duration, e.g. code::circus (3) 0.2 - 0.5 sec::.
 
 method::loadSynthDefs
 Load a number of files, usually containing link::Classes/SynthDef::s.
