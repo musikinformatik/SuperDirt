@@ -145,6 +145,19 @@ SuperDirt {
 		"\n... file reading complete\n\n".post;
 	}
 
+	postSampleInfo {
+		var keys = buffers.keys.asArray.sort;
+		keys.do { |name|
+			var all = buffers[name];
+			"% (%) %-% sec\n".postf(
+				name,
+				buffers[name].size,
+				all.minItem { |x| x.duration }.duration.round(0.1),
+				all.maxItem { |x| x.duration }.duration.round(0.1)
+			)
+		}
+	}
+
 	freeSoundFiles {
 		buffers.do { |x| x.asArray.do { |buf| buf.free } };
 		buffers = ();
@@ -223,6 +236,35 @@ SuperDirt {
 		} {
 			"Currently no connection back to tidal".warn;
 		}
+	}
+
+	*postTidalParameters { |synthNames, excluding |
+		var descs, paramString;
+
+		excluding = this.predefinedSynthParameters ++ excluding;
+
+		descs = synthNames.asArray.collect { |name| SynthDescLib.at(name) };
+		descs = descs.reject { |x, i|
+			var notFound = x.isNil;
+			if(notFound) { "no Synth Description with this name found: %".format(synthNames[i]).warn };
+			notFound
+		};
+
+		paramString = descs.collect { |x|
+			x.controls.collect { |y| y.name }
+		}
+		.flat.as(Set).as(Array).sort
+		.reject { |x| excluding.includes(x) }
+		.collect { |x| format("let (%, _) = pF \"%\" (Nothing)", x, x) }
+		.join("\n");
+
+		^"\n-- | parameters for the SynthDefs: %\n%".format(synthNames.join(", "), paramString)
+
+	}
+
+	*predefinedSynthParameters {
+		// not complete, but avoids obvious collisions
+		^#[\pan, \amp, \out, \i_out, \sustain, \gate, \accelerate, \gain, \unit, \cut, \octave, \offset, \attack];
 	}
 
 
@@ -403,6 +445,7 @@ DirtOrbit {
 
 		}
 	}
+
 
 }
 

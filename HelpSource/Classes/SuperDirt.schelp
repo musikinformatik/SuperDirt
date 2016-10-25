@@ -88,6 +88,21 @@ The address to listen to (a link::Classes/String::).
 argument::path
 A path that is used to load some sound files. This is a string, a path pointing to a number of files, which usually contains a wildcard (code::*::). E.g. code::"~/samples/special/*"::
 
+method::postTidalParameters
+Post a string with the tidal language parameter definitions for a number of SynthDefs. Duplicates are removed automatically. Note that these all use code::(Nothing)::, because defaults are defined in the SynthDef default arguments.
+
+Example: code::let (freq, _) = pF "freq" (Nothing)::
+
+code::
+SuperDirt.postTidalParameters([\default, \supercomparator])
+::
+
+argument::synthNames
+A symbol or array of symbols of the SynthDef names for which to generate the tidal code.
+
+argument::excluding
+The parameter names which should be excluded. Names already defined and used internally by SuperDirt will be excluded in additinon tho these.
+
 
 INSTANCEMETHODS::
 
@@ -138,6 +153,8 @@ If set to true, this will keep existing dictionary keys (see above) and add the 
 method::fileExtensions
 A list of valid sound file extensions, which can be extended (default: code::["wav", "aif", "aiff", "aifc"]::). In theory, all libsndfile formats should be supported link::http://www.mega-nerd.com/libsndfile/#Features::.
 
+method::postSampleInfo
+	Post a list of all existing sample names, the number of variants and the range of duration, e.g. code::circus (3) 0.2 - 0.5 sec::.
 
 method::loadSynthDefs
 Load a number of files, usually containing link::Classes/SynthDef::s.
