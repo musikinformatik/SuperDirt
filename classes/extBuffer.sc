@@ -1,3 +1,10 @@
+
+DirtBuffer : Buffer {
+	var <>onset = 0;
+}
+
+
+
 + Buffer {
 
 	/*

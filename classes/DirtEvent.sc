@@ -46,7 +46,7 @@ DirtEvent {
 			~instrument = format("dirt_sample_%_%", buffer.numChannels, ~numChannels);
 			~buffer = buffer.bufnum;
 			~unitDuration = buffer.duration;
-
+			~onset = buffer.onset.value;
 		} {
 			synthDesc = SynthDescLib.at(sound);
 			if(synthDesc.notNil) {
@@ -154,7 +154,7 @@ DirtEvent {
 
 	playSynths {
 		var diverted, server = ~server;
-		var latency = ~latency + ~lag + (~offset * ~speed);
+		var latency = ~latency + ~lag + (~onsetPredelay - ~onset + ~offset * ~speed);
 
 		~amp = pow(~gain, 4) * ~amp;
 		~channel !? { ~pan = ~pan + (~channel / ~numChannels) };

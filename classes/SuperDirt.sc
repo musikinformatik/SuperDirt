@@ -129,7 +129,7 @@ SuperDirt {
 				var buf, ext;
 				ext = filepath.extension.toLower;
 				if(fileExtensions.includesEqual(ext)) {
-					buf = Buffer.readWithInfo(server, filepath.fullPath);
+					buf = DirtBuffer.readWithInfo(server, filepath.fullPath);
 					buffers[name] = buffers[name].add(buf);
 
 				} {
@@ -395,6 +395,8 @@ DirtOrbit {
 
 			~latency = 0.0;
 			~lag = 0.0;
+			~onsetPredelay = 0.5;
+			~onset = 0.0;
 			~length = 1.0;
 			~unitDuration = 1.0;
 			~loop = 1.0;
