@@ -255,10 +255,10 @@ SuperDirt {
 		}
 		.flat.as(Set).as(Array).sort
 		.reject { |x| excluding.includes(x) }
-		.collect { |x| format("let (%, %_p) = pF \"%\" (Nothing)", x, x, x) }
-		.join("\n");
+		.collect { |x| format("(%, %_p) = pF \"%\" (Nothing)", x, x, x) }
+		.join("\n    ");
 
-		^"\n-- | parameters for the SynthDefs: %\n%".format(synthNames.join(", "), paramString)
+		^"\n-- | parameters for the SynthDefs: %\nlet %\n\n".format(synthNames.join(", "), paramString)
 
 	}
 
