@@ -137,7 +137,6 @@ DirtEvent {
 				in: orbit.synthBus, // read from synth bus, which is reused
 				out: orbit.dryBus, // write to orbital dry bus
 				amp: ~amp,
-				cutGroup: ~cut.abs, // ignore negatives here!
 				sample: ~hash, // required for the cutgroup mechanism
 				sustain: ~sustain, // after sustain, free all synths and group
 				fadeInTime: ~fadeInTime, // fade in
@@ -146,17 +145,19 @@ DirtEvent {
 		)
 	}
 
-	prepareSynthGroup {
+	prepareSynthGroup { |outerGroup|
 		~synthGroup = ~server.nextNodeID;
-		~server.sendMsg(\g_new, ~synthGroup, 1, orbit.group);
+		~server.sendMsg(\g_new, ~synthGroup, 1, outerGroup ? orbit.group);
 	}
 
 	playSynths {
 		var diverted, server = ~server;
 		var latency = ~latency + ~lag + (~offset * ~speed);
+		var outerGroup;
 
 		~amp = pow(~gain, 4) * ~amp;
 		~channel !? { ~pan = ~pan + (~channel / ~numChannels) };
+		outerGroup = if(~cut != 0) { orbit.getCutGroup(~cut) } { orbit.group };
 
 		server.makeBundle(latency, { // use this to build a bundle
 
@@ -165,10 +166,10 @@ DirtEvent {
 			orbit.globalEffects.do { |x| x.set(currentEnvironment) };
 
 			if(~cut != 0) {
-				server.sendMsg(\n_set, orbit.group, \gateCutGroup, ~cut, \gateSample, ~hash);
+				server.sendMsg(\n_set, outerGroup, \gateCutGroup, ~cut, \gateSample, ~hash);
 			};
 
-			this.prepareSynthGroup;
+			this.prepareSynthGroup(outerGroup);
 			modules.do(_.value(this));
 			this.sendGateSynth; // this one needs to be last
 

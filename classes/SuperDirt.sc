@@ -297,7 +297,7 @@ DirtOrbit {
 
 	var <dirt, <server, <outBus;
 	var <synthBus, <globalEffectBus, <dryBus;
-	var <group, <globalEffects;
+	var <group, <globalEffects, <cutGroups;
 	var <>minSustain;
 
 
@@ -313,6 +313,7 @@ DirtOrbit {
 			^this
 		};
 		group = server.nextPermNodeID;
+		cutGroups = IdentityDictionary.new;
 		synthBus = Bus.audio(server, dirt.numChannels);
 		dryBus = Bus.audio(server, dirt.numChannels);
 		globalEffectBus = Bus.audio(server, dirt.numChannels);
@@ -401,6 +402,16 @@ DirtOrbit {
 		server.freePermNodeID(group);
 		synthBus.free;
 		globalEffectBus.free;
+	}
+
+	getCutGroup { |id|
+		var cutGroup = cutGroups.at(id);
+		if(cutGroup.isPlaying.not) {
+			cutGroup = Group(group, 'addToHead');
+			cutGroup.register(true);
+			cutGroups.put(id, cutGroup);
+		}
+		^cutGroup.nodeID
 	}
 
 	makeDefaultParentEvent {
