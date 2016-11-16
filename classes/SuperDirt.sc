@@ -323,6 +323,7 @@ DirtOrbit {
 		this.makeDefaultParentEvent;
 
 		ServerTree.add(this, server); // synth node tree init
+		CmdPeriod.add(this);
 	}
 
 	initDefaultGlobalEffects {
@@ -340,6 +341,10 @@ DirtOrbit {
 	doOnServerTree {
 		// on node tree init:
 		this.initNodeTree
+	}
+
+	cmdPeriod {
+		cutGroups.clear
 	}
 
 	initNodeTree {
@@ -406,13 +411,14 @@ DirtOrbit {
 
 	getCutGroup { |id|
 		var cutGroup = cutGroups.at(id);
-		if(cutGroup.isPlaying.not) {
-			cutGroup = Group(group, 'addToHead');
-			cutGroup.register(true);
+		if(cutGroup.isNil) {
+			cutGroup = server.nextNodeID;
+			server.sendMsg("/g_new", cutGroup, 1, group);
 			cutGroups.put(id, cutGroup);
 		}
-		^cutGroup.nodeID
+		^cutGroup
 	}
+
 
 	makeDefaultParentEvent {
 		defaultParentEvent = Event.make {
