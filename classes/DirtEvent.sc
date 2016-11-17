@@ -53,9 +53,9 @@ DirtEvent {
 				~instrument = sound;
 				~note = ~note ? ~n;
 				~freq = ~freq.value;
-				~unitDuration = 1.0;
+				~unitDuration = ~delta;
 				//sustainControl =  synthDesc.controlDict.at(\sustain);
-				//if(sustainControl.isNil) { 1.0 } { sustainControl.defaultValue ? 1.0 }
+				//if(sustainControl.isNil) { ~delta } { sustainControl.defaultValue ? ~delta }
 
 			} {
 				"no synth or sample named '%' could be found.".format(sound).postln;
@@ -103,7 +103,7 @@ DirtEvent {
 		);
 
 		~loop !? { unitDuration = unitDuration * ~loop.abs };
-		sustain = ~sustain ?? { if(~legato.notNil) { ~delta * ~legato } { unitDuration } };
+		sustain = ~sustain ?? { if(~legato.notNil) { ~delta * ~legato * unitDuration } { unitDuration } };
 
 		// let samples end if needed
 		~buffer !? { sustain = min(unitDuration, sustain) };
