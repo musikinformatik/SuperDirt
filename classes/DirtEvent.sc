@@ -166,7 +166,7 @@ DirtEvent {
 			orbit.globalEffects.do { |x| x.set(currentEnvironment) };
 
 			if(cutGroup.notNil) {
-				server.sendMsg(\n_set, cutGroup, \gateCutGroup, ~cut, \gateSample, ~hash);
+				server.sendMsg(\n_set, cutGroup, \gateSample, ~hash, \cutAll, if(~cut > 0) { 1 } { 0 });
 			};
 
 			this.prepareSynthGroup(cutGroup);

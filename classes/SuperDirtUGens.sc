@@ -71,18 +71,10 @@ DirtGateCutGroup {
 	*ar { |releaseTime = 0.02, doneAction = 2|
 		// this is necessary because the message "==" tests for objects, not for signals
 		var same = { |a, b| BinaryOpUGen('==', a, b) };
+		var or = { |a, b| (a + b) > 0 };
 		var sameSample = same.(\sample.ir(0), \gateSample.kr(0));
-		var which = \gateCutGroup.kr(0).sign; // -1, 0, 1
-		var free = Select.kr(which + 1, // 0, 1, 2
-			[
-				sameSample,
-				0.0, // default cut group 0 doesn't ever cut
-				1.0
-			]
-		);
-
+		var free = or.(\cutAll.kr(0), sameSample);
 		^EnvGen.kr(Env.cutoff(releaseTime), (1 - free), doneAction:doneAction);
-
 	}
 }
 
