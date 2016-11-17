@@ -169,7 +169,7 @@ DirtEvent {
 				server.sendMsg(\n_set, outerGroup, \gateCutGroup, ~cut, \gateSample, ~hash);
 			};
 
-			this.prepareSynthGroup(outerGroup ? orbit.group);
+			this.prepareSynthGroup(outerGroup);
 			modules.do(_.value(this));
 			this.sendGateSynth; // this one needs to be last
 
