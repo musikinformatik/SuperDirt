@@ -157,7 +157,7 @@ DirtEvent {
 
 		~amp = pow(~gain, 4) * ~amp;
 		~channel !? { ~pan = ~pan + (~channel / ~numChannels) };
-		outerGroup = if(~cut != 0) { orbit.getCutGroup(~cut) } { orbit.group };
+		if(~cut != 0) { outerGroup = orbit.getCutGroup(~cut) };
 
 		server.makeBundle(latency, { // use this to build a bundle
 
@@ -165,11 +165,11 @@ DirtEvent {
 
 			orbit.globalEffects.do { |x| x.set(currentEnvironment) };
 
-			if(~cut != 0) {
+			if(outerGroup.notNil) {
 				server.sendMsg(\n_set, outerGroup, \gateCutGroup, ~cut, \gateSample, ~hash);
 			};
 
-			this.prepareSynthGroup(outerGroup);
+			this.prepareSynthGroup(outerGroup ? orbit.group);
 			modules.do(_.value(this));
 			this.sendGateSynth; // this one needs to be last
 
