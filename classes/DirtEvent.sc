@@ -103,7 +103,7 @@ DirtEvent {
 		);
 
 		~loop !? { unitDuration = unitDuration * ~loop.abs };
-		sustain = ~sustain ?? { if(~legato.notNil) { ~delta * ~legato * unitDuration } { unitDuration } };
+		sustain = ~sustain ?? { if(~legato.notNil) { ~delta * ~legato } { unitDuration } };
 
 		// let samples end if needed
 		~buffer !? { sustain = min(unitDuration, sustain) };
