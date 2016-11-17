@@ -407,6 +407,7 @@ DirtOrbit {
 		server.freePermNodeID(group);
 		synthBus.free;
 		globalEffectBus.free;
+		cutGroups.clear;
 	}
 
 	getCutGroup { |id|
