@@ -1,0 +1,8 @@
+CLASS::DirtEvent
+summary::A representation of a sound event in SuperDirt
+categories::Live Coding
+
+related::Classes/DirtOrbit, Classes/SuperDirt
+
+DESCRIPTION::
+
