@@ -92,7 +92,7 @@ they respond to the existence of a value for one of the tidal parameters
 				out: ~out
 		])
 
-}, { ~shape.notNil and: { ~shape != 0 } });
+}, { ~shape.notNil });
 
 ~dirt.addModule('hpf',
 	{ |dirtEvent|
@@ -103,7 +103,7 @@ they respond to the existence of a value for one of the tidal parameters
 				out: ~out
 		])
 
-}, { ~hcutoff.notNil and: { ~hcutoff != 0 } });
+}, { ~hcutoff.notNil });
 
 ~dirt.addModule('bpf',
 	{ |dirtEvent|
@@ -114,7 +114,7 @@ they respond to the existence of a value for one of the tidal parameters
 				out: ~out
 		])
 
-}, { ~bandf.notNil and: { ~bandf != 0 } });
+}, { ~bandf.notNil });
 
 ~dirt.addModule('crush',
 	{ |dirtEvent|
@@ -124,7 +124,7 @@ they respond to the existence of a value for one of the tidal parameters
 				out: ~out
 		])
 
-}, { ~crush.notNil and: { ~crush != 0 } });
+}, { ~crush.notNil });
 
 
 ~dirt.addModule('coarse',
