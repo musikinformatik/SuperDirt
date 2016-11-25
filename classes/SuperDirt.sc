@@ -221,7 +221,7 @@ SuperDirt {
 				if(wrapOrbits) {
 					DirtEvent(orbits @@ index, modules, event).play
 				} {
-					if(index < orbits.size and: { index > 0 }) {
+					if(index < orbits.size and: { index >= 0 }) {
 						DirtEvent(orbits @ index, modules, event).play
 					} {
 						"SuperDirt: No orbit at this index (%)".format(index).warn
