@@ -84,7 +84,8 @@ DirtEvent {
 		if (~unit == \c) { speed = speed * ~unitDuration * ~cps };
 
 		if(accelerate.isNil) {
-			avgSpeed = endSpeed = speed;
+			endSpeed = speed;
+			avgSpeed = speed.abs;
 		} {
 			endSpeed = speed * (1.0 + accelerate);
 			avgSpeed = speed.abs + endSpeed.abs * 0.5;
