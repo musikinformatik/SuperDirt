@@ -411,7 +411,7 @@
 // impulse noise with a fadein/out
 (SynthDef(\superstatic, {|out, sustain=1, pan, freq |
 	var env = EnvGen.ar(Env.sine(1, 0.5), timeScale:sustain, doneAction:2);
-	var sound = Dust.ar(freq*10) > 0.5;
-	sound = Pulse.ar(freq*sound,0.5,0.5);
+	var sound = Dust.ar(freq*40) > 0.5;
+	sound = Pulse.ar(freq*sound*4,0.5,0.5);
 	OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env))
 }).add);
