@@ -348,8 +348,10 @@
 // vibraphone simulation, adapted with some help from Kevin Larke's thesis Real Time Vibraphone Pitch and Timbre Classification
 // "decay" - use larger values to damp higher harmonics (default 0)
 // "velocity" - higher velocity will brighten the sound a bit (default 1)
+// "accelerate" - for a linear pitch bend
 // "modamp" - amplitude of the tremolo (0-2 is OK, default 1)
 // "modfreq" - frequency of the tremolo (default 7)
+// "detune" - adjusts a high harmonic to give the sound a different character
 (SynthDef(\supervibe, {|out, sustain=1, decay=0, pan, freq, accelerate=0, velocity=1,
 	modamp=1, modfreq=7.0, detune=0 |
 	// most envelope shaping is done with XLines later, this envelope is just to clean up overall
@@ -369,16 +371,17 @@
 // Hoover, adapted from Wouter Snoei's
 // http://superdupercollider.blogspot.com/2009/06/more-dominator-deconstruction.html
 // "slide" is used for the amount of initial pitch glide, positive slides up in pitch, negative slides down
-// TODO - make low notes less awful - with the rands this sounds different every time you evaulate it?
+// also responds to "decay" for a different envelope shape and "accelerate" for constant pitch glide
+// uncomment the two lines with "rrand" for a different every time you evaulate it
 (SynthDef(\superhoover, {|out, sustain=1, decay=0, pan, freq, accelerate=0, slide=0|
 	var env = EnvGen.ar(Env.pairs([[0,0],[0.03,1],[0.2,1-decay],[0.95,1-decay],[1,0]], -1), timeScale:sustain, doneAction:2);
 	var pwm, mix, fglide;
 	fglide = EnvGen.ar(Env.perc(0.05, 0.3, 1, \lin), timeScale:sustain) * (-1*slide/4) + 1;
 	freq = freq * fglide * Line.kr(1, 1+accelerate, sustain);
-	// freq = SinOsc.kr( {2.9 rrand: 3.1}!3, {2pi.rand}!3 ).exprange(0.995, 1.005) * freq;
 	freq = SinOsc.kr( [2.94, 3.0, 3.07], [3.0, 5.5, 1.2] ).exprange(0.995, 1.005) * freq;
-	// pwm = SinOsc.kr( {1.0 rrand: 5.0}!3 ).range(1/8, 7/8);
+	// freq = SinOsc.kr( {2.9 rrand: 3.1}!3, {2pi.rand}!3 ).exprange(0.995, 1.005) * freq;
 	pwm = SinOsc.kr( [1.3, 2.9, 4.4] ).range(1/8, 7/8);
+	// pwm = SinOsc.kr( {1.0 rrand: 5.0}!3 ).range(1/8, 7/8);
 	mix = ([1,0.9,1.1]*LFSaw.ar(freq*[0.25, 0.5, 1], [1, 1.01, 1.02]).range(0,1) * (1 - LFPulse.ar(freq*[0.5,1,2], [0,0,0], pwm))).sum * 0.15;
 	mix = mix + LFPar.ar(freq * 0.25, 0, 0.1).sum;
 	mix = BPeakEQ.ar(mix, 6000, 1, 3);
@@ -390,8 +393,9 @@
 
 
 // phased saws
+// "decay" and "accelerate" used as in some synths above, for envelope shaping and pitch bend, respectively
 // "slide" here is how fast it moves through the phase (default 1)
-// "detune" defaults to 1
+// "detune" is for oscillator detuning and defaults to 1
 (SynthDef(\superzow, {|out, sustain=1, pan, accelerate, freq, decay=0, slide=1, detune=1 |
 	var env = EnvGen.ar(Env.pairs([[0,0],[0.07,1],[0.2,1-decay],[0.95,1-decay],[1,0]], -1), timeScale:sustain, doneAction:2);
 	var basefreq = freq * Line.kr(1, 1+accelerate, sustain);
