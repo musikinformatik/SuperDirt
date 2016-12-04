@@ -297,13 +297,15 @@
 
 // tuning fork
 // from my own experimentation and from "On the acoustics of tuning forks", Rossing Russell and Brown
-(SynthDef(\superfork, {|out, sustain=1, pan, freq, accelerate=0|
+(
+SynthDef(\superfork, {|out, sustain=1, pan, freq, accelerate=0|
 	var sound, env;
 	freq = freq * Line.kr(1, 1+accelerate, sustain);
 	env = EnvGen.ar(Env.linen(0.001, 0.998, 0.001), timeScale:sustain, doneAction:2);
 	sound = 0.2 * SinOsc.ar([1.0, 6.1, 16.7, 20.1] * freq) * XLine.ar([0.3, 1, 1.3, 2], [1e-4, 1e-7, 1e-6, 1e-7], sustain*[4,4,0.5,0.333]);
 	OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
-}).add);
+}).add
+);
 
 
 // hammond B3 sim
@@ -314,7 +316,8 @@
 // vintage Hammonds had percf as 2 or 3 (switchable), two perc levels (maybe roughly 0.7 and 1.2?),
 // and two decay options (roughly 0 and maybe 1ish?)
 // "vibrato", "vrate", "perc", "percf" are all new params you'll need to define in Tidal if you want to change them
-(SynthDef(\superhammond, {|out, sustain=1, decay=0, pan, freq, vibrato=0.5, vrate=7,
+(
+SynthDef(\superhammond, {|out, sustain=1, decay=0, pan, freq, vibrato=0.5, vrate=7,
 	voice=0, perc=0, percf=2 |
 	var freqs, amps, sound, click, env, ampscale, attrel;
 	attrel = (sustain/2).clip(0,0.005);
@@ -323,7 +326,7 @@
 	freqs = 2**(freqs < 63) * freqs; // fold up bottom register
 	freqs = freqs / (2**(freqs > 6000)); // fold down high harmonics
 	freqs = freqs / (2**(freqs > 6000)); // do it again for the really high notes
-	amps = SelectX.kr(voice, [
+	amps = SelectX.kr(voice, #[
 		[1, 4, 5, 4, 3, 1, 0, 0, 0], // 0: bass violin 16'
 		[0, 0, 8, 0, 4, 0, 0, 0, 0], // 1: tibia 8'
 		[0, 7, 8, 1, 2, 0, 0, 0, 0], // 2: bassoon 8'
@@ -342,7 +345,8 @@
 	sound = perc * 0.5 * SinOsc.ar(freq*percf, 2pi.rand) * XLine.ar(1,1e-6,2*decay+1) + sound;
 	sound = sound + BAllPass.ar(sound, 1000*LFTri.kr(vrate,0,vibrato/2,1));
 	OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
-}).add);
+}).add
+);
 
 
 // vibraphone simulation, adapted with some help from Kevin Larke's thesis Real Time Vibraphone Pitch and Timbre Classification
@@ -352,7 +356,8 @@
 // "modamp" - amplitude of the tremolo (0-2 is OK, default 1)
 // "modfreq" - frequency of the tremolo (default 7)
 // "detune" - adjusts a high harmonic to give the sound a different character
-(SynthDef(\supervibe, {|out, sustain=1, decay=0, pan, freq, accelerate=0, velocity=1,
+(
+SynthDef(\supervibe, {|out, sustain=1, decay=0, pan, freq, accelerate=0, velocity=1,
 	modamp=1, modfreq=7.0, detune=0 |
 	// most envelope shaping is done with XLines later, this envelope is just to clean up overall
 	var env = EnvGen.ar(Env.linen(0.001, 0.998, 0.001), timeScale:sustain, doneAction:2);
@@ -365,7 +370,8 @@
 	sound = XLine.ar(1e-6, 1, 1/freqs) * XLine.ar(1, 1e-6, decays*4*sustain) * sound * mod; // main attacks and decays
 	sound = (XLine.ar(0.3*(velocity+1e-6),1e-6,0.02) * SinOsc.ar(hifreqs)).sum + sound.sum; // hi frequency onset
 	OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
-}).add);
+}).add
+);
 
 
 // Hoover, adapted from Wouter Snoei's
@@ -373,7 +379,8 @@
 // "slide" is used for the amount of initial pitch glide, positive slides up in pitch, negative slides down
 // also responds to "decay" for a different envelope shape and "accelerate" for constant pitch glide
 // uncomment the two lines with "rrand" for a different every time you evaulate it
-(SynthDef(\superhoover, {|out, sustain=1, decay=0, pan, freq, accelerate=0, slide=0|
+(
+SynthDef(\superhoover, {|out, sustain=1, decay=0, pan, freq, accelerate=0, slide=0|
 	var env = EnvGen.ar(Env.pairs([[0,0],[0.03,1],[0.2,1-decay],[0.95,1-decay],[1,0]], -1), timeScale:sustain, doneAction:2);
 	var pwm, mix, fglide;
 	fglide = EnvGen.ar(Env.perc(0.05, 0.3, 1, \lin), timeScale:sustain) * (-1*slide/4) + 1;
@@ -389,14 +396,16 @@
 	mix = mix.dup + CombC.ar(mix.dup, 1/200, SinOsc.kr(3, [0.5pi, 1.5pi]).range(1/300, 1/200), 0);
 	mix = 1.5*Balance2.ar(mix[0], mix[1], pan*2-1);
 	OffsetOut.ar(out, DirtPan.ar(mix, ~dirt.numChannels, 0.5, env, {|x| x}));
-}).add);
+}).add
+);
 
 
 // phased saws
 // "decay" and "accelerate" used as in some synths above, for envelope shaping and pitch bend, respectively
 // "slide" here is how fast it moves through the phase (default 1)
 // "detune" is for oscillator detuning and defaults to 1
-(SynthDef(\superzow, {|out, sustain=1, pan, accelerate, freq, decay=0, slide=1, detune=1 |
+(
+SynthDef(\superzow, {|out, sustain=1, pan, accelerate, freq, decay=0, slide=1, detune=1 |
 	var env = EnvGen.ar(Env.pairs([[0,0],[0.07,1],[0.2,1-decay],[0.95,1-decay],[1,0]], -1), timeScale:sustain, doneAction:2);
 	var basefreq = freq * Line.kr(1, 1+accelerate, sustain);
 	var sound = VarSaw.ar(basefreq, 0, Line.ar(0,0.5,sustain*20/slide));
@@ -405,13 +414,16 @@
 	sound = sound - DelayN.ar(sound2,0.2, Line.ar(0,1,5*sustain/slide)/basefreq)
 	  + DelayN.ar(sound3,0.2, Line.ar(0,1,20*sustain/slide)/basefreq);
 	OffsetOut.ar(out, DirtPan.ar(sound/2, ~dirt.numChannels, pan, env));
-}).add);
+}).add
+);
 
 
 // impulse noise with a fadein/out
-(SynthDef(\superstatic, {|out, sustain=1, pan, freq |
+(
+SynthDef(\superstatic, {|out, sustain=1, pan, freq |
 	var env = EnvGen.ar(Env.sine(1, 0.5), timeScale:sustain, doneAction:2);
 	var sound = Dust.ar(freq*40) > 0.5;
 	sound = Pulse.ar(freq*sound*4,0.5,0.5);
 	OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env))
-}).add);
+}).add
+);
