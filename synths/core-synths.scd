@@ -254,6 +254,29 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 	}, [\ir, \ir]).add;
 
+
+	// "leslie" controls dry/wet
+	// "lrate" is the modulation rate (typical vintage rates would be 6.7 for "fast", 0.7 for "slow")
+	// "lsize" is the physical size of the cabinet in meters, this mostly affects the Doppler amount (pitch warble)
+	SynthDef("dirt_leslie" ++ numChannels, { |dryBus, effectBus, gate = 1, leslie=0, lrate=6.7, lsize=0.3|
+		var in, distance, throb, sound1, sound2, bal1, bal2;
+		in = In.ar(dryBus, numChannels);
+		ReplaceOut.ar(dryBus, in*(1-leslie));
+		distance = SinOsc.ar(Lag.kr(lrate,10), 0).range(0, lsize);
+		throb = SinOsc.ar(Lag.kr(lrate*0.8, 20), 0).range(0,lsize*1.3);
+		bal1 = SinOsc.kr(Lag.kr(lrate*0.8, 4), pi/2).range(-0.2,0.2);
+		bal2 = SinOsc.kr(Lag.kr(lrate,2), pi/2).range(-0.4, 0.4);
+		sound2 = HPF.ar(in, 800);
+		sound1 = in - sound2;
+		sound1 = leslie * (1.0 - throb) * sound1;
+		sound1 = Balance2.ar(sound1[0], sound1[1], bal1);
+		sound2 = DelayC.ar(sound2, 1, distance / 343);
+		sound2 = leslie * (1.0 - distance) * sound2;
+		sound2 = Balance2.ar(sound2[0], sound2[1], bal2);
+		Out.ar(effectBus, 1.2*(sound1+sound2));
+	}, [\ir, \ir]).add;
+
+
 	"---- core synth defs loaded ----".postln;
 
 }.value
