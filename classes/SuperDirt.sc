@@ -106,6 +106,14 @@ SuperDirt {
 		^allbufs.wrapAt(index.asInteger)
 	}
 
+	loadOnly { |names, path, appendToExisting = false|
+		path = path ?? { "../../Dirt-Samples/".resolveRelative };
+		names.do { |name|
+			this.loadSoundFileFolder(path +/+ name, name, appendToExisting)
+		};
+		"\n... file reading complete\n\n".post;
+	}
+
 	loadSoundFiles { |path, appendToExisting = false, namingFunction = (_.basename)|
 		var folderPaths;
 
@@ -123,7 +131,11 @@ SuperDirt {
 	}
 
 	loadSoundFileFolder { |folderPath, name, appendToExisting = false|
-		var files = (folderPath.standardizePath +/+ "*").pathMatch;
+		var files;
+		if(File.exists(folderPath).not) {
+			"\ncouldn't load '%' files, path doesn't exist: %.".format(name, folderPath).postln; ^this
+		};
+		files = (folderPath.standardizePath +/+ "*").pathMatch;
 		name = name.asSymbol;
 
 		if(server.serverRunning.not) {
