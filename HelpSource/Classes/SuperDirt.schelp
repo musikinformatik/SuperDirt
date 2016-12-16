@@ -135,7 +135,7 @@ Read a number of sound file from disk and load them into the server memory. The 
 note::
 The naming scheme works as follows:
 
-Given a path like: code::"path/to/my/basedrum/*"::
+Given a path like: code::"path/to/my/basedrum/*":: (for the glob syntax, see link::https://en.wikipedia.org/wiki/Glob_%28programming%29::).
 
 The dictionary will contain under the key code::'basedrum':: an link::Classes/Array:: of all the link::Classes/Buffer::s from the samples found in the folder.
 
@@ -148,6 +148,9 @@ A path that is used to load some sound files. This is a string, a path pointing 
 
 argument::appendToExisting
 If set to true, this will keep existing dictionary keys (see above) and add the new samples to any existing ones. This allows you to load different folders with the same name. Otherwise it will only keep those existing names which are not found in the new set of samples.
+
+argument::namingFunction
+	Provide a function to generate your own instrument names, which you call from tidal. The function is passed the folder path (a link::Classes/String::). By default, this function is code::_.basename::, which returns the folder name.
 
 
 method::fileExtensions
