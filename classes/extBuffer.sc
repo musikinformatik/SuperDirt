@@ -14,4 +14,9 @@
 		^buffer.allocRead(path)
 	}
 
+	// in bytes
+	memoryFootprint {
+		^numFrames * numChannels * 4
+	}
+
 }

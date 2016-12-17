@@ -115,7 +115,7 @@ SuperDirt {
 	}
 
 	loadSoundFiles { |paths, appendToExisting = false, namingFunction = (_.basename)|
-		var folderPaths;
+		var folderPaths, memory;
 
 		paths = paths ?? { "../../Dirt-Samples/*".resolveRelative };
 		folderPaths = if(paths.isString) { paths.pathMatch } { paths.asArray };
@@ -123,11 +123,12 @@ SuperDirt {
 		if(folderPaths.isEmpty) {
 			"no folders found in paths: '%'".format(paths).warn; ^this
 		};
+		memory = this.memoryFootprint;
 		"\nloading % sample bank%:\n".postf(folderPaths.size, if(folderPaths.size > 1) { "s" } { "" });
 		folderPaths.do { |folderPath|
 			this.loadSoundFileFolder(folderPath, namingFunction.(folderPath), appendToExisting)
 		};
-		"\n... file reading complete\n\n".post;
+		"\n... file reading complete. Required % MB of memory.\n\n".format(this.memoryFootprint - memory div: 1e6).post;
 	}
 
 	loadSoundFileFolder { |folderPath, name, appendToExisting = false|
@@ -166,15 +167,21 @@ SuperDirt {
 
 	postSampleInfo {
 		var keys = buffers.keys.asArray.sort;
+		"\nCurrently there are % sample banks in memory (% MB):\n\nName (number of variants), range of durations (memory)\n".format(buffers.keys.size, this.memoryFootprint div: 1e6).postln;
 		keys.do { |name|
 			var all = buffers[name];
-			"% (%) %-% sec\n".postf(
+			"% (%)   % - % sec (% kB)\n".postf(
 				name,
 				buffers[name].size,
-				all.minItem { |x| x.duration }.duration.round(0.1),
-				all.maxItem { |x| x.duration }.duration.round(0.1)
+				all.minItem { |x| x.duration }.duration.round(0.01),
+				all.maxItem { |x| x.duration }.duration.round(0.01),
+				all.sum { |x| x.memoryFootprint } div: 1e3
 			)
 		}
+	}
+
+	memoryFootprint {
+		^buffers.sum { |array| array.sum { |buffer| buffer.memoryFootprint.asFloat } } // in bytes
 	}
 
 	freeSoundFiles {
