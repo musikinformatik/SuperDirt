@@ -114,14 +114,14 @@ SuperDirt {
 		"\n... file reading complete\n\n".post;
 	}
 
-	loadSoundFiles { |path, appendToExisting = false, namingFunction = (_.basename)|
+	loadSoundFiles { |paths, appendToExisting = false, namingFunction = (_.basename)|
 		var folderPaths;
 
-		path = path ?? { "../../Dirt-Samples/*".resolveRelative };
-		folderPaths = if(path.isString) { path.pathMatch } { path.asArray };
+		paths = paths ?? { "../../Dirt-Samples/*".resolveRelative };
+		folderPaths = if(paths.isString) { paths.pathMatch } { paths.asArray };
 		folderPaths = folderPaths.select(_.endsWith("/"));
 		if(folderPaths.isEmpty) {
-			"no folders found in path: '%'".format(path).warn; ^this
+			"no folders found in paths: '%'".format(paths).warn; ^this
 		};
 		"\nloading % sample bank%:\n".postf(folderPaths.size, if(folderPaths.size > 1) { "s" } { "" });
 		folderPaths.do { |folderPath|
