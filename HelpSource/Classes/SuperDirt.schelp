@@ -193,6 +193,16 @@ See: link::#-loadSoundFiles::
 	::
 
 
+method::freeSoundFiles
+Remove sound files and free their memory.
+
+argument::names
+An array of sample instrument names which to remove. If not specify, remove all.
+	code::
+	~dirt.postSampleInfo;
+	~dirt.freeSoundFiles([\bubbles]);
+	~dirt.postSampleInfo; // now, the bubbles should be gone.
+	::
 
 
 method::fileExtensions

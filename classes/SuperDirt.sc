@@ -167,7 +167,11 @@ SuperDirt {
 
 	postSampleInfo {
 		var keys = buffers.keys.asArray.sort;
-		"\nCurrently there are % sample banks in memory (% MB):\n\nName (number of variants), range of durations (memory)\n".format(buffers.keys.size, this.memoryFootprint div: 1e6).postln;
+		if(buffers.isEmpty) {
+			"\nCurrently there are no samples loaded.".postln;
+		} {
+		"\nCurrently there are % sample banks in memory (% MB):\n\nName (number of variants), range of durations (memory)\n".format(buffers.size, this.memoryFootprint div: 1e6).postln;
+		};
 		keys.do { |name|
 			var all = buffers[name];
 			"% (%)   % - % sec (% kB)\n".postf(
@@ -184,9 +188,11 @@ SuperDirt {
 		^buffers.sum { |array| array.sum { |buffer| buffer.memoryFootprint.asFloat } } // in bytes
 	}
 
-	freeSoundFiles {
-		buffers.do { |x| x.asArray.do { |buf| buf.free } };
-		buffers = ();
+	freeSoundFiles { |names|
+		names = names ?? { buffers.keys };
+		names.do { |name|
+			buffers.removeAt(name).asArray.do { |buf| buf.free }
+		};
 	}
 
 	// SynthDefs are signal processing graph definitions
