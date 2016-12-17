@@ -132,10 +132,14 @@ w.view.layout = HLayout(*~dirt.orbits.collect { |x|
 method::loadSoundFiles
 Read a number of sound file from disk and load them into the server memory. The buffer information is also kept in link::#buffers::, a dictionary. You can do this any time while running, and incrementally add more files.
 
+	code::
+	~dirt.loadSoundFiles("<your sound file path>");
+	::
+
 note::
 The naming scheme works as follows:
 
-Given a path like: code::"path/to/my/basedrum/*":: (for the glob syntax, see link::https://en.wikipedia.org/wiki/Glob_%28programming%29::).
+Given a path like: code::"path/to/my/basedrum/*"::.
 
 The dictionary will contain under the key code::'basedrum':: an link::Classes/Array:: of all the link::Classes/Buffer::s from the samples found in the folder.
 
@@ -143,14 +147,52 @@ From tidal, they can be accessed e.g. by code::d1 $ sound $ "basedrum:1 basedrum
 
 ::
 
-argument::path
-A path that is used to load some sound files. This is a string, a path pointing to a number of files, which usually contains a wildcard (code::*::). E.g. code::"~/samples/special/*"::
+argument::paths
+Specifies paths for sound files. This is a string, a path pointing to a number of files, which usually contains a wildcard (code::*::). E.g. code::"~/samples/special/*"::. For the glob syntax, see link::https://en.wikipedia.org/wiki/Glob_%28programming%29::.
+
+	Alternatively, you can pass in an link::Classes/Array:: of full paths, e.g. code::["~/samples/drums/", "~/samples/cats/"]::.
 
 argument::appendToExisting
 If set to true, this will keep existing dictionary keys (see above) and add the new samples to any existing ones. This allows you to load different folders with the same name. Otherwise it will only keep those existing names which are not found in the new set of samples.
 
 argument::namingFunction
 	Provide a function to generate your own instrument names, which you call from tidal. The function is passed the folder path (a link::Classes/String::). By default, this function is code::_.basename::, which returns the folder name.
+
+
+
+method::loadSoundFileFolder
+Read a single folder of sound files to disk. You can do this any time while running, and incrementally add more files.
+
+argument::folderPath
+The path for the folder.
+
+argument::name
+The name of the sample instrument as it will be used in tidal
+
+argument::appendToExisting
+See: link::#-loadSoundFiles::
+
+	code::
+	~dirt.loadSoundFileFolder("<some path to a folder>", "teletubbies");
+	::
+
+method::loadOnly
+Read a number of named folders. You can do this any time while running, and incrementally add more files.
+
+argument::names
+An array of symbols or strings. These are  folder names and at the same time instrument names for tidal.
+
+argument::path
+The path in which the folders can be found.
+
+argument::appendToExisting
+See: link::#-loadSoundFiles::
+
+	code::
+	~dirt.loadOnly([\bd, \moog, \hh, \cp]);
+	::
+
+
 
 
 method::fileExtensions
