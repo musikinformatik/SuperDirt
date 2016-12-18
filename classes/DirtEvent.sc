@@ -58,7 +58,7 @@ DirtEvent {
 				//if(sustainControl.isNil) { ~delta } { sustainControl.defaultValue ? ~delta }
 
 			} {
-				"no synth or sample named '%' could be found.".format(sound).postln;
+				~notFound.value
 			}
 		}
 	}

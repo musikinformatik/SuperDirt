@@ -493,6 +493,10 @@ DirtOrbit {
 			~numChannels = dirt.numChannels;
 			~server = server;
 
+			~notFound = {
+					"no synth or sample named '%' could be found.".format(~s).postln;
+			};
+
 		}
 	}
 
