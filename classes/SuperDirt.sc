@@ -189,10 +189,24 @@ SuperDirt {
 	}
 
 	freeSoundFiles { |names|
-		names = names ?? { buffers.keys };
 		names.do { |name|
-			buffers.removeAt(name).asArray.do { |buf| buf.free }
+			buffers.removeAt(name).asArray.do { |buf|
+				if(this.findBuffer(buf).notNil) { buf.free } // don't free aliases
+			}
+		}
+	}
+
+	freeAllSoundFiles {
+		buffers.do { |x| x.asArray.do { |buf| buf.free } };
+		buffers = ();
+	}
+
+	findBuffer { |buf|
+		buffers.keysValuesDo { |key, val|
+			var index = val.indexOf(buf);
+			if(index.notNil) { ^[key, index] };
 		};
+		^nil
 	}
 
 	// SynthDefs are signal processing graph definitions
