@@ -161,10 +161,30 @@ argument::namingFunction
 
 
 method::loadSoundFileFolder
-Read a single folder of sound files to disk. You can do this any time while running, and incrementally add more files.
+	Read a single folder of sound files and add all of them under code::'name':: to the sample instruments. You can do this any time while running, and incrementally add more files.
 
 argument::folderPath
 The path for the folder.
+
+argument::name
+	The name of the sample instrument as it will be used in tidal. Subsequent sound files can be addressed by passing the "n" parameter, e.g. code::"bd:1 bd:2".
+
+argument::appendToExisting
+See: link::#-loadSoundFiles::
+
+	code::
+	~dirt.loadSoundFileFolder(Platform.resourceDir +/+ "sounds/", \teletubbies); // play them in tidal with "teletubbies"
+
+	// play from sclang
+	(type: \dirt, dirt: ~dirt, sound: "teletubbies:2", speed: 0.5, n: 0).play;
+	(type: \dirt, dirt: ~dirt, sound: "teletubbies:2", speed: 0.5, n: 1).play; // play from sclang
+	::
+
+method::loadSoundFile
+	Read a single sound file and add it under code::'name':: to the sample instruments. You can do this any time while running, and incrementally add more files.
+
+argument::path
+The path for the file.
 
 argument::name
 The name of the sample instrument as it will be used in tidal
@@ -173,8 +193,12 @@ argument::appendToExisting
 See: link::#-loadSoundFiles::
 
 	code::
-	~dirt.loadSoundFileFolder("<some path to a folder>", "teletubbies");
+	~dirt.loadSoundFile(Platform.resourceDir +/+ "sounds/a11wlk01.wav", \a11); // play them in tidal with "a11"
+	~dirt.buffers[\a11];
+	(type: \dirt, dirt: ~dirt, sound: "a11", speed: 0.5).play; // play from sclang
 	::
+
+
 
 method::loadOnly
 Read a number of named folders. You can do this any time while running, and incrementally add more files.
