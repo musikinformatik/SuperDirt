@@ -21,10 +21,18 @@ SuperDirt {
 	var <>fileExtensions = #["wav", "aif", "aiff", "aifc"];
 	var <>verbose = false, <>maxLatency = 42;
 
-	classvar <>maxSampleNumChannels = 2;
+	classvar <>default, <>maxSampleNumChannels = 2;
 
 	*new { |numChannels = 2, server|
 		^super.newCopyArgs(numChannels, server ? Server.default).init
+	}
+
+	*initClass {
+		Event.addEventType(\dirt, {
+			var dirt = ~dirt ? SuperDirt.default;
+			~latency = ~latency ?? { dirt.server.latency };
+			dirt.orbits.wrapAt(~orbit ? 0).value(currentEnvironment)
+		})
 	}
 
 	init {
