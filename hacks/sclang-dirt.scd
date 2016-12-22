@@ -4,6 +4,7 @@
 var dirt = ~dirt;
 Event.addEventType(\dirt, {
 	~latency = s.latency;
+	~delta = ~stretch.value * ~dur.value;
 	dirt.orbits.wrapAt(~which ? 0).value(currentEnvironment)
 });
 )

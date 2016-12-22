@@ -30,6 +30,7 @@ SuperDirt {
 	*initClass {
 		Event.addEventType(\dirt, {
 			var dirt = ~dirt ? SuperDirt.default;
+			~delta = ~stretch.value * ~dur.value;
 			~latency = ~latency ?? { dirt.server.latency };
 			dirt.orbits.wrapAt(~orbit ? 0).value(currentEnvironment)
 		})
