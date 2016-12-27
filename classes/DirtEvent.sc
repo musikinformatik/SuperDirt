@@ -162,6 +162,7 @@ DirtEvent {
 
 		~amp = pow(~gain, 4) * ~amp;
 		~channel !? { ~pan = ~pan + (~channel / ~numChannels) };
+		~pan = ~pan * 2 - 1; // convert unipolar (0..1) range into bipolar one (-1...1)
 		if(~cut != 0) { cutGroup = orbit.getCutGroup(~cut) };
 
 		server.makeBundle(latency, { // use this to build a bundle

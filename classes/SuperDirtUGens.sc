@@ -12,51 +12,61 @@ convenience methods for panning and releasing
 */
 
 DirtPan {
-	classvar <>defaultMixingFunction;
+	classvar <>defaultPanningFunction;
 
 	*initClass {
-
-		// the channels are passed in as N x M array
-		// where N = number of input channels
-		// M = number of output channels to pan across
-
-		 // mono mixdown
-		defaultMixingFunction = #{ |channels|
-			channels.sum
-		};
-
-		/*
-		a variant:
-
-		// wrapped mutual crossfade
-		defaultMixingFunction = #{ |channels|
-			channels.flop.collect { |ch, i| ch[i] ?? { DC.ar(0) } }
-		};
-
-
-
-
-		you can set them via DirtPan.defaultMixingFunction = { ... your function ... }
-		and/or pass in a synth specific mixingFunction in the SynthDef
-		*/
+		// signals is an array of arbitrary size
+		defaultPanningFunction = #{ | signals, numChannels, pan, mul |
+			var channels, inNumChannels;
+			var spread, withd, splay, orientation;
+			if(numChannels > 2) {
+				DirtSplayAz.ar(numChannels, signals, \spread.ir(1), pan, mul,
+					\splay.ir(1), \panwidth.ir(2), \orientation.ir(0.5))
+			} {
+				DirtSplay2.ar(signals, \spread.ir(1), pan, mul)
+			}
+		}
 	}
 
-	*ar { |signal, numChannels, pan = 0.0, mul = 1.0, mixingFunction|
+	*ar { |signal, numChannels, pan = 0.0, mul = 1.0, panningFunction|
+		^value(panningFunction ? defaultPanningFunction, signal.asArray, numChannels ? 2, pan ? 0, mul ? 1.0)
+	}
 
-		var output;
+	*defaultMixingFunction_ {
+		"DirtPan can be completely configured, so please just make your own defaultPanningFunction".postln;
+		^this.deprecated(thisMethod)
+	}
+}
 
-		pan = pan * 2 - 1; // convert unipolar (0..1) range into bipolar compatible one
-		signal = signal.asArray; // always keep the same shape
 
+DirtSplay2 : UGen {
 
-		if(numChannels == 2) {
-			output = Pan2.ar(signal, pan, mul)
+	*ar { arg signals, spread = 1, pan = 0.0, mul = 1;
+		var n, pos;
+		n = signals.size;
+		if(n == 0) { Error("DirtSplay input has not even one channel. Can't pan no channel, sorry.").throw };
+		if(n == 1) {
+			^Pan2.ar(signals[0], pan, mul)
 		} {
-			output = PanAz.ar(numChannels, signal, pos: pan, level: mul, orientation: 0)
-		};
-		^value(mixingFunction ? defaultMixingFunction, output)
-
+			pos = [ pan - spread, pan + spread ].resamp1(n)
+			^Pan2.ar(signals, pos, mul).flop.collect(Mix(_))
+		}
 	}
+
+}
+
+DirtSplayAz : UGen {
+
+	*ar { arg numChannels, signals, spread = 1, pan = 0.0, mul = 1, splay = 1, width = 2, orientation = 0.5;
+		var n, pos, channels;
+		n = signals.size;
+		if(n == 0) { Error("DirtSplay input has not even one channel. Can't pan no channel, sorry.").throw };
+		spread = spread * splay.linlin(0, 1, n / numChannels, 1);
+		pos = if(n == 1) { pan } { [ pan - spread, pan + spread ].resamp1(n) };
+		channels = PanAz.ar(numChannels, signals, pos: pos, level: mul, width: width, orientation: orientation);
+		^channels.flop.collect(Mix(_))
+	}
+
 }
 
 
