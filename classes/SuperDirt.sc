@@ -43,9 +43,9 @@ SuperDirt {
 		this.initVowels(\counterTenor);
 	}
 
-	start { |port = 57120, outBusses = 0, senderAddr = (NetAddr("127.0.0.1"))|
+	start { |port = 57120, outBusses, senderAddr = (NetAddr("127.0.0.1"))|
 		if(orbits.notNil) { this.stop };
-		this.makeOrbits(outBusses);
+		this.makeOrbits(outBusses ? [0]);
 		this.connect(senderAddr, port)
 	}
 
@@ -57,7 +57,7 @@ SuperDirt {
 
 	makeOrbits { |outBusses|
 		var new;
-		new = outBusses.collect(DirtOrbit(this, _));
+		new = outBusses.asArray.collect(DirtOrbit(this, _));
 		orbits = orbits ++ new;
 		^new.unbubble
 	}
