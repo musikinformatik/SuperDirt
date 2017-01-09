@@ -159,5 +159,15 @@ they respond to the existence of a value for one of the tidal parameters
 		])
 }, { ~attack.notNil or: { ~release.notNil }});
 
+// Tremolo audio DSP effect declaration
+~dirt.addModule('tremolo',
+	{ |dirtEvent|
+		dirtEvent.sendSynth("tremolo" ++ ~numChannels,
+			[
+				tremolorate: ~tremolorate,
+				tremolodepth: ~tremolodepth,
+				out: ~out
+		])
+}, { ~tremolorate.notNil });
 
 );
