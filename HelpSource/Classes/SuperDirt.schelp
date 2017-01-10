@@ -164,13 +164,13 @@ method::loadSoundFileFolder
 	Read a single folder of sound files and add all of them under code::'name':: to the sample instruments. You can do this any time while running, and incrementally add more files.
 
 argument::folderPath
-The path for the folder.
+	The path for the folder.
 
 argument::name
-	The name of the sample instrument as it will be used in tidal. Subsequent sound files can be addressed by passing the "n" parameter, e.g. code::"bd:1 bd:2".
+	The name of the sample instrument as it will be used in tidal. Subsequent sound files can be addressed by passing the "n" parameter, e.g. code::"bd:1 bd:2"::.
 
 argument::appendToExisting
-See: link::#-loadSoundFiles::
+	See: link::#-loadSoundFiles::
 
 	code::
 	~dirt.loadSoundFileFolder(Platform.resourceDir +/+ "sounds/", \teletubbies); // play them in tidal with "teletubbies"

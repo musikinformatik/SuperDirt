@@ -171,11 +171,15 @@ SuperDirt {
 		if(server.serverRunning.not) { "Superdirt: server not running - cannot load sound files.".throw };
 		if(fileExtensions.includesEqual(path.extension.toLower)) {
 			buf = Buffer.readWithInfo(server, path);
-			if(appendToExisting.not and: { buffers[name].notNil }) {
-				"\nreplacing '%' (%)\n".postf(name, buffers[name].size);
-				buffers[name] = nil;
-			};
-			buffers[name] = buffers[name].add(buf);
+			if(buf.isNil) {
+				"\n".post; "File reading failed for path: '%'\n\n".format(path).warn
+			} {
+				if(appendToExisting.not and: { buffers[name].notNil }) {
+					"\nreplacing '%' (%)\n".postf(name, buffers[name].size);
+					buffers[name] = nil;
+				};
+				buffers[name] = buffers[name].add(buf);
+			}
 		} {
 			if(verbose) { "\nignored file: %\n".postf(path) };
 		}
