@@ -1,0 +1,276 @@
+CLASS::SuperDirt
+summary::Synth and Sampler for the Tidal programming language
+categories::Live Coding
+
+related::Classes/DirtOrbit, Classes/DirtEvent
+
+DESCRIPTION::
+This is a SuperCollider variant of strong::Dirt::, the sound engine for the Tidal link::http://tidalcycles.org/:: programming language by Alex McLean. Most of SuperDirt can be rewritten at runtime: you can add and modify effects, synth defs, load samples incrementally, and spatialise to any number of channels. You can use SuperCollider as usual.
+
+
+note::
+This system is experimental.
+
+Many examples can be found in the folders: teletype::hacks/:: and teletype::scripts/::
+
+The examples suppose that environment variables are accessible. If you want to use link::Classes/ProxySpace:: or similar redirect environments, see below.
+::
+
+
+code::
+
+// starting up
+
+(
+// configure the sound server: here you could add hardware specific options
+// see http://doc.sccode.org/Classes/ServerOptions.html
+s.options.numBuffers = 1024 * 16; // increase this if you need to load more samples
+s.options.memSize = 8192 * 16; // increase this if you get "alloc failed" messages
+s.options.maxNodes = 1024 * 32; // increase this if you are getting drop outs and the message "too many nodes"
+s.options.numOutputBusChannels = 2; // set this to your hardware output channel size, if necessary
+s.options.numInputBusChannels = 2; // set this to your hardware input channel size, if necessary
+// boot the server and start SuperDirt
+s.waitForBoot {
+	~dirt = SuperDirt(2, s); // two output channels, increase if you want to pan across more channels
+	~dirt.loadSoundFiles;   // load samples (path containing a wildcard can be passed in)
+	s.sync; // wait for samples to be read
+	~dirt.start(57120, [0, 0]);   // start listening on port 57120, create two orbits, each sending audio to channel 0. You can direct sounds to the orbits from tidal e.g. by: `# orbit "0 1 1"
+}
+)
+// now you should be able to send from tidal via port 57120
+::
+
+
+SECTION::Using SuperDirt examples together with ProxySpace
+
+All startup files and examples use the environment variables, like code::~dirt::.
+If you want to use link::Classes/ProxySpace:: or similar redirect environments, you should bind these to their respective file (which needs to be saved to disk):
+
+code::
+p = ProxySpace.push(s).linkDoc; // now the proxyspace is only active in that document
+::
+
+
+
+CLASSMETHODS::
+method::new
+Return a new instance, ready to be started
+
+argument::numChannels
+The number of channels of the internal link::Classes/Bus##bus:: (this is also the maximal number of output channels).
+
+argument::server
+link::Classes/Server:: to play on.
+
+
+method::maxSampleNumChannels
+Specifies the maximum number of channels your sound files have (default is 2: stereo samples)
+
+
+method::start
+Convenience method that gives defaults for many situations. It configures the server and starts SuperDirt with a number of orbits. It allows you to pass a few parameters:
+
+argument::numChannels
+The number of channels of the SuperDirt instance (see above).
+
+argument::server
+link::Classes/Server:: to play on.
+
+argument::numOrbits
+number of orbits to create on startup (see: link::Classes/DirtOrbit::). You can add or remove them later.
+
+argument::port
+The port to listen on (default is 57120)
+
+argument::senderAddr
+The address to listen to (a link::Classes/String::).
+
+argument::path
+A path that is used to load some sound files. This is a string, a path pointing to a number of files, which usually contains a wildcard (code::*::). E.g. code::"~/samples/special/*"::
+
+method::postTidalParameters
+Post a string with the tidal language parameter definitions for a number of SynthDefs. Duplicates are removed automatically. Note that these all use code::(Nothing)::, because defaults are defined in the SynthDef default arguments.
+
+Example: code::let (freq, _) = pF "freq" (Nothing)::
+
+code::
+SuperDirt.postTidalParameters([\default, \supercomparator])
+::
+
+argument::synthNames
+A symbol or array of symbols of the SynthDef names for which to generate the tidal code.
+
+argument::excluding
+The parameter names which should be excluded. Names already defined and used internally by SuperDirt will be excluded in additinon tho these.
+
+
+INSTANCEMETHODS::
+
+method::orbits
+A list of link::Classes/DirtOrbit::s. Orbits are the basic elements of dirt. Each  has its own global effects and global settings. You can start any number of orbits any time. From tidal, you can direct sounds into an orbit by the parameter: code::# orbit "7":: (this sends to orbit 7, if it exists, otherwise it'll wrap to whatever is available.)
+
+code::
+// in the default startup, dirt is kept in the ~dirt environment variable
+// you can access the orbit by index:
+
+~dirt.orbits[0].set(\amp, 0.1) // reduce the amplitude of one orbit
+
+// make a mixer for the orbits, using dB scaling
+(
+var w, spec;
+spec = \db.asSpec;
+w = Window("orbital volume", Rect(240, 240, 300, 500)).front;
+
+w.view.layout = HLayout(*~dirt.orbits.collect { |x|
+	var val = spec.unmap(x.get(\amp).ampdb);
+	Slider().value_(val).action_({ |v| x.set(\amp, spec.map(v.value).dbamp.postln) })
+});
+)
+
+::
+
+method::loadSoundFiles
+Read a number of sound file from disk and load them into the server memory. The buffer information is also kept in link::#buffers::, a dictionary. You can do this any time while running, and incrementally add more files.
+
+	code::
+	~dirt.loadSoundFiles("<your sound file path>");
+	::
+
+note::
+The naming scheme works as follows:
+
+Given a path like: code::"path/to/my/basedrum/*"::.
+
+The dictionary will contain under the key code::'basedrum':: an link::Classes/Array:: of all the link::Classes/Buffer::s from the samples found in the folder.
+
+From tidal, they can be accessed e.g. by code::d1 $ sound $ "basedrum:1 basedrum:4"::, or alternatively by the code::n:: parameter. Sample numbers below zero or above the number of samples in the folder will wrap, i.e. if you have a folder of 4 samples, 5 will play 0.
+
+::
+
+argument::paths
+Specifies paths for sound files. This is a string, a path pointing to a number of files, which usually contains a wildcard (code::*::). E.g. code::"~/samples/special/*"::. For the glob syntax, see link::https://en.wikipedia.org/wiki/Glob_%28programming%29::.
+
+	Alternatively, you can pass in an link::Classes/Array:: of full paths, e.g. code::["~/samples/drums/", "~/samples/cats/"]::.
+
+argument::appendToExisting
+If set to true, this will keep existing dictionary keys (see above) and add the new samples to any existing ones. This allows you to load different folders with the same name. Otherwise it will only keep those existing names which are not found in the new set of samples.
+
+argument::namingFunction
+	Provide a function to generate your own instrument names, which you call from tidal. The function is passed the folder path (a link::Classes/String::). By default, this function is code::_.basename::, which returns the folder name.
+
+
+
+method::loadSoundFileFolder
+	Read a single folder of sound files and add all of them under code::'name':: to the sample instruments. You can do this any time while running, and incrementally add more files.
+
+argument::folderPath
+	The path for the folder.
+
+argument::name
+	The name of the sample instrument as it will be used in tidal. Subsequent sound files can be addressed by passing the "n" parameter, e.g. code::"bd:1 bd:2"::.
+
+argument::appendToExisting
+	See: link::#-loadSoundFiles::
+
+	code::
+	~dirt.loadSoundFileFolder(Platform.resourceDir +/+ "sounds/", \teletubbies); // play them in tidal with "teletubbies"
+
+	// play from sclang
+	(type: \dirt, dirt: ~dirt, sound: "teletubbies:2", speed: 0.5, n: 0).play;
+	(type: \dirt, dirt: ~dirt, sound: "teletubbies:2", speed: 0.5, n: 1).play; // play from sclang
+	::
+
+method::loadSoundFile
+	Read a single sound file and add it under code::'name':: to the sample instruments. You can do this any time while running, and incrementally add more files.
+
+argument::path
+The path for the file.
+
+argument::name
+The name of the sample instrument as it will be used in tidal
+
+argument::appendToExisting
+See: link::#-loadSoundFiles::
+
+	code::
+	~dirt.loadSoundFile(Platform.resourceDir +/+ "sounds/a11wlk01.wav", \a11); // play them in tidal with "a11"
+	~dirt.buffers[\a11];
+	(type: \dirt, dirt: ~dirt, sound: "a11", speed: 0.5).play; // play from sclang
+	::
+
+
+
+method::loadOnly
+Read a number of named folders. You can do this any time while running, and incrementally add more files.
+
+argument::names
+An array of symbols or strings. These are  folder names and at the same time instrument names for tidal.
+
+argument::path
+The path in which the folders can be found.
+
+argument::appendToExisting
+See: link::#-loadSoundFiles::
+
+	code::
+	~dirt.loadOnly([\bd, \moog, \hh, \cp]);
+	::
+
+
+method::freeSoundFiles
+Remove sound files and free their memory.
+
+argument::names
+An array of sample instrument names which to remove.
+	code::
+	~dirt.postSampleInfo;
+	~dirt.freeSoundFiles([\bubble]);
+	~dirt.postSampleInfo; // now, the bubbles should be gone.
+	::
+
+method::freeAllSoundFiles
+Remove all sound files and free their memory.
+
+
+
+method::fileExtensions
+A list of valid sound file extensions, which can be extended (default: code::["wav", "aif", "aiff", "aifc"]::). In theory, all libsndfile formats should be supported link::http://www.mega-nerd.com/libsndfile/#Features::.
+
+method::postSampleInfo
+	Post a list of all existing sample names, the number of variants, the range of durations, and memory requirement.
+
+	e.g.
+
+	code::circus (3)   0.17 - 0.52 sec (171 kB)::.
+
+	code::
+	~dirt.postSampleInfo
+	::
+
+method::loadSynthDefs
+Load a number of files, usually containing link::Classes/SynthDef::s.
+
+argument::path
+This is a string, a path pointing as´file or a to a number of files, which then contains a wildcard (code::*::). E.g. code::"~/synths/special/*"::
+
+
+method::start
+This method starts SuperDirt. It creates a number of link::Classes/DirtOrbit::s (each of which has global effects, output busses, and settings). It also opens a network connection.
+
+argument::port
+The port to listen on (default is 57120)
+
+argument::outBusses
+
+An (a link::Classes/Array::) of audio output channels: it determines how many link::Classes/DirtOrbit::s there will be.
+
+argument::senderAddr
+
+The address to listen to (a link::Classes/String::).
+
+
+method::stop
+End all audio processes and close network responder.
+
+method::free
+End all audio processes, close network responder, and free sound file resources.

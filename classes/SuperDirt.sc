@@ -19,12 +19,21 @@ SuperDirt {
 
 	var <port, <senderAddr, <replyAddr, netResponders;
 	var <>fileExtensions = #["wav", "aif", "aiff", "aifc"];
-	var <>verbose = false;
+	var <>verbose = false, <>maxLatency = 42;
 
-	classvar <>maxSampleNumChannels = 2;
+	classvar <>default, <>maxSampleNumChannels = 2;
 
 	*new { |numChannels = 2, server|
 		^super.newCopyArgs(numChannels, server ? Server.default).init
+	}
+
+	*initClass {
+		Event.addEventType(\dirt, {
+			var dirt = ~dirt ? SuperDirt.default;
+			~delta = ~stretch.value * ~dur.value;
+			~latency = ~latency ?? { dirt.server.latency };
+			dirt.orbits.wrapAt(~orbit ? 0).value(currentEnvironment)
+		})
 	}
 
 	init {
@@ -34,9 +43,9 @@ SuperDirt {
 		this.initVowels(\counterTenor);
 	}
 
-	start { |port = 57120, outBusses = 0, senderAddr = (NetAddr("127.0.0.1"))|
+	start { |port = 57120, outBusses, senderAddr = (NetAddr("127.0.0.1"))|
 		if(orbits.notNil) { this.stop };
-		this.makeOrbits(outBusses);
+		this.makeOrbits(outBusses ? [0]);
 		this.connect(senderAddr, port)
 	}
 
@@ -48,7 +57,7 @@ SuperDirt {
 
 	makeOrbits { |outBusses|
 		var new;
-		new = outBusses.collect(DirtOrbit(this, _));
+		new = outBusses.asArray.collect(DirtOrbit(this, _));
 		orbits = orbits ++ new;
 		^new.unbubble
 	}
@@ -106,48 +115,118 @@ SuperDirt {
 		^allbufs.wrapAt(index.asInteger)
 	}
 
-	loadSoundFiles { |path, appendToExisting = false|
-		var folderPaths;
-		if(server.serverRunning.not) {
-			"Superdirt: server not running - cannot load sound files.".warn; ^this
-		};
-		path = path ?? { "../../Dirt-Samples/*".resolveRelative };
-		folderPaths = pathMatch(path);
-		if(folderPaths.isEmpty) {
-			"no files found in path: '%'".format(path).warn; ^this
-		};
-		"\nloading % sample bank%:\n".postf(folderPaths.size, if(folderPaths.size > 1) { "s" } { "" });
-		folderPaths.do { |folderPath|
-			var files = PathName(folderPath).files;
-			var folderName = PathName(folderPath).folderName;
-			var name = folderName.toLower.asSymbol;
-			if(buffers[name].notNil and: { appendToExisting != true }) {
-				"\nremoving %: ".postf(buffers[name].size);
-				buffers[name] = nil;
-			};
-			files.do { |filepath|
-				var buf, ext;
-				ext = filepath.extension.toLower;
-				if(fileExtensions.includesEqual(ext)) {
-					buf = Buffer.readWithInfo(server, filepath.fullPath);
-					buffers[name] = buffers[name].add(buf);
-
-				} {
-					if(verbose) { "\nignored file: %\n".postf(filepath.fileName) };
-				};
-			};
-			if(files.notEmpty) {
-				"% (%) ".postf(name, buffers[name].size)
-			} {
-				if(verbose) { "empty sample folder: %\n".postf(folderPath) }
-			};
+	loadOnly { |names, path, appendToExisting = false|
+		path = path ?? { "../../Dirt-Samples/".resolveRelative };
+		names.do { |name|
+			this.loadSoundFileFolder(path +/+ name, name, appendToExisting)
 		};
 		"\n... file reading complete\n\n".post;
 	}
 
-	freeSoundFiles {
+	loadSoundFiles { |paths, appendToExisting = false, namingFunction = (_.basename)|
+		var folderPaths, memory;
+
+		paths = paths ?? { "../../Dirt-Samples/*".resolveRelative };
+		folderPaths = if(paths.isString) { paths.pathMatch } { paths.asArray };
+		folderPaths = folderPaths.select(_.endsWith("/"));
+		if(folderPaths.isEmpty) {
+			"no folders found in paths: '%'".format(paths).warn; ^this
+		};
+		memory = this.memoryFootprint;
+		"\nloading % sample bank%:\n".postf(folderPaths.size, if(folderPaths.size > 1) { "s" } { "" });
+		folderPaths.do { |folderPath|
+			this.loadSoundFileFolder(folderPath, namingFunction.(folderPath), appendToExisting)
+		};
+		"\n... file reading complete. Required % MB of memory.\n\n".format(this.memoryFootprint - memory div: 1e6).post;
+	}
+
+	loadSoundFileFolder { |folderPath, name, appendToExisting = false|
+		var files;
+		if(File.exists(folderPath).not) {
+			"\ncouldn't load '%' files, path doesn't exist: %.".format(name, folderPath).postln; ^this
+		};
+		files = (folderPath.standardizePath +/+ "*").pathMatch;
+		name = name.asSymbol;
+
+		if(server.serverRunning.not) { "Superdirt: server not running - cannot load sound files.".throw };
+
+		if(appendToExisting.not and: { buffers[name].notNil } and: { files.notEmpty }) {
+			"\nreplacing '%' (%)\n".postf(name, buffers[name].size);
+			buffers[name] = nil;
+		};
+
+		files.do { |filepath|
+			this.loadSoundFile(filepath, name, true)
+		};
+
+		if(files.notEmpty) {
+			"% (%) ".postf(name, buffers[name].size)
+		} {
+			"empty sample folder: %\n".postf(folderPath)
+		};
+	}
+
+	loadSoundFile { |path, name, appendToExisting = false|
+		var buf;
+		if(server.serverRunning.not) { "Superdirt: server not running - cannot load sound files.".throw };
+		if(fileExtensions.includesEqual(path.extension.toLower)) {
+			buf = Buffer.readWithInfo(server, path);
+			if(buf.isNil) {
+				"\n".post; "File reading failed for path: '%'\n\n".format(path).warn
+			} {
+				if(appendToExisting.not and: { buffers[name].notNil }) {
+					"\nreplacing '%' (%)\n".postf(name, buffers[name].size);
+					buffers[name] = nil;
+				};
+				buffers[name] = buffers[name].add(buf);
+			}
+		} {
+			if(verbose) { "\nignored file: %\n".postf(path) };
+		}
+	}
+
+	postSampleInfo {
+		var keys = buffers.keys.asArray.sort;
+		if(buffers.isEmpty) {
+			"\nCurrently there are no samples loaded.".postln;
+		} {
+		"\nCurrently there are % sample banks in memory (% MB):\n\nName (number of variants), range of durations (memory)\n".format(buffers.size, this.memoryFootprint div: 1e6).postln;
+		};
+		keys.do { |name|
+			var all = buffers[name];
+			"% (%)   % - % sec (% kB)\n".postf(
+				name,
+				buffers[name].size,
+				all.minItem { |x| x.duration }.duration.round(0.01),
+				all.maxItem { |x| x.duration }.duration.round(0.01),
+				all.sum { |x| x.memoryFootprint } div: 1e3
+			)
+		}
+	}
+
+	memoryFootprint {
+		^buffers.sum { |array| array.sum { |buffer| buffer.memoryFootprint.asFloat } } // in bytes
+	}
+
+	freeSoundFiles { |names|
+		names.do { |name|
+			buffers.removeAt(name).asArray.do { |buf|
+				if(this.findBuffer(buf).notNil) { buf.free } // don't free aliases
+			}
+		}
+	}
+
+	freeAllSoundFiles {
 		buffers.do { |x| x.asArray.do { |buf| buf.free } };
 		buffers = ();
+	}
+
+	findBuffer { |buf|
+		buffers.keysValuesDo { |key, val|
+			var index = val.indexOf(buf);
+			if(index.notNil) { ^[key, index] };
+		};
+		^nil
 	}
 
 	// SynthDefs are signal processing graph definitions
@@ -196,7 +275,7 @@ SuperDirt {
 			OSCFunc({ |msg, time, tidalAddr|
 				var latency = time - Main.elapsedTime;
 				var event = (), orbit;
-				if(latency > 2) {
+				if(latency > maxLatency) {
 					"The scheduling delay is too long. Your networks clocks may not be in sync".warn;
 					latency = 0.2;
 				};
@@ -223,6 +302,35 @@ SuperDirt {
 		} {
 			"Currently no connection back to tidal".warn;
 		}
+	}
+
+	*postTidalParameters { |synthNames, excluding |
+		var descs, paramString;
+
+		excluding = this.predefinedSynthParameters ++ excluding;
+
+		descs = synthNames.asArray.collect { |name| SynthDescLib.at(name) };
+		descs = descs.reject { |x, i|
+			var notFound = x.isNil;
+			if(notFound) { "no Synth Description with this name found: %".format(synthNames[i]).warn };
+			notFound
+		};
+
+		paramString = descs.collect { |x|
+			x.controls.collect { |y| y.name }
+		}
+		.flat.as(Set).as(Array).sort
+		.reject { |x| excluding.includes(x) }
+		.collect { |x| format("(%, %_p) = pF \"%\" (Nothing)", x, x, x) }
+		.join("\n    ");
+
+		^"\n-- | parameters for the SynthDefs: %\nlet %\n\n".format(synthNames.join(", "), paramString)
+
+	}
+
+	*predefinedSynthParameters {
+		// not complete, but avoids obvious collisions
+		^#[\pan, \amp, \out, \i_out, \sustain, \gate, \accelerate, \gain, \unit, \cut, \octave, \offset, \attack];
 	}
 
 
@@ -255,8 +363,8 @@ DirtOrbit {
 
 	var <dirt, <server, <outBus;
 	var <synthBus, <globalEffectBus, <dryBus;
-	var <group, <globalEffects;
-	var <>fadeTime = 0.001, <>amp = 0.4, <>minSustain;
+	var <group, <globalEffects, <cutGroups;
+	var <>minSustain;
 
 
 	var <>defaultParentEvent;
@@ -271,6 +379,7 @@ DirtOrbit {
 			^this
 		};
 		group = server.nextPermNodeID;
+		cutGroups = IdentityDictionary.new;
 		synthBus = Bus.audio(server, dirt.numChannels);
 		dryBus = Bus.audio(server, dirt.numChannels);
 		globalEffectBus = Bus.audio(server, dirt.numChannels);
@@ -280,12 +389,14 @@ DirtOrbit {
 		this.makeDefaultParentEvent;
 
 		ServerTree.add(this, server); // synth node tree init
+		CmdPeriod.add(this);
 	}
 
 	initDefaultGlobalEffects {
 		this.globalEffects = [
 			GlobalDirtEffect(\dirt_delay, [\delaytime, \delayfeedback, \delayAmp, \lock, \cps]),
 			GlobalDirtEffect(\dirt_reverb, [\size, \room, \dry]),
+			GlobalDirtEffect(\dirt_leslie, [\leslie, \lrate, \lsize]),
 			GlobalDirtEffect(\dirt_monitor, [\dirtOut])
 		]
 	}
@@ -297,6 +408,10 @@ DirtOrbit {
 	doOnServerTree {
 		// on node tree init:
 		this.initNodeTree
+	}
+
+	cmdPeriod {
+		cutGroups.clear
 	}
 
 	initNodeTree {
@@ -325,6 +440,26 @@ DirtOrbit {
 		}
 	}
 
+	get { |key|
+		^defaultParentEvent.at(key)
+	}
+
+	amp_ { |val|
+		this.set(\amp, val)
+	}
+
+	amp {
+		^this.get(\amp)
+	}
+
+	fadeTime_ { |val|
+		this.set(\fadeTime, val)
+	}
+
+	fadeTime {
+		^this.get(\fadeTime)
+	}
+
 	freeSynths {
 		server.bind {
 			server.sendMsg("/n_free", group);
@@ -339,7 +474,19 @@ DirtOrbit {
 		server.freePermNodeID(group);
 		synthBus.free;
 		globalEffectBus.free;
+		cutGroups.clear;
 	}
+
+	getCutGroup { |id|
+		var cutGroup = cutGroups.at(id);
+		if(cutGroup.isNil) {
+			cutGroup = server.nextNodeID;
+			server.sendMsg("/g_new", cutGroup, 1, group);
+			cutGroups.put(id, cutGroup);
+		}
+		^cutGroup
+	}
+
 
 	makeDefaultParentEvent {
 		defaultParentEvent = Event.make {
@@ -350,7 +497,6 @@ DirtOrbit {
 			~end = 1.0;
 			~speed = 1.0;
 			~pan = 0.5;
-			~accelerate = 0.0;
 			~gain = 1.0;
 			~cut = 0.0;
 			~unit = \r;
@@ -358,15 +504,19 @@ DirtOrbit {
 			~octave = 5;
 			~midinote = #{ ~n + (~octave * 12) };
 			~freq = #{ ~midinote.midicps };
+			~delta = 1.0;
 
 			~latency = 0.0;
 			~lag = 0.0;
 			~length = 1.0;
-			~legato = 1.0;
 			~unitDuration = 1.0;
-			~delta = 1.0;
+			~loop = 1.0;
 			~dry = 0.0;
 			~lock = 0; // if set to 1, syncs delay times with cps
+
+			~amp = 0.4;
+			~fadeTime = 0.001;
+
 
 			// values from the dirt bus
 			~orbit = this;
@@ -377,8 +527,13 @@ DirtOrbit {
 			~numChannels = dirt.numChannels;
 			~server = server;
 
+			~notFound = {
+					"no synth or sample named '%' could be found.".format(~s).postln;
+			};
+
 		}
 	}
+
 
 }
 
@@ -462,6 +617,7 @@ GlobalDirtEffect {
 			}
 		};
 		if(argsChanged.notNil) {
+			synth.run;
 			synth.set(*argsChanged);
 		}
 	}

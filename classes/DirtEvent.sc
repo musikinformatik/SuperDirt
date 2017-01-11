@@ -53,17 +53,12 @@ DirtEvent {
 				~instrument = sound;
 				~note = ~note ? ~n;
 				~freq = ~freq.value;
-				~unitDuration = ~sustain ?? {
-					sustainControl =  synthDesc.controlDict.at(\sustain);
-					// use definition, if defined.
-					if(~legato > 0) {
-						~delta ? ~dur * ~legato
-					} {
-						if(sustainControl.isNil) { 1.0 } { sustainControl.defaultValue ? 1.0 }
-					}
-				};
+				~unitDuration = ~delta;
+				//sustainControl =  synthDesc.controlDict.at(\sustain);
+				//if(sustainControl.isNil) { ~delta } { sustainControl.defaultValue ? ~delta }
+
 			} {
-				"no synth or sample named '%' could be found.".format(sound).postln;
+				~notFound.value
 			}
 		}
 	}
@@ -81,39 +76,44 @@ DirtEvent {
 
 	calcRange {
 
-		var sustain, avgSpeed;
+		var sustain, unitDuration;
 		var speed = ~speed;
 		var accelerate = ~accelerate;
-		var endSpeed;
+		var avgSpeed, endSpeed;
 
 		if (~unit == \c) { speed = speed * ~unitDuration * ~cps };
 
-		endSpeed = speed * (1.0 + (accelerate.abs.linexp(0.01, 4, 0.001, 20, nil) * accelerate.sign));
-		if(endSpeed.sign != speed.sign) { endSpeed = 0.0 }; // never turn back
-		avgSpeed = speed.abs + endSpeed.abs * 0.5;
+		if(accelerate.isNil) {
+			endSpeed = speed;
+			avgSpeed = speed.abs;
+		} {
+			endSpeed = speed * (1.0 + accelerate);
+			avgSpeed = speed.abs + endSpeed.abs * 0.5;
+		};
 
 		if(~unit == \rate) { ~unit = \r }; // API adaption to tidal output
-
 
 		// sustain is the duration of the sample
 		switch(~unit,
 			\r, {
-				sustain = ~unitDuration * ~length / avgSpeed;
+				unitDuration = ~unitDuration * ~length / avgSpeed;
 			},
 			\c, {
-				sustain = ~unitDuration * ~length / avgSpeed;
+				unitDuration = ~unitDuration * ~length / avgSpeed;
 			},
 			\s, {
-				sustain = ~length;
+				unitDuration = ~length;
 			},
 			{ Error("this unit ('%') is not defined".format(~unit)).throw };
 		);
 
+		~loop !? { unitDuration = unitDuration * ~loop.abs };
+		sustain = ~sustain ?? { if(~legato.notNil) { ~delta * ~legato } { unitDuration } };
 
-		~loop !? { sustain = sustain * ~loop.abs };
+		// let samples end if needed
+		~buffer !? { sustain = min(unitDuration, sustain) };
 
-
-		~fadeTime = min(orbit.fadeTime, sustain * 0.19098);
+		~fadeTime = min(~fadeTime, sustain * 0.19098);
 		~fadeInTime = if(~begin != 0) { ~fadeTime } { 0.0 };
 		~sustain = sustain - (~fadeTime + ~fadeInTime);
 		~speed = speed;
@@ -142,7 +142,6 @@ DirtEvent {
 				in: orbit.synthBus, // read from synth bus, which is reused
 				out: orbit.dryBus, // write to orbital dry bus
 				amp: ~amp,
-				cutGroup: ~cut.abs, // ignore negatives here!
 				sample: ~hash, // required for the cutgroup mechanism
 				sustain: ~sustain, // after sustain, free all synths and group
 				fadeInTime: ~fadeInTime, // fade in
@@ -151,17 +150,19 @@ DirtEvent {
 		)
 	}
 
-	prepareSynthGroup {
+	prepareSynthGroup { |outerGroup|
 		~synthGroup = ~server.nextNodeID;
-		~server.sendMsg(\g_new, ~synthGroup, 1, orbit.group);
+		~server.sendMsg(\g_new, ~synthGroup, 1, outerGroup ? orbit.group);
 	}
 
 	playSynths {
 		var diverted, server = ~server;
 		var latency = ~latency + ~lag + (~offset * ~speed);
+		var cutGroup;
 
-		~amp = pow(~gain, 4) * orbit.amp;
+		~amp = pow(~gain, 4) * ~amp;
 		~channel !? { ~pan = ~pan + (~channel / ~numChannels) };
+		if(~cut != 0) { cutGroup = orbit.getCutGroup(~cut) };
 
 		server.makeBundle(latency, { // use this to build a bundle
 
@@ -169,11 +170,11 @@ DirtEvent {
 
 			orbit.globalEffects.do { |x| x.set(currentEnvironment) };
 
-			if(~cut != 0) {
-				server.sendMsg(\n_set, orbit.group, \gateCutGroup, ~cut, \gateSample, ~hash);
+			if(cutGroup.notNil) {
+				server.sendMsg(\n_set, cutGroup, \gateSample, ~hash, \cutAll, if(~cut > 0) { 1 } { 0 });
 			};
 
-			this.prepareSynthGroup;
+			this.prepareSynthGroup(cutGroup);
 			modules.do(_.value(this));
 			this.sendGateSynth; // this one needs to be last
 
