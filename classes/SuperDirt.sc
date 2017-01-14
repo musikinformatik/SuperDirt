@@ -169,7 +169,7 @@ SuperDirt {
 	loadSoundFile { |path, name, appendToExisting = false|
 		var buf;
 		if(server.serverRunning.not) { "Superdirt: server not running - cannot load sound files.".throw };
-		if(fileExtensions.includesEqual(path.extension.toLower)) {
+		if(fileExtensions.includesEqual(path.splitext[1].toLower)) {
 			buf = Buffer.readWithInfo(server, path);
 			if(buf.isNil) {
 				"\n".post; "File reading failed for path: '%'\n\n".format(path).warn
