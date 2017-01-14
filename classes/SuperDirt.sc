@@ -128,7 +128,7 @@ SuperDirt {
 
 		paths = paths ?? { "../../Dirt-Samples/*".resolveRelative };
 		folderPaths = if(paths.isString) { paths.pathMatch } { paths.asArray };
-		folderPaths = folderPaths.select(_.endsWith("/"));
+		folderPaths = folderPaths.select(_.endsWith(Platform.pathSeparator.asString));
 		if(folderPaths.isEmpty) {
 			"no folders found in paths: '%'".format(paths).warn; ^this
 		};
