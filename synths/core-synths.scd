@@ -145,7 +145,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		ReplaceOut.ar(out, signal);
 	}, [\ir, \ir, \ir, \ir]).add;
 
-	SynthDef("tremolo" ++ numChannels, { |out, tremolorate = 1.0, tremolodepth = 0.5 |
+	SynthDef("dirt_tremolo" ++ numChannels, { |out, tremolorate = 1.0, tremolodepth = 0.5 |
 		var signal, tremolowave;
 
 		tremolodepth = tremolodepth.clip(0, 1) * 0.5;
