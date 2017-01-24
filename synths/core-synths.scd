@@ -145,10 +145,26 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		ReplaceOut.ar(out, signal);
 	}, [\ir, \ir, \ir, \ir]).add;
 
+	SynthDef("dirt_tremolo" ++ numChannels, { |out, tremolorate = 1.0, tremolodepth = 0.5 |
+		var signal, tremolowave;
 
-	// global synth defs: these synths run in each DirtOrbit and are only released when it is stopped
-	// when you change them, to update them, hit cmd-period (i.e. stop the synths on the server) once.
-	// they'll come back automatically
+		tremolodepth = tremolodepth.clip(0, 1) * 0.5;
+		tremolowave = (1 - tremolodepth) + SinOsc.ar(tremolorate, 0.5pi, tremolodepth);
+
+		signal = In.ar(out, numChannels);
+		signal = signal * tremolowave;
+
+		ReplaceOut.ar(out, signal);
+	}, [\ir, \ir, \ir]).add;
+
+
+	/*
+
+	 Global synth defs: these synths run in each DirtOrbit and are only released when it is stopped
+	 when you change them, to update them, hit cmd-period (i.e. stop the synths on the server) once.
+	 they'll come back automatically
+
+	*/
 
 	if(\SwitchDelay.asClass.notNil) {
 

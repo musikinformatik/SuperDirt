@@ -128,7 +128,7 @@ SuperDirt {
 
 		paths = paths ?? { "../../Dirt-Samples/*".resolveRelative };
 		folderPaths = if(paths.isString) { paths.pathMatch } { paths.asArray };
-		folderPaths = folderPaths.select(_.endsWith("/"));
+		folderPaths = folderPaths.select(_.endsWith(Platform.pathSeparator.asString));
 		if(folderPaths.isEmpty) {
 			"no folders found in paths: '%'".format(paths).warn; ^this
 		};
@@ -167,9 +167,10 @@ SuperDirt {
 	}
 
 	loadSoundFile { |path, name, appendToExisting = false|
-		var buf;
+		var buf, fileExt;
 		if(server.serverRunning.not) { "Superdirt: server not running - cannot load sound files.".throw };
-		if(fileExtensions.includesEqual(path.extension.toLower)) {
+		fileExt = path.splitext[1].toLower;
+		if(fileExtensions.includesEqual(fileExt)) {
 			buf = Buffer.readWithInfo(server, path);
 			if(buf.isNil) {
 				"\n".post; "File reading failed for path: '%'\n\n".format(path).warn
