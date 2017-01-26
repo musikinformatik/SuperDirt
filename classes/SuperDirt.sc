@@ -19,7 +19,7 @@ SuperDirt {
 
 	var <port, <senderAddr, <replyAddr, netResponders;
 	var <>fileExtensions = #["wav", "aif", "aiff", "aifc"];
-	var <>verbose = false, <>maxLatency = 42;
+	var <>receiveAction, <>verbose = false, <>maxLatency = 42;
 
 	classvar <>default, <>maxSampleNumChannels = 2;
 
@@ -30,7 +30,7 @@ SuperDirt {
 	*initClass {
 		Event.addEventType(\dirt, {
 			var dirt = ~dirt ? SuperDirt.default;
-			~delta = ~stretch.value * ~dur.value;
+			~delta = ~delta ?? { ~stretch.value * ~dur.value };
 			~latency = ~latency ?? { dirt.server.latency };
 			dirt.orbits.wrapAt(~orbit ? 0).value(currentEnvironment)
 		})
@@ -283,6 +283,7 @@ SuperDirt {
 				replyAddr = tidalAddr; // collect tidal reply address
 				event[\latency] = latency;
 				event.putPairs(msg[1..]);
+				receiveAction.value(event);
 				orbit = orbits @@ (event[\orbit] ? 0);
 				DirtEvent(orbit, modules, event).play
 			}, '/play2', senderAddr, recvPort: port).fix
