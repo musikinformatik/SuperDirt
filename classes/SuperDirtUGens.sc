@@ -41,7 +41,7 @@ DirtPan {
 
 DirtSplay2 : UGen {
 
-	*ar { arg signals, spread = 1, pan = 0.0, mul = 1;
+	*ar { | signals, spread = 1, pan = 0.0, mul = 1 |
 		var n, pos;
 		signals = signals.asArray;
 		n = signals.size;
@@ -61,7 +61,7 @@ DirtSplay2 : UGen {
 
 DirtSplayAz : UGen {
 
-	*ar { arg numChannels, signals, spread = 1, pan = 0.0, mul = 1, splay = 1, width = 2, orientation = 0.5;
+	*ar { | numChannels, signals, spread = 1, pan = 0.0, mul = 1, splay = 1, width = 2, orientation = 0.5 |
 		var n, pos, channels;
 		n = signals.size;
 		if(n == 0) { Error("DirtSplay input has not even one channel. Can't pan no channel, sorry.").throw };
@@ -82,7 +82,7 @@ Before we start the new synth, we send a /set message to all synths, and those t
 
 DirtGateCutGroup {
 
-	*ar { |releaseTime = 0.02, doneAction = 2|
+	*ar { | releaseTime = 0.02, doneAction = 2 |
 		// this is necessary because the message "==" tests for objects, not for signals
 		var same = { |a, b| BinaryOpUGen('==', a, b) };
 		var or = { |a, b| (a + b) > 0 };
@@ -95,7 +95,7 @@ DirtGateCutGroup {
 
 DirtPause {
 
-	*ar { |signal, graceTime = 1|
+	*ar { | signal, graceTime = 1 |
 		PauseSelf.kr(Impulse.kr(0));
 		DetectSilence.ar(signal, time:graceTime, doneAction:1);
 	}
