@@ -43,13 +43,17 @@ DirtSplay2 : UGen {
 
 	*ar { arg signals, spread = 1, pan = 0.0, mul = 1;
 		var n, pos;
+		signals = signals.asArray;
 		n = signals.size;
 		if(n == 0) { Error("DirtSplay input has not even one channel. Can't pan no channel, sorry.").throw };
 		if(n == 1) {
 			^Pan2.ar(signals[0], pan, mul)
 		} {
-			pos = [ pan - spread, pan + spread ].resamp1(n)
-			^Pan2.ar(signals, pos, mul).flop.collect(Mix(_))
+			pos = [ pan - spread, pan + spread ].resamp1(n);
+			^signals.sum { |x, i|
+				var pos = ((i / (n - 1) * 1) + (pan * 2 - 1)).fold(-1, 1);
+				Pan2.ar(x, pos, mul)
+			}
 		}
 	}
 
