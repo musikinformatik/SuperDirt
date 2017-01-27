@@ -49,7 +49,6 @@ DirtSplay2 : UGen {
 		if(n == 1) {
 			^Pan2.ar(signals[0], pan, mul)
 		} {
-			pos = [ pan - spread, pan + spread ].resamp1(n);
 			^signals.sum { |x, i|
 				var pos = ((i / (n - 1) * 1) + (pan * 2 - 1)).fold(-1, 1);
 				Pan2.ar(x, pos, mul)
