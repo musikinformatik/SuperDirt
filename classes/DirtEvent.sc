@@ -115,23 +115,13 @@ DirtEvent {
 	sendSynth { |instrument, args|
 		var server = ~server, group = ~synthGroup;
 		args = args ?? { this.getMsgFunc(instrument).valueEnvir };
-		if(orbit.dirt.enableFlop) {
-			args.flop.do { |each|
-				server.sendMsg(\s_new,
-					instrument,
-					-1, // no id
-					1, // add action: addToTail
-					group, // send to group
-					*each.asOSCArgArray // append all other args
-				)
-			}
-		} {
+		args.asControlInput.flop.do { |each|
 			server.sendMsg(\s_new,
 				instrument,
 				-1, // no id
 				1, // add action: addToTail
 				group, // send to group
-				*args.asOSCArgArray // append all other args
+				*each.asOSCArgArray // append all other args
 			)
 		}
 	}
