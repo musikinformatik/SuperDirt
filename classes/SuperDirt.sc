@@ -18,7 +18,7 @@ SuperDirt {
 	var <>modules;
 
 	var <port, <senderAddr, <replyAddr, netResponders;
-	var <>receiveAction, <>verbose = false, <>maxLatency = 42;
+	var <>receiveAction, <>verbose = false, <>maxLatency = 42, <>enableFlop = false;
 
 	classvar <>default, <>maxSampleNumChannels = 2;
 
