@@ -36,7 +36,7 @@ DirtEvent {
 		var sound, soundEvent;
 		sound = ~s;
 		~hash = ~hash ?? { sound.identityHash };
-		soundEvent = orbit.dirt.getEvent(sound, ~n);
+		soundEvent = orbit.dirt.soundLibrary.getEvent(sound, ~n);
 		if(soundEvent.isNil) {
 			~notFound.value
 		} {
