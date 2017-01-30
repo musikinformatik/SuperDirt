@@ -80,6 +80,21 @@ Pdef(\x,
 )
 
 
+// multichannel expand effects
+(
+Pdef(\x,
+	Pbind(
+		\type, \dirt,
+		\s, Pseq([\bd, \hh, \bd, \hh], inf),
+		\dur, 0.25 * Pseq([1, 1/2, 1], inf),
+		\cutoff, [1345, 1000, 400] + Prand([0, 0, 0, 0, 0, 0, -100, 200, [-100, 210]], inf),
+		\resonance, 0.8
+	)
+
+).play
+)
+
+
 
 // vowel tennis
 (
@@ -88,9 +103,9 @@ Pdef(\x,
 		\type, \dirt,
 		\speed, 2,
 		\sound, Pseq([\bd, \hh, \bd, \hh], inf),
-		\vowel, Pshuf([\a, \i, \o, \i, \u], inf),
-		\resonance, 0.5,
-		\shape, Pseq([1, -4, 3, 0, 0], inf),
+		\vowel, Pn(Plazy {Pshuf([\a, \i, \o, \i, \u, [\i, \a], [\o, \u, \e]], rrand(3, 8)) }),
+		\resonance, 0.7,
+		\shape, Pseq([0.5, 0.8, 0.3, 0.2, 0.2], inf),
 		\dur, 0.25 * Pseq([1, 1/2, 1], inf)
 	)
 ).play
