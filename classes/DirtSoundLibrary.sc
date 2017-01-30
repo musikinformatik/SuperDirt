@@ -17,6 +17,7 @@ DirtSoundLibrary {
 	}
 
 	init {
+		if(buffers.notNil) { this.freeAllSoundFiles };
 		buffers = IdentityDictionary.new;
 		bufferEvents = IdentityDictionary.new;
 		synthEvents = IdentityDictionary.new;
