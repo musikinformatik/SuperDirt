@@ -85,6 +85,22 @@ SuperDirt {
 		soundLibrary.loadSoundFiles(paths, appendToExisting = false, namingFunction)
 	}
 
+	loadSoundFile { |path, name, appendToExisting = false|
+		soundLibrary.loadSoundFile(path, name, appendToExisting)
+	}
+
+	freeAllSoundFiles {
+		soundLibrary.freeAllSoundFiles
+	}
+
+	freeSoundFiles { |names|
+		soundLibrary.freeSoundFiles(names)
+	}
+
+	postSampleInfo {
+		soundLibrary.postSampleInfo
+	}
+
 	buffers { ^soundLibrary.buffers }
 	fileExtensions { ^soundLibrary.fileExtensions }
 	fileExtensions_ { |list| ^soundLibrary.fileExtensions_(list) }
