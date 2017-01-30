@@ -16,9 +16,10 @@ DirtEvent {
 			~s ?? { this.splitName };
 			// unless diversion returns something, we proceed as usual
 			~diversion.value ?? {
-				this.getBuffer;
+				this.mergeSoundEvent;
 				this.orderRange;
 				this.calcRange;
+				this.finaliseParameters;
 				if(~sustain >= orbit.minSustain) { this.playSynths }; // otherwise drop it.
 			}
 		}
@@ -31,35 +32,15 @@ DirtEvent {
 		~n = if(n.notNil) { n.asFloat } { 0.0 };
 	}
 
-
-	getBuffer {
-		var buffer, sound, synthDesc, sustainControl;
+	mergeSoundEvent {
+		var sound, soundEvent;
 		sound = ~s;
 		~hash = ~hash ?? { sound.identityHash };
-		buffer = orbit.dirt.getBuffer(sound, ~n);
-
-		if(buffer.notNil) {
-			if(buffer.sampleRate.isNil) {
-				"Dirt: buffer '%' not yet completely read".format(sound).warn;
-				^this
-			};
-			~instrument = format("dirt_sample_%_%", buffer.numChannels, ~numChannels);
-			~buffer = buffer.bufnum;
-			~unitDuration = buffer.duration;
-
+		soundEvent = orbit.dirt.getEvent(sound, ~n);
+		if(soundEvent.isNil) {
+			~notFound.value
 		} {
-			synthDesc = SynthDescLib.at(sound);
-			if(synthDesc.notNil) {
-				~instrument = sound;
-				~note = ~note ? ~n;
-				~freq = ~freq.value;
-				~unitDuration = ~delta;
-				//sustainControl =  synthDesc.controlDict.at(\sustain);
-				//if(sustainControl.isNil) { ~delta } { sustainControl.defaultValue ? ~delta }
-
-			} {
-				~notFound.value
-			}
+			currentEnvironment.proto = soundEvent
 		}
 	}
 
@@ -76,12 +57,14 @@ DirtEvent {
 
 	calcRange {
 
-		var sustain, unitDuration;
+		var sustain, unitDuration; // fixme unitDuration
 		var speed = ~speed;
 		var accelerate = ~accelerate;
 		var avgSpeed, endSpeed;
 
-		if (~unit == \c) { speed = speed * ~unitDuration * ~cps };
+		unitDuration = ~unitDuration ? ~delta;
+
+		if (~unit == \c) { speed = speed * unitDuration * ~cps };
 
 		if(accelerate.isNil) {
 			endSpeed = speed;
@@ -96,10 +79,10 @@ DirtEvent {
 		// sustain is the duration of the sample
 		switch(~unit,
 			\r, {
-				unitDuration = ~unitDuration * ~length / avgSpeed;
+				unitDuration = unitDuration * ~length / avgSpeed;
 			},
 			\c, {
-				unitDuration = ~unitDuration * ~length / avgSpeed;
+				unitDuration = unitDuration * ~length / avgSpeed;
 			},
 			\s, {
 				unitDuration = ~length;
@@ -119,6 +102,14 @@ DirtEvent {
 		~speed = speed;
 		~endSpeed = endSpeed;
 
+	}
+
+	finaliseParameters {
+		~amp = pow(~gain, 4) * ~amp;
+		~channel !? { ~pan = ~pan + (~channel / ~numChannels) };
+		~pan = ~pan * 2 - 1; // convert unipolar (0..1) range into bipolar one (-1...1)
+		~note = ~note ? ~n;
+		~freq = ~freq.value;
 	}
 
 	sendSynth { |instrument, args|
@@ -155,14 +146,14 @@ DirtEvent {
 		~server.sendMsg(\g_new, ~synthGroup, 1, outerGroup ? orbit.group);
 	}
 
+
+
 	playSynths {
 		var diverted, server = ~server;
 		var latency = ~latency + ~lag + (~offset * ~speed);
 		var cutGroup;
 
-		~amp = pow(~gain, 4) * ~amp;
-		~channel !? { ~pan = ~pan + (~channel / ~numChannels) };
-		~pan = ~pan * 2 - 1; // convert unipolar (0..1) range into bipolar one (-1...1)
+
 		if(~cut != 0) { cutGroup = orbit.getCutGroup(~cut) };
 
 		server.makeBundle(latency, { // use this to build a bundle

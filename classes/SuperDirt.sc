@@ -115,6 +115,36 @@ SuperDirt {
 		^allbufs.wrapAt(index.asInteger)
 	}
 
+	getEvent { |key, index|
+		var synthDesc;
+		var buffer = this.getBuffer(key, index);
+		var event = Event.new;
+		if(buffer.notNil) {
+			if(buffer.sampleRate.isNil) {
+				"Dirt: buffer '%' not yet completely read".format(key).warn;
+				^nil
+			};
+			event.use {
+				~instrument = format("dirt_sample_%_%", buffer.numChannels, numChannels);
+				~buffer = buffer.bufnum;
+				~unitDuration = buffer.duration;
+			};
+
+		} {
+			synthDesc = SynthDescLib.at(key);
+			if(synthDesc.notNil) {
+				event.use {
+					~instrument = key;
+					//sustainControl =  synthDesc.controlDict.at(\sustain);
+					//if(sustainControl.notNil) { ~delta = sustainControl.defaultValue }
+				};
+			} {
+				^nil
+			};
+		};
+		^event
+	}
+
 	loadOnly { |names, path, appendToExisting = false|
 		path = path ?? { "../../Dirt-Samples/".resolveRelative };
 		names.do { |name|
@@ -191,7 +221,7 @@ SuperDirt {
 		if(buffers.isEmpty) {
 			"\nCurrently there are no samples loaded.".postln;
 		} {
-		"\nCurrently there are % sample banks in memory (% MB):\n\nName (number of variants), range of durations (memory)\n".format(buffers.size, this.memoryFootprint div: 1e6).postln;
+			"\nCurrently there are % sample banks in memory (% MB):\n\nName (number of variants), range of durations (memory)\n".format(buffers.size, this.memoryFootprint div: 1e6).postln;
 		};
 		keys.do { |name|
 			var all = buffers[name];
@@ -511,7 +541,6 @@ DirtOrbit {
 			~latency = 0.0;
 			~lag = 0.0;
 			~length = 1.0;
-			~unitDuration = 1.0;
 			~loop = 1.0;
 			~dry = 0.0;
 			~lock = 0; // if set to 1, syncs delay times with cps
@@ -530,7 +559,7 @@ DirtOrbit {
 			~server = server;
 
 			~notFound = {
-					"no synth or sample named '%' could be found.".format(~s).postln;
+				"no synth or sample named '%' could be found.".format(~s).postln;
 			};
 
 		}
