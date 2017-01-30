@@ -55,6 +55,18 @@ DirtSoundLibrary {
 		^allEvents.wrapAt(index.asInteger)
 	}
 
+	set { |name, indices ... pairs|
+		var allEvents = bufferEvents[name] ?? { synthEvents[name] };
+		if(allEvents.isNil) {
+			"set: no events found with this name: %\n".format(name).warn
+		} {
+			if(indices.notNil) { allEvents = allEvents.at(indices.asArray) };
+			allEvents.do { |each|
+				each.putPairs(pairs)
+			}
+		}
+	}
+
 	makeEventForBuffer { |buffer|
 		^(
 			buffer: buffer.bufnum,

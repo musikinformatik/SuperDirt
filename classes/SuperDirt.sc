@@ -73,6 +73,14 @@ SuperDirt {
 
 	/* sound library */
 
+	loadOnly { |names, path, appendToExisting = false|
+		soundLibrary.loadOnly(names, path, appendToExisting )
+	}
+
+	loadSoundFileFolder { |folderPath, name, appendToExisting = false|
+		soundLibrary.loadSoundFileFolder(folderPath, name, appendToExisting)
+	}
+
 	loadSoundFiles { |paths, appendToExisting = false, namingFunction|
 		soundLibrary.loadSoundFiles(paths, appendToExisting = false, namingFunction)
 	}
