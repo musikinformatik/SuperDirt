@@ -73,9 +73,9 @@ they respond to the existence of a value for one of the tidal parameters
 			dirtEvent.sendSynth("dirt_vowel" ++ ~numChannels,
 				[
 					out: ~out,
-					vowelFreqs: vowel.freqs,
-					vowelAmps: vowel.amps,
-					vowelRqs: vowel.rqs,
+					vowelFreqs: [vowel.freqs],
+					vowelAmps: [vowel.amps],
+					vowelRqs: [vowel.rqs],
 					resonance: ~resonance,
 				]
 			)
