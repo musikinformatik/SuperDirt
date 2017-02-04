@@ -54,7 +54,7 @@ DirtPanFixed2 : UGen {
 			^Pan2.ar(signals[0], pan, mul)
 		} {
 			if(n > 2) { signals = Splay.ar(signals, spread) };
-			^signals * [1 - pan, 1 + pan].clip2
+			^Balance2.ar(signals[0], signals[1], pan, mul)
 		}
 	}
 }
