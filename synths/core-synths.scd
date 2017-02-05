@@ -296,6 +296,18 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		DirtPause.ar(snd, graceTime:4);
 		snd = snd * EnvGen.kr(Env.asr, gate, doneAction:2);
 
+		case(
+			{ numChannels == 1 }, { snd = snd.sum },
+			{ numChannels > 2 }, {
+				snd = [
+					// wild interpretation
+					PanAz.ar(numChannels, x, LFSaw.kr(lrate)),
+					PanAz.ar(numChannels, x, LFSaw.kr(lrate) + 1)
+				].sum
+			}
+		);
+
+
 		Out.ar(effectBus, snd);
 
 	}, [\ir, \ir]).add;
