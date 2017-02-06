@@ -4,14 +4,11 @@ DirtEvent {
 	var server;
 
 	*new { |orbit, modules, event|
-		^super.newCopyArgs(orbit, modules).init(event)
-	}
-
-	init { |argEvent|
-		event = argEvent.parent_(orbit.defaultParentEvent);
+		^super.newCopyArgs(orbit, modules, event)
 	}
 
 	play {
+		event.parent = orbit.defaultParentEvent;
 		event.use {
 			// s and n stand for synth/sample and note/number
 			~s ?? { this.splitName };
