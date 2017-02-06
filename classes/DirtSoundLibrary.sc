@@ -17,10 +17,14 @@ DirtSoundLibrary {
 	}
 
 	init {
-		if(buffers.notNil) { this.freeAllSoundFiles };
 		buffers = IdentityDictionary.new;
 		bufferEvents = IdentityDictionary.new;
 		synthEvents = IdentityDictionary.new;
+	}
+
+	clear {
+		synthEvents.clear;
+		this.freeAllSoundFiles;
 	}
 
 	addBuffer { |name, buffer, appendToExisting = true|
@@ -81,15 +85,15 @@ DirtSoundLibrary {
 
 	freeAllSoundFiles {
 		buffers.do { |x| x.asArray.do { |buf| buf.free } };
-		buffers = ();
-		bufferEvents = ();
+		buffers = IdentityDictionary.new;
+		bufferEvents = IdentityDictionary.new;
 	}
 
 
 
 	/*
 
-	File loading
+	file loading
 
 	*/
 
