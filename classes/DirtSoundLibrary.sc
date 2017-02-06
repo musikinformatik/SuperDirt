@@ -51,17 +51,19 @@ DirtSoundLibrary {
 		synthEvents[name] = synthEvents[name].add(event);
 	}
 
-	getEvent { |name, index|
-		// first look up buffers, then synths
-		var allEvents = bufferEvents[name] ?? { synthEvents[name] };
-		if(allEvents.isNil) {
-			^if(SynthDescLib.at(name).notNil) {
-				(instrument: name)
-				//sustainControl =  synthDesc.controlDict.at(\sustain);
-				//if(sustainControl.notNil) { ~delta = sustainControl.defaultValue }
-			}
-		};
-		^allEvents.wrapAt(index.asInteger)
+	freeSoundFiles { |names|
+		names.asArray.do { |name|
+			buffers.removeAt(name).asArray.do { |buf|
+				if(this.findBuffer(buf).notNil) { buf.free } // don't free aliases
+			};
+			bufferEvents.removeAt(name);
+		}
+	}
+
+	freeSynths { |names|
+		names.asArray.do { |name|
+			synthEvents.removeAt(name)
+		}
 	}
 
 	set { |name, indices ... pairs|
@@ -76,13 +78,13 @@ DirtSoundLibrary {
 		}
 	}
 
-	makeEventForBuffer { |buffer|
-		^(
-			buffer: buffer.bufnum,
-			instrument: format("dirt_sample_%_%", buffer.numChannels, dirt.numChannels).asSymbol,
-			unitDuration: buffer.duration
-		)
+
+	freeAllSoundFiles {
+		buffers.do { |x| x.asArray.do { |buf| buf.free } };
+		buffers = ();
+		bufferEvents = ();
 	}
+
 
 
 	/*
@@ -159,6 +161,43 @@ DirtSoundLibrary {
 		}
 	}
 
+
+
+	/* access */
+
+
+	findBuffer { |buf|
+		buffers.keysValuesDo { |key, val|
+			var index = val.indexOf(buf);
+			if(index.notNil) { ^[key, index] };
+		};
+		^nil
+	}
+
+	getEvent { |name, index|
+		// first look up buffers, then synths
+		var allEvents = bufferEvents[name] ?? { synthEvents[name] };
+		if(allEvents.isNil) {
+			^if(SynthDescLib.at(name).notNil) {
+				(instrument: name)
+				//sustainControl =  synthDesc.controlDict.at(\sustain);
+				//if(sustainControl.notNil) { ~delta = sustainControl.defaultValue }
+			}
+		};
+		^allEvents.wrapAt(index.asInteger)
+	}
+
+	makeEventForBuffer { |buffer|
+		^(
+			buffer: buffer.bufnum,
+			instrument: format("dirt_sample_%_%", buffer.numChannels, dirt.numChannels).asSymbol,
+			unitDuration: buffer.duration
+		)
+	}
+
+
+	/* info */
+
 	postSampleInfo {
 		var keys = buffers.keys.asArray.sort;
 		if(buffers.isEmpty) {
@@ -183,34 +222,6 @@ DirtSoundLibrary {
 		^buffers.sum { |array| array.sum { |buffer| buffer.memoryFootprint.asFloat } } // in bytes
 	}
 
-	freeSoundFiles { |names|
-		names.do { |name|
-			buffers.removeAt(name).asArray.do { |buf|
-				if(this.findBuffer(buf).notNil) { buf.free } // don't free aliases
-			};
-			bufferEvents.removeAt(name);
-		}
-	}
-
-	freeSynths { |names|
-		names.do { |name|
-			synthEvents.removeAt(name)
-		}
-	}
-
-	freeAllSoundFiles {
-		buffers.do { |x| x.asArray.do { |buf| buf.free } };
-		buffers = ();
-		bufferEvents = ();
-	}
-
-	findBuffer { |buf|
-		buffers.keysValuesDo { |key, val|
-			var index = val.indexOf(buf);
-			if(index.notNil) { ^[key, index] };
-		};
-		^nil
-	}
 
 
 
