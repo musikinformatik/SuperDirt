@@ -15,14 +15,17 @@ DirtEvent {
 		event.use {
 			// s and n stand for synth/sample and note/number
 			~s ?? { this.splitName };
-			// unless diversion returns something, we proceed as usual
+			// unless orbit wide diversion returns something, we proceed
 			~diversion.value ?? {
 				this.mergeSoundEvent;
 				server = ~server.value; // as server is used a lot, make lookup more efficient
 				this.orderRange;
 				this.calcRange;
 				this.finaliseParameters;
-				if(~sustain >= orbit.minSustain) { this.playSynths }; // otherwise drop it.
+				// unless event diversion returns something, we proceed
+				~diversion.value ?? {
+					if(~sustain >= orbit.minSustain) { this.playSynths }; // otherwise drop it.
+				}
 			}
 		}
 	}
@@ -35,12 +38,12 @@ DirtEvent {
 	}
 
 	mergeSoundEvent {
-		var sound, soundEvent;
-		sound = ~s;
-		~hash = ~hash ?? { sound.identityHash };
-		soundEvent = orbit.dirt.soundLibrary.getEvent(sound, ~n);
+		var soundEvent;
+		~hash = ~hash ?? { ~s.identityHash };
+		soundEvent = orbit.dirt.soundLibrary.getEvent(~s, ~n);
 		if(soundEvent.isNil) {
-			~notFound.value
+			// only call ~notFound if no ~diversion is given that anyhow redirects control
+			if(~diversion.isNil) { ~notFound.value }
 		} {
 			// the stored sound event becomes the environment's proto slot, which partly can override its parent
 			currentEnvironment.proto = soundEvent
