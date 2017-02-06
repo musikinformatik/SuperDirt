@@ -16,8 +16,8 @@ DirtEvent {
 			~diversion.value ?? {
 				this.mergeSoundEvent;
 				server = ~server.value; // as server is used a lot, make lookup more efficient
-				this.orderRange;
-				this.calcRange;
+				this.orderTimeSpan;
+				this.calcTimeSpan;
 				this.finaliseParameters;
 				// unless event diversion returns something, we proceed
 				~diversion.value ?? {
@@ -47,7 +47,7 @@ DirtEvent {
 		}
 	}
 
-	orderRange {
+	orderTimeSpan {
 		var temp;
 		if(~end >= ~begin) {
 			if(~speed < 0) { temp = ~end; ~end = ~begin; ~begin = temp };
@@ -58,7 +58,7 @@ DirtEvent {
 		~length = abs(~end - ~begin);
 	}
 
-	calcRange {
+	calcTimeSpan {
 
 		var sustain, unitDuration; // fixme unitDuration
 		var speed = ~speed;
@@ -117,6 +117,11 @@ DirtEvent {
 		~latency + ~lag + (~offset * ~speed);
 	}
 
+	getMsgFunc { |instrument|
+		var desc = SynthDescLib.global.at(instrument.asSymbol);
+		^if(desc.notNil) { desc.msgFunc }
+	}
+
 	sendSynth { |instrument, args|
 		var group = ~synthGroup;
 		args = args ?? { this.getMsgFunc(instrument).valueEnvir };
@@ -154,8 +159,6 @@ DirtEvent {
 		server.sendMsg(\g_new, ~synthGroup, 1, outerGroup ? orbit.group);
 	}
 
-
-
 	playSynths {
 		var cutGroup;
 
@@ -175,11 +178,6 @@ DirtEvent {
 
 		});
 
-	}
-
-	getMsgFunc { |instrument|
-		var desc = SynthDescLib.global.at(instrument.asSymbol);
-		^if(desc.notNil) { desc.msgFunc }
 	}
 
 
