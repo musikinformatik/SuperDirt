@@ -25,6 +25,10 @@ DirtSoundLibrary {
 
 	addBuffer { |name, buffer, appendToExisting = true|
 		if(buffer.isNil) { Error("tried to add Nil to buffer library").throw };
+		if(synthEvents[name].notNil) {
+			"a synth event with that name already exists: %\nSkipping...".format(name).warn;
+			^this
+		};
 		name = name.asSymbol;
 		if(appendToExisting.not and: { buffers[name].notNil }) {
 			"\nreplacing '%' (%)\n".postf(name, buffers[name].size);
@@ -36,6 +40,10 @@ DirtSoundLibrary {
 
 	addSynth { |name, event, appendToExisting = true|
 		if(event.isNil) { Error("tried to add Nil to synth event library").throw };
+		if(bufferEvents[name].notNil) {
+			"a sample buffer with that name already exists: %\nSkipping...".format(name).warn;
+			^this
+		};
 		if(appendToExisting.not and: { synthEvents[name].notNil }) {
 			"\nreplacing '%' (%)\n".postf(name, synthEvents[name].size);
 			synthEvents[name] = nil;
