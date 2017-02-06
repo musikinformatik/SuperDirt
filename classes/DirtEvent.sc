@@ -18,7 +18,7 @@ DirtEvent {
 			// unless diversion returns something, we proceed as usual
 			~diversion.value ?? {
 				this.mergeSoundEvent;
-				server = ~server; // as server is used a lot, make lookup more efficient
+				server = ~server.value; // as server is used a lot, make lookup more efficient
 				this.orderRange;
 				this.calcRange;
 				this.finaliseParameters;
