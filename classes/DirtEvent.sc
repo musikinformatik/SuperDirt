@@ -1,6 +1,7 @@
 DirtEvent {
 
 	var <orbit, <modules, <event;
+	var server;
 
 	*new { |orbit, modules, event|
 		^super.newCopyArgs(orbit, modules).init(event)
@@ -17,6 +18,7 @@ DirtEvent {
 			// unless diversion returns something, we proceed as usual
 			~diversion.value ?? {
 				this.mergeSoundEvent;
+				server = ~server; // as server is used a lot, make lookup more efficient
 				this.orderRange;
 				this.calcRange;
 				this.finaliseParameters;
@@ -40,6 +42,7 @@ DirtEvent {
 		if(soundEvent.isNil) {
 			~notFound.value
 		} {
+			// the stored sound event becomes the environment's proto slot, which partly can override its parent
 			currentEnvironment.proto = soundEvent
 		}
 	}
@@ -110,10 +113,12 @@ DirtEvent {
 		~pan = ~pan * 2 - 1; // convert unipolar (0..1) range into bipolar one (-1...1)
 		~note = ~note ? ~n;
 		~freq = ~freq.value;
+		~delayAmp = ~delay ? 0.0; // for clarity
+		~latency + ~lag + (~offset * ~speed);
 	}
 
 	sendSynth { |instrument, args|
-		var server = ~server, group = ~synthGroup;
+		var group = ~synthGroup;
 		args = args ?? { this.getMsgFunc(instrument).valueEnvir };
 		args.asControlInput.flop.do { |each|
 			server.sendMsg(\s_new,
@@ -127,7 +132,7 @@ DirtEvent {
 	}
 
 	sendGateSynth {
-		~server.sendMsg(\s_new,
+		server.sendMsg(\s_new,
 			"dirt_gate" ++ ~numChannels,
 			-1, // no id
 			1, // add action: addToTail
@@ -145,23 +150,18 @@ DirtEvent {
 	}
 
 	prepareSynthGroup { |outerGroup|
-		~synthGroup = ~server.nextNodeID;
-		~server.sendMsg(\g_new, ~synthGroup, 1, outerGroup ? orbit.group);
+		~synthGroup = server.nextNodeID;
+		server.sendMsg(\g_new, ~synthGroup, 1, outerGroup ? orbit.group);
 	}
 
 
 
 	playSynths {
-		var diverted, server = ~server;
-		var latency = ~latency + ~lag + (~offset * ~speed);
 		var cutGroup;
-
 
 		if(~cut != 0) { cutGroup = orbit.getCutGroup(~cut) };
 
-		server.makeBundle(latency, { // use this to build a bundle
-
-			~delayAmp = ~delay ? 0.0; // for clarity
+		server.makeBundle(~latency, { // use this to build a bundle
 
 			orbit.globalEffects.do { |x| x.set(currentEnvironment) };
 
@@ -172,7 +172,6 @@ DirtEvent {
 			this.prepareSynthGroup(cutGroup);
 			modules.do(_.value(this));
 			this.sendGateSynth; // this one needs to be last
-
 
 		});
 
