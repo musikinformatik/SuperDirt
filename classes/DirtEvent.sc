@@ -13,14 +13,14 @@ DirtEvent {
 			// s and n stand for synth/sample and note/number
 			~s ?? { this.splitName };
 			// unless orbit wide diversion returns something, we proceed
-			~diversion.value ?? {
+			~diversion.(this) ?? {
 				this.mergeSoundEvent;
 				server = ~server.value; // as server is used a lot, make lookup more efficient
 				this.orderTimeSpan;
 				this.calcTimeSpan;
 				this.finaliseParameters;
 				// unless event diversion returns something, we proceed
-				~diversion.value ?? {
+				~play.(this) ?? {
 					if(~sustain >= orbit.minSustain) { this.playSynths }; // otherwise drop it.
 				}
 			}
