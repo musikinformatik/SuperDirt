@@ -84,4 +84,108 @@ SynthDef(\dirac, { |out, sustain = 0.03, amp = 1, pan = 0|
 );
 
 
+// Phase Modulation Synth
+// 
+// Parameters:
+// pitch2: carrierfrequency (works just like speed, eg # pitch "2.0 3.0 4.0")
+// detune: controls the modulation index (put value patterns between 0.0 and
+// 1.0)
+(
+SynthDef(\pm, {
+    |out, 
+    sustain = 1, 
+    freq = 440, 
+    speed = 1, 
+    detune = 0.25,
+    pitch2 = 3, 
+    begin=0, end=1, pan, accelerate, amp = 1, offset|
+	var env, sound, rate, phase;
+	env = EnvGen.ar(Env.perc(0.01, 0.99, amp * 0.1, -1), timeScale:sustain, doneAction:2);
+	phase = Line.kr(begin, end, sustain);
+	sound = PMOsc.ar(freq * (speed + Sweep.kr(1, accelerate)), // carrier freq 
+            freq * (pitch2 + Sweep.kr(1, accelerate)), // modulation freq 
+            detune, // Phase Modulation Index 
+            phase);
+	OffsetOut.ar(out,
+		DirtPan.ar(sound, ~dirt.numChannels, pan, env)
+    )
+}).add;
+);
+
+// FM Granular 
+// 
+// Parameters:
+// pitch2: carrierfrequency (works just like speed, eg # pitch "2.0 3.0 4.0")
+// detune: controls the modulation index (put value patterns between 0.0 and
+// 1.0)
+(
+SynthDef(\fmgrain, {
+    |out, 
+    graindur=0.1,
+    sustain = 1, 
+    freq = 440, 
+    speed = 1, 
+    triggerrate = 10,
+    gate = 1,
+    detune = 0.75,
+    pitch2 = 0.25, 
+    begin=0, end=1, pan, accelerate, amp = 1|
+	var env, sound, rate, phase;
+	env = EnvGen.ar(Env.perc(0.01, 0.99, amp * 0.1, -1), timeScale:sustain, doneAction:2);
+    sound = FMGrain.ar(trigger: Impulse.ar(triggerrate*speed,0, gate), 
+                        dur: graindur/speed, // the higher the speed, the smaller the grain
+                        carfreq: freq * (speed + Sweep.kr(1, accelerate)),
+                        modfreq: freq * (pitch2 + Sweep.kr(1, accelerate)),
+                        index: detune);
+	OffsetOut.ar(out,
+		DirtPan.ar(sound, ~dirt.numChannels, pan, env)
+    )
+}).add;
+);
+
+// WhistleSynth 
+// 
+// Whistle into your computer
+// and control a fat, three oscillator bass synth.
+// It extracts pitch information from your voice
+// but you can still use the speed parameter to scale.
+(
+SynthDef(\whistle, {
+    |out, 
+    inputchannel = 0, // Built in mic or the first input on your computer
+    graindur=0.1,
+    sustain = 1, 
+    freq = 440, 
+    speed = 1, 
+    gate = 1,
+    cutoff = 2000,
+    detune = 0.75,
+    begin=0, end=1, pan, accelerate, amp = 1|
+	var env, sound, sound2, sound3, rate, phase, extractedpitch, hasFreq;
+	env = EnvGen.ar(Env.perc(0.01, 0.99, amp * 0.1, -1), timeScale:sustain, doneAction:2);
+
+    // Extract pitch information from audio input
+    sound = SoundIn.ar([inputchannel]); 
+    #extractedpitch, hasFreq = Pitch.kr(sound); // Pitch follower 
+    extractedpitch = extractedpitch * (speed + Sweep.kr(1, accelerate));
+    
+    // Layer three oscillators and slightly detune them to get a nice, fat sound
+    sound = LFTri.ar(extractedpitch/4, 1, 
+            mul:Lag.kr(hasFreq)*gate);
+
+    sound2 = LFSaw.ar((extractedpitch/8) * (1+detune), 1, 
+            mul:Lag.kr(hasFreq)*gate) * detune;
+
+    sound3 = LFPar.ar((extractedpitch/16) * (1.05+detune), 1, 
+            mul:Lag.kr(hasFreq)*gate) * detune;
+    
+    sound = Splay.ar([sound, sound2, sound3]);        
+    sound = LPF.ar(sound, Lag.kr(hasFreq.range(120,cutoff)));
+
+    OffsetOut.ar(out,
+		DirtPan.ar(sound, ~dirt.numChannels, pan, env)
+    )
+}).add;
+);
+
 )
