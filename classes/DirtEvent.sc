@@ -173,8 +173,24 @@ DirtEvent {
 			};
 
 			this.prepareSynthGroup(cutGroup);
+
+			// these following two could be unified and collected into an array
+			// which then could be flopped together.
+			/*
+			To try:
+			0) make a new branch
+			1) make sendGateSynth a module (always last in the list)
+			2) make all of them call a method that just adds an array
+			3) collect the arrays, flop them and then add them to the bundle
+			4) check efficiency!
+			5) generalise ~latency to be included in flop?
+			6) if all is fine, make a protection in clearModules etc.
+			*/
+
 			modules.do(_.value(this));
 			this.sendGateSynth; // this one needs to be last
+
+
 
 		});
 
