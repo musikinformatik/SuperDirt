@@ -170,4 +170,29 @@ they respond to the existence of a value for one of the tidal parameters
 		])
 }, { ~tremolorate.notNil });
 
+
+
+// must be last!
+
+~dirt.addModule('gate',
+	{ |dirtEvent|
+		var orbit = dirtEvent.orbit;
+		dirtEvent.addMsg([\s_new,
+			"dirt_gate" ++ ~numChannels,
+			-1, // no id
+			1, // add action: addToTail
+			~synthGroup, // send to group
+			in: orbit.synthBus, // read from synth bus, which is reused
+			out: orbit.dryBus, // write to orbital dry bus
+			amp: ~amp,
+			sample: ~hash, // required for the cutgroup mechanism
+			sustain: ~sustain, // after sustain, free all synths and group
+			fadeInTime: ~fadeInTime, // fade in
+			fadeTime: ~fadeTime // fade out
+		]
+		)
+});
+
+
+
 );

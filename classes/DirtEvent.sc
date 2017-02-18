@@ -1,7 +1,7 @@
 DirtEvent {
 
 	var <orbit, <modules, <event;
-	var server;
+	var server, messages;
 
 	*new { |orbit, modules, event|
 		^super.newCopyArgs(orbit, modules, event)
@@ -125,33 +125,18 @@ DirtEvent {
 	sendSynth { |instrument, args|
 		var group = ~synthGroup;
 		args = args ?? { this.getMsgFunc(instrument).valueEnvir };
-		args.asControlInput.flop.do { |each|
-			server.sendMsg(\s_new,
+		messages = messages.add(
+			[\s_new,
 				instrument,
 				-1, // no id
 				1, // add action: addToTail
 				group, // send to group
-				*each.asOSCArgArray // append all other args
-			)
-		}
+			] ++ args
+		)
 	}
 
-	sendGateSynth {
-		server.sendMsg(\s_new,
-			"dirt_gate" ++ ~numChannels,
-			-1, // no id
-			1, // add action: addToTail
-			~synthGroup, // send to group
-			*[
-				in: orbit.synthBus, // read from synth bus, which is reused
-				out: orbit.dryBus, // write to orbital dry bus
-				amp: ~amp,
-				sample: ~hash, // required for the cutgroup mechanism
-				sustain: ~sustain, // after sustain, free all synths and group
-				fadeInTime: ~fadeInTime, // fade in
-				fadeTime: ~fadeTime // fade out
-			].asOSCArgArray // append all other args
-		)
+	addMsg { |msg|
+		messages = messages.add(msg)
 	}
 
 	prepareSynthGroup { |outerGroup|
@@ -162,10 +147,11 @@ DirtEvent {
 	playSynths {
 		var cutGroup;
 
-		if(~cut != 0) { cutGroup = orbit.getCutGroup(~cut) };
 
+		messages = Array.new(32);
 		server.makeBundle(~latency, { // use this to build a bundle
 
+			if(~cut != 0) { cutGroup = orbit.getCutGroup(~cut) };
 			orbit.globalEffects.do { |x| x.set(currentEnvironment) };
 
 			if(cutGroup.notNil) {
@@ -178,7 +164,6 @@ DirtEvent {
 			// which then could be flopped together.
 			/*
 			To try:
-			0) make a new branch
 			1) make sendGateSynth a module (always last in the list)
 			2) make all of them call a method that just adds an array
 			3) collect the arrays, flop them and then add them to the bundle
@@ -188,9 +173,10 @@ DirtEvent {
 			*/
 
 			modules.do(_.value(this));
-			this.sendGateSynth; // this one needs to be last
-
-
+			messages.collect { |x| x.asControlInput.flop }.flop.do { |msgs|
+				msgs = msgs.collect(_.asOSCArgArray);
+				server.listSendBundle(nil, msgs)
+			};
 
 		});
 
