@@ -122,6 +122,10 @@ DirtEvent {
 		^if(desc.notNil) { desc.msgFunc }
 	}
 
+	prepareMessage {
+		messages = Array.new(32);
+	}
+
 	sendSynth { |instrument, args|
 		var group = ~synthGroup;
 		args = args ?? { this.getMsgFunc(instrument).valueEnvir };
@@ -147,8 +151,9 @@ DirtEvent {
 	playSynths {
 		var cutGroup;
 
+		this.prepareMessage;
 
-		messages = Array.new(32);
+
 		server.makeBundle(~latency, { // use this to build a bundle
 
 			if(~cut != 0) { cutGroup = orbit.getCutGroup(~cut) };
@@ -164,22 +169,25 @@ DirtEvent {
 			// which then could be flopped together.
 			/*
 			To try:
-			1) make sendGateSynth a module (always last in the list)
-			2) make all of them call a method that just adds an array
-			3) collect the arrays, flop them and then add them to the bundle
 			4) check efficiency!
-			5) generalise ~latency to be included in flop?
+			5) duplicate all effects only where all effects are to be expanded!
 			6) if all is fine, make a protection in clearModules etc.
 			*/
 
 			modules.do(_.value(this));
-			messages.collect { |x| x.asControlInput.flop }.flop.do { |msgs|
-				msgs = msgs.collect(_.asOSCArgArray);
-				server.listSendBundle(nil, msgs)
-			};
-
+			this.addMessagesToBundle;
 		});
 
+	}
+
+	// this first multichannel expands (flops) each synth message
+	// and then all of them together
+	addMessagesToBundle {
+		messages.collect { |x|
+			x.asControlInput.flop
+		}.flop.do { |msgs|
+			server.listSendBundle(nil, msgs.collect(_.asOSCArgArray))
+		}
 	}
 
 
