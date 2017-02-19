@@ -165,15 +165,6 @@ DirtEvent {
 
 			this.prepareSynthGroup(cutGroup);
 
-			// these following two could be unified and collected into an array
-			// which then could be flopped together.
-			/*
-			To try:
-			4) check efficiency!
-			5) duplicate all effects only where all effects are to be expanded!
-			6) if all is fine, make a protection in clearModules etc.
-			*/
-
 			modules.do(_.value(this));
 			this.addMessagesToBundle;
 		});
