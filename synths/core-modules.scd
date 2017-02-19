@@ -58,7 +58,7 @@ this may be refacored later.
 				}
 			}
 		}
-});
+}, true, 9);
 
 
 /*
@@ -172,8 +172,6 @@ they respond to the existence of a value for one of the tidal parameters
 
 
 
-// must be last!
-
 ~dirt.addModule('gate',
 	{ |dirtEvent|
 		var orbit = dirtEvent.orbit;
@@ -191,7 +189,7 @@ they respond to the existence of a value for one of the tidal parameters
 			fadeTime: ~fadeTime // fade out
 		]
 		)
-});
+}, true, 0);
 
 
 

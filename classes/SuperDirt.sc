@@ -37,8 +37,9 @@ SuperDirt {
 
 	init {
 		soundLibrary = DirtSoundLibrary(this);
-		modules = [];
+		this.clearModules;
 		this.loadSynthDefs;
+		this.sortModules;
 		this.initVowels(\counterTenor);
 	}
 
@@ -107,19 +108,20 @@ SuperDirt {
 
 
 	/* modules */
+	/* call sortModules after adding */
 
-	addModule { |name, func, test|
+	addModule { |name, func, test, precedence = 1|
 		var index, module;
 		name = name.asSymbol;
 		// the order of modules determines the order of synths
 		// when replacing a module, we don't change the order
-		module = DirtModule(name, func, test);
+		module = DirtModule(name, func, test, precedence);
 		index = modules.indexOfEqual(module);
 		if(index.isNil) { modules = modules.add(module) } { modules.put(index, module) };
 	}
 
 	removeModule { |name|
-		modules.removeAllSuchThat { |x| x.name == name }
+		modules.removeAllSuchThat { |x| x.name == name };
 	}
 
 	getModule { |name|
@@ -130,10 +132,15 @@ SuperDirt {
 		modules = [];
 	}
 
-	addFilterModule { |synthName, synthFunc, test|
+	sortModules {
+		modules.sort { |a, b| a.precedence >= b.precedence };
+		"Module order: %\n".postf(modules.collect(_.name));
+	}
+
+	addFilterModule { |synthName, synthFunc, test, precedence = 1|
 		var instrument = synthName ++ numChannels;
 		SynthDef(instrument, synthFunc).add;
-		this.addModule(synthName, { |dirtEvent| dirtEvent.sendSynth(instrument) }, test);
+		this.addModule(synthName, { |dirtEvent| dirtEvent.sendSynth(instrument) }, test, precedence);
 	}
 
 	orderModules { |names| // names provide some partial order
@@ -143,9 +150,8 @@ SuperDirt {
 		var firstIndex = rest.indexOf(first) ? -1 + 1;
 		names = rest.insert(firstIndex, names).flatten;
 		"new module order: %".format(names).postln;
-		modules = names.collect { |x| this.getModule(x) }.reject { |x| x.isNil }
+		modules = names.collect { |x| this.getModule(x) }.reject { |x| x.isNil };
 	}
-
 
 	// SynthDefs are signal processing graph definitions
 	// this is also where the modules are added
@@ -156,9 +162,9 @@ SuperDirt {
 		filePaths = pathMatch(standardizePath(path +/+ "*"));
 		filePaths.do { |filepath|
 			if(filepath.splitext.last == "scd") {
-				(dirt:this).use { filepath.load }; "loading synthdefs in %\n".postf(filepath)
+				(dirt:this).use { filepath.load }; "loading code, synthdefs and modules in %\n".postf(filepath)
 			}
-		}
+		};
 	}
 
 	initVowels { |register|
@@ -462,17 +468,17 @@ DirtOrbit {
 
 
 DirtModule {
-	var <name, <func, <test;
+	var <name, <func, <test, <>precedence;
 
-	*new { |name, func, test|
-		^super.newCopyArgs(name, func, test ? true)
+	*new { |name, func, test, precedence = 1|
+		^super.newCopyArgs(name, func, test ? true, precedence)
 	}
 
 	value { |orbit|
 		if(test.value, { func.value(orbit) })
 	}
 
-	== { arg that;
+	== { |that|
 		^this.compareObject(that, #[\name])
 	}
 
