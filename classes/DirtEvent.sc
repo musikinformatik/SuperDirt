@@ -122,10 +122,6 @@ DirtEvent {
 		^if(desc.notNil) { desc.msgFunc }
 	}
 
-	prepareMessage {
-		messages = Array.new(32);
-	}
-
 	sendSynth { |instrument, args|
 		var group = ~synthGroup;
 		args = args ?? { this.getMsgFunc(instrument).valueEnvir };
@@ -151,9 +147,6 @@ DirtEvent {
 	playSynths {
 		var cutGroup;
 
-		this.prepareMessage;
-
-
 		server.makeBundle(~latency, { // use this to build a bundle
 
 			if(~cut != 0) { cutGroup = orbit.getCutGroup(~cut) };
@@ -164,23 +157,22 @@ DirtEvent {
 			};
 
 			this.prepareSynthGroup(cutGroup);
-
-			modules.do(_.value(this));
-			this.addMessagesToBundle;
+			this.addModulesToBundle;
 		});
 
 	}
 
-	// this first multichannel expands (flops) each synth message
-	// and then all of them together
-	addMessagesToBundle {
+	addModulesToBundle {
+		messages = Array.new(32);
+		modules.do(_.value(this));
 		messages.collect { |x|
+			// this first converts all arguments,
+			// then multichannel expands (flops) each synth message ...
 			x.asControlInput.flop
-		}.flop.do { |msgs|
+		}.flop.do { |msgs| // ... and then expands all of them together
 			server.listSendBundle(nil, msgs.collect(_.asOSCArgArray))
 		}
 	}
-
 
 }
 
