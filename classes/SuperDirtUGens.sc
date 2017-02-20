@@ -32,8 +32,8 @@ DirtPan {
 					\orientation.ir(0)
 				)
 			} {
-				//DirtSplay2.ar(signals, \spread.ir(1), pan, mul)
-				DirtPanBalance2.ar(signals, \spread.ir(1), pan, mul)
+				//DirtSplay2.ar(signals, \span.ir(1), pan, mul)
+				DirtPanBalance2.ar(signals, \span.ir(1), pan, mul)
 			}
 		}
 	}
@@ -52,7 +52,7 @@ DirtPan {
 
 DirtPanBalance2 : UGen {
 
-	*ar { | signals, spread = 1, pan = 0.0, mul = 1 |
+	*ar { | signals, span = 1, pan = 0.0, mul = 1 |
 		var n, pos, amp;
 		signals = signals.asArray;
 		n = signals.size;
@@ -60,7 +60,7 @@ DirtPanBalance2 : UGen {
 		if(n == 1) {
 			^Pan2.ar(signals[0], pan, mul)
 		} {
-			if(n > 2) { signals = Splay.ar(signals, spread) };
+			if(n > 2) { signals = Splay.ar(signals, span) };
 			^Balance2.ar(signals[0], signals[1], pan, mul)
 		}
 	}
@@ -69,7 +69,7 @@ DirtPanBalance2 : UGen {
 
 DirtSplay2 : UGen {
 
-	*ar { | signals, spread = 1, pan = 0.0, mul = 1 |
+	*ar { | signals, span = 1, pan = 0.0, mul = 1 |
 		var n, pos, pan1;
 		signals = signals.asArray;
 		n = signals.size;
