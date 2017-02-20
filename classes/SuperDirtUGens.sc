@@ -20,13 +20,20 @@ DirtPan {
 		// signals is an array of arbitrary size
 		defaultPanningFunction = #{ | signals, numChannels, pan, mul |
 			var channels, inNumChannels;
-			var spread, withd, splay, orientation;
 			if(numChannels > 2) {
-				DirtSplayAz.ar(numChannels, signals, \spread.ir(1), pan, mul,
-					\splay.ir(1), \panwidth.ir(2), \orientation.ir(0.5))
+				DirtSplayAz.ar(
+					numChannels,
+					signals,
+					\span.ir(1),
+					pan,
+					mul,
+					\splay.ir(1),
+					\panwidth.ir(2),
+					\orientation.ir(0)
+				)
 			} {
 				//DirtSplay2.ar(signals, \spread.ir(1), pan, mul)
-				DirtPanFixed2.ar(signals, \spread.ir(1), pan, mul)
+				DirtPanBalance2.ar(signals, \spread.ir(1), pan, mul)
 			}
 		}
 	}
@@ -43,7 +50,7 @@ DirtPan {
 
 
 
-DirtPanFixed2 : UGen {
+DirtPanBalance2 : UGen {
 
 	*ar { | signals, spread = 1, pan = 0.0, mul = 1 |
 		var n, pos, amp;
@@ -82,16 +89,24 @@ DirtSplay2 : UGen {
 
 DirtSplayAz : UGen {
 
-	*ar { | numChannels, signals, spread = 1, pan = 0.0, mul = 1, splay = 1, width = 2, orientation = 0.5 |
-		var n, pos, channels;
+	// pan: circular pan argument from -1 .. 1, where -1 is the first channel, 0 the center, and 1 is also the first channel
+	// span: how much the channels are distributed over the whole of numChannels. 0 means mixdown
+	// splay: rescaling of span relative to the number of output channels
+
+	*ar { | numChannels, signals, span = 1, pan = 0.0, mul = 1, splay = 1, width = 2, orientation = 0 |
+		var channels, n;
+		signals = signals.asArray;
 		n = signals.size;
 		if(n == 0) { Error("DirtSplay input has not even one channel. Can't pan no channel, sorry.").throw };
-		spread = spread * splay.linlin(0, 1, n / numChannels, 1);
-		pos = if(n == 1) { pan } { [ pan - spread, pan + spread ].resamp1(n) };
-		channels = PanAz.ar(numChannels, signals, pos: pos, level: mul, width: width, orientation: orientation);
-		^channels.flop.collect(Mix(_))
-	}
+		span = span * splay.linlin(0, 1, n / numChannels, 1);
+		channels = signals.collect { |x, i|
+			var panOffset = i / (numChannels) * 2 * span;
+			PanAz.ar(numChannels, x, panOffset + pan + 1, width: width, orientation: orientation)
+		};
 
+		^Mix(channels)
+
+	}
 }
 
 
