@@ -22,7 +22,7 @@ DirtSoundLibrary {
 		synthEvents = IdentityDictionary.new;
 	}
 
-	clear {
+	free {
 		synthEvents.clear;
 		this.freeAllSoundFiles;
 	}
