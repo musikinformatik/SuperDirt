@@ -71,7 +71,7 @@ DirtSoundLibrary {
 	}
 
 	set { |name, indices ... pairs|
-		var allEvents = bufferEvents[name] ?? { synthEvents[name] };
+		var allEvents = this.at(name);
 		if(allEvents.isNil) {
 			"set: no events found with this name: %\n".format(name).warn
 		} {
@@ -80,6 +80,10 @@ DirtSoundLibrary {
 				each.putPairs(pairs)
 			}
 		}
+	}
+
+	at { |name|
+		^bufferEvents[name] ?? { synthEvents[name] }
 	}
 
 
@@ -180,15 +184,16 @@ DirtSoundLibrary {
 
 	getEvent { |name, index|
 		// first look up buffers, then synths
-		var allEvents = bufferEvents[name] ?? { synthEvents[name] };
-		if(allEvents.isNil) {
-			^if(SynthDescLib.at(name).notNil) {
+		var allEvents = this.at(name);
+		^if(allEvents.isNil) {
+			if(SynthDescLib.at(name).notNil) {
 				(instrument: name)
 				//sustainControl =  synthDesc.controlDict.at(\sustain);
 				//if(sustainControl.notNil) { ~delta = sustainControl.defaultValue }
 			}
-		};
-		^allEvents.wrapAt(index.asInteger)
+		} {
+			allEvents.wrapAt(index.asInteger)
+		}
 	}
 
 	makeEventForBuffer { |buffer|
