@@ -68,7 +68,7 @@ SuperDirt {
 	}
 
 	free {
-		soundLibrary.init;
+		soundLibrary.free;
 		this.stop;
 	}
 

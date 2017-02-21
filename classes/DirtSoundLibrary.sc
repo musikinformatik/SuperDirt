@@ -9,7 +9,7 @@ It mainly keeps a link back to dirt for the server and to generate the instrumen
 
 DirtSoundLibrary {
 
-	var <dirt, <buffers, <bufferEvents, <synthEvents;
+	var <dirt, <buffers, <bufferEvents, <synthEvents, <events;
 	var <>fileExtensions = #["wav", "aif", "aiff", "aifc"];
 
 	*new { |dirt|
@@ -20,9 +20,16 @@ DirtSoundLibrary {
 		buffers = IdentityDictionary.new;
 		bufferEvents = IdentityDictionary.new;
 		synthEvents = IdentityDictionary.new;
+		events = IdentityDictionary.new;
+
+		// this creates a precedence for bufferEvents over synthEvents
+		// both can be accessed via events.at(name)
+		// you may override "nondestructively" by adding an event to events
+		events.parent = synthEvents;
+		events.proto = bufferEvents;
 	}
 
-	clear {
+	free {
 		synthEvents.clear;
 		this.freeAllSoundFiles;
 	}
@@ -71,7 +78,7 @@ DirtSoundLibrary {
 	}
 
 	set { |name, indices ... pairs|
-		var allEvents = this.at(name);
+		var allEvents = events.at(name);
 		if(allEvents.isNil) {
 			"set: no events found with this name: %\n".format(name).warn
 		} {
@@ -82,15 +89,10 @@ DirtSoundLibrary {
 		}
 	}
 
-	at { |name|
-		^bufferEvents[name] ?? { synthEvents[name] }
-	}
-
-
 	freeAllSoundFiles {
 		buffers.do { |x| x.asArray.do { |buf| buf.free } };
-		buffers = IdentityDictionary.new;
-		bufferEvents = IdentityDictionary.new;
+		buffers.clear;
+		bufferEvents.clear;
 	}
 
 
@@ -183,8 +185,7 @@ DirtSoundLibrary {
 	}
 
 	getEvent { |name, index|
-		// first look up buffers, then synths
-		var allEvents = this.at(name);
+		var allEvents = events.at(name);
 		^if(allEvents.isNil) {
 			if(SynthDescLib.at(name).notNil) {
 				(instrument: name)
