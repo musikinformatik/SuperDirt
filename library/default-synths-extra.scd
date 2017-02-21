@@ -228,7 +228,6 @@
 );
 
 
-// this synth is inherently stereo, so handles the "pan" parameter itself and tells SuperDirt not to mix down to mono
 // "voice" scales the comparator frequencies, higher values will sound "breathier"
 (
 	SynthDef(\supercomparator, {|out, speed=1, decay=0, sustain=1, pan, accelerate, freq,
@@ -243,8 +242,7 @@
 			sound,
 			pitch1 * 4 * basefreq + SinOsc.ar(basefreq/64*speed, 0, lfo*basefreq/2) + LFNoise2.ar(1,lfo*basefreq),
 			LFNoise2.ar(0,0.1,4*resonance));
-		sound = 0.5 * Balance2.ar(sound[0], sound[1], pan*2-1);
-		OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, 0.5, env, {|x| x}));
+		OffsetOut.ar(out, DirtPan.ar(0.5*sound, ~dirt.numChannels, pan, env));
 	}).add
 );
 
@@ -394,8 +392,7 @@ SynthDef(\superhoover, {|out, sustain=1, decay=0, pan, freq, accelerate=0, slide
 	mix = BPeakEQ.ar(mix, 6000, 1, 3);
 	mix = BPeakEQ.ar(mix, 3500, 1, 6);
 	mix = mix.dup + CombC.ar(mix.dup, 1/200, SinOsc.kr(3, [0.5pi, 1.5pi]).range(1/300, 1/200), 0);
-	mix = 1.5*Balance2.ar(mix[0], mix[1], pan*2-1);
-	OffsetOut.ar(out, DirtPan.ar(mix, ~dirt.numChannels, 0.5, env, {|x| x}));
+	OffsetOut.ar(out, DirtPan.ar(1.4*mix, ~dirt.numChannels, pan, env));
 }).add
 );
 
