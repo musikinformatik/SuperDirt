@@ -532,16 +532,17 @@ GlobalDirtEffect {
 	}
 
 	set { |event|
-		var argsChanged;
+		var argsChanged, someArgsNotNil = false;
 		paramNames.do { |key|
 			var value = event[key];
+			value !? { someArgsNotNil = true };
 			if(state[key] != value) {
 				argsChanged = argsChanged.add(key).add(value);
 				state[key] = value;
 			}
 		};
+		if(someArgsNotNil) { synth.run };
 		if(argsChanged.notNil) {
-			synth.run;
 			synth.set(*argsChanged);
 		}
 	}
