@@ -34,6 +34,10 @@ DirtSoundLibrary {
 		this.freeAllSoundFiles;
 	}
 
+	putSynth { |name, event|
+		this.addSynth(name, event, false)
+	}
+
 	addBuffer { |name, buffer, appendToExisting = true|
 		if(buffer.isNil) { Error("tried to add Nil to buffer library").throw };
 		if(synthEvents[name].notNil) {
