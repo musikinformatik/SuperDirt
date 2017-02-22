@@ -93,15 +93,20 @@ DirtSplayAz : UGen {
 	// span: how much the channels are distributed over the whole of numChannels. 0 means mixdown
 	// splay: rescaling of span relative to the number of output channels
 
+	// For splay = 1, and span = 1, the N synth channels should cover the whole output channel field.
+	// For splay = 0, and span = 1, the N synth channels should cover only adjacent channels up to N of the output channels.
+	// Intermediate values of splay give intermediate ranges.
+
 	*ar { | numChannels, signals, span = 1, pan = 0.0, mul = 1, splay = 1, width = 2, orientation = 0 |
 		var channels, n;
 		signals = signals.asArray;
 		n = signals.size;
 		if(n == 0) { Error("DirtSplay input has not even one channel. Can't pan no channel, sorry.").throw };
-		span = span * splay.linlin(0, 1, n / numChannels, 1);
+		span = span * splay.linlin(0, 1, numChannels / n, 1);
+		pan = pan + 1; // for PanAz, the first/last channel is not 0, but 1.
 		channels = signals.collect { |x, i|
 			var panOffset = i / (numChannels) * 2 * span;
-			PanAz.ar(numChannels, x, panOffset + pan + 1, width: width, orientation: orientation)
+			PanAz.ar(numChannels, x, panOffset + pan, width: width, orientation: orientation)
 		};
 
 		^Mix(channels)
