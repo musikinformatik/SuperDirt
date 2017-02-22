@@ -11,7 +11,15 @@ They should be used through the
 
 which can be modified before starting a SuperDirt instance. This is still a bit experimental, but should work on any number of input and output channel settings.
 
+Generally, these pseudo ugens below expect a bipolar pan range [-1..1]
+DirtEvent converts the tidal input: ~pan = ~pan * 2 - 1;
+
+Where we write -1 for pan in tidal, we get -3, which should be equivalent to 1.
+In multichannel panning this is not an issue, because it is cyclic in the range [-1..1], or [0..2]
+In stereo panning, we need to .fold(-1, 1)
+
 */
+
 
 DirtPan {
 	classvar <>defaultPanningFunction;
@@ -58,10 +66,10 @@ DirtPanBalance2 : UGen {
 		n = signals.size;
 		if(n == 0) { Error("DirtSplay input has not even one channel. Can't pan no channel, sorry.").throw };
 		if(n == 1) {
-			^Pan2.ar(signals[0], pan, mul)
+			^Pan2.ar(signals[0], pan.fold(-1, 1), mul)
 		} {
 			if(n > 2) { signals = Splay.ar(signals, span) };
-			^Balance2.ar(signals[0], signals[1], pan, mul)
+			^Balance2.ar(signals[0], signals[1], pan.fold(-1, 1), mul)
 		}
 	}
 }
