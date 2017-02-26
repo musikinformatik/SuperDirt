@@ -302,8 +302,8 @@ live coding them requires that you have your SuperDirt instance in an environmen
 			{ numChannels > 2 }, {
 				snd = [
 					// wild interpretation
-					PanAz.ar(numChannels, x, LFSaw.kr(lrate)),
-					PanAz.ar(numChannels, x, LFSaw.kr(lrate) + 1)
+					PanAz.ar(numChannels, snd[0], LFSaw.kr(lrate)),
+					PanAz.ar(numChannels, snd[1], LFSaw.kr(lrate) + 1)
 				].sum
 			}
 		);
