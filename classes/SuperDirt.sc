@@ -19,7 +19,7 @@ SuperDirt {
 
 	var <port, <senderAddr, <replyAddr, netResponders;
 	var <>fileExtensions = #["wav", "aif", "aiff", "aifc"];
-	var <>receiveAction, <>verbose = false, <>maxLatency = 42;
+	var <>receiveAction, <>warnOutOfOrbit = true, <>verbose = false, <>maxLatency = 42;
 
 	classvar <>default, <>maxSampleNumChannels = 2;
 
@@ -275,7 +275,7 @@ SuperDirt {
 			// pairs of parameter names and values in arbitrary order
 			OSCFunc({ |msg, time, tidalAddr|
 				var latency = time - Main.elapsedTime;
-				var event = (), orbit;
+				var event = (), orbit, index;
 				if(latency > maxLatency) {
 					"The scheduling delay is too long. Your networks clocks may not be in sync".warn;
 					latency = 0.2;
@@ -284,8 +284,14 @@ SuperDirt {
 				event[\latency] = latency;
 				event.putPairs(msg[1..]);
 				receiveAction.value(event);
-				orbit = orbits @@ (event[\orbit] ? 0);
-				DirtEvent(orbit, modules, event).play
+				index = event[\orbit] ? 0;
+
+				if(warnOutOfOrbit and: { index >= orbits.size } or: { index < 0 }) {
+						"SuperDirt: event falls out of existining orbits, index (%)".format(index).warn
+				};
+
+				DirtEvent(orbits @@ index, modules, event).play
+
 			}, '/play2', senderAddr, recvPort: port).fix
 		);
 
