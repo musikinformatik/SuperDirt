@@ -280,6 +280,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 		in = In.ar(dryBus, numChannels);
 		ReplaceOut.ar(dryBus, in*(1-leslie));
+		if(numChannels > 2) { in = in.clump(2).sum };
 		distance = SinOsc.ar(Lag.kr(lrate,10), 0).range(0, lsize);
 		throb = SinOsc.ar(Lag.kr(lrate*0.8, 20), 0).range(0,lsize*1.3);
 		bal1 = SinOsc.kr(Lag.kr(lrate*0.8, 4), pi/2).range(-0.2,0.2);
