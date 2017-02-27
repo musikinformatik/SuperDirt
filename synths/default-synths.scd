@@ -107,4 +107,22 @@ SynthDef(\dirac, { |out, sustain = 0.03, pan = 0|
 }).add;
 );
 
+
+(
+SynthDef(\cyclo, { |out, freq, sustain = 1, speed = 1, begin = 0, end = 1, pan, accelerate, cycle|
+	var env, sound, rate, phase;
+
+	env = EnvGen.ar(Env.perc(0.01, 0.99, 1, -1), timeScale:sustain, doneAction:2);
+	phase = Line.kr(begin, 1 - end, sustain);
+	rate = (begin + 1) * (speed + Sweep.kr(1, accelerate));
+
+	freq = (cycle * speed) % ((1..16) + phase) * freq;
+
+	sound = SinOsc.ar(freq * rate).mean;
+	OffsetOut.ar(out,
+		DirtPan.ar(sound, ~dirt.numChannels, pan, env)
+	)
+}).add
+);
+
 )
