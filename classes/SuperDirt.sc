@@ -18,7 +18,6 @@ SuperDirt {
 	var <>modules;
 
 	var <port, <senderAddr, <replyAddr, netResponders;
-	var <>fileExtensions = #["wav", "aif", "aiff", "aifc"];
 	var <>receiveAction, <>warnOutOfOrbit = true, <>verbose = false, <>maxLatency = 42;
 
 	classvar <>default, <>maxSampleNumChannels = 2;
