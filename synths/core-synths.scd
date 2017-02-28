@@ -125,7 +125,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 	SynthDef("dirt_shape" ++ numChannels, { |out, shape = 0|
 		var signal = In.ar(out, numChannels), amp = 1;
-		shape = min(shape, 1.0 - 1e-16); // avoid division by zero
+		shape = min(shape, 1.0 - 4e-10); // avoid division by zero
 		//amp = 1.0 - (0.15 * shape / (shape + 2.0)) * amp; // optional gain comp
 		shape = (2.0 * shape) / (1.0 - shape);
 
@@ -274,11 +274,13 @@ live coding them requires that you have your SuperDirt instance in an environmen
 	// "leslie" controls dry/wet
 	// "lrate" is the modulation rate (typical vintage rates would be 6.7 for "fast", 0.7 for "slow")
 	// "lsize" is the physical size of the cabinet in meters, this mostly affects the Doppler amount (pitch warble)
-	SynthDef("dirt_leslie" ++ numChannels, { |dryBus, effectBus, gate = 1, leslie=0, lrate=6.7, lsize=0.3|
+
+	SynthDef("dirt_leslie" ++ numChannels, { |dryBus, effectBus, gate = 1, leslie=0.5, lrate=6.7, lsize=0.3|
 		var in, distance, throb, sound1, sound2, bal1, bal2, snd;
 
 		in = In.ar(dryBus, numChannels);
 		ReplaceOut.ar(dryBus, in*(1-leslie));
+		if(numChannels > 2) { in = in.clump(2).sum };
 		distance = SinOsc.ar(Lag.kr(lrate,10), 0).range(0, lsize);
 		throb = SinOsc.ar(Lag.kr(lrate*0.8, 20), 0).range(0,lsize*1.3);
 		bal1 = SinOsc.kr(Lag.kr(lrate*0.8, 4), pi/2).range(-0.2,0.2);
@@ -295,6 +297,18 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 		DirtPause.ar(snd, graceTime:4);
 		snd = snd * EnvGen.kr(Env.asr, gate, doneAction:2);
+
+		case(
+			{ numChannels == 1 }, { snd = snd.sum },
+			{ numChannels > 2 }, {
+				snd = [
+					// wild interpretation
+					PanAz.ar(numChannels, snd[0], LFSaw.kr(lrate)),
+					PanAz.ar(numChannels, snd[1], LFSaw.kr(lrate) + 1)
+				].sum
+			}
+		);
+
 
 		Out.ar(effectBus, snd);
 
