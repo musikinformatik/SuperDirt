@@ -47,7 +47,7 @@ let (degree, degree_p) = pF "degree" (Nothing)
 	var scale, tuning;
 	pitchEvent.use {
 		~freq = {
-			~n !? { ~note = ~n }; // interpret n as note (might be also degree)
+			if(~n != 0) { ~note = ~n }; // interpret n as note (might be also degree)
 			~scaleName !? {
 				scale = Scale.at(~scaleName);
 				scale !? {
@@ -61,7 +61,7 @@ let (degree, degree_p) = pF "degree" (Nothing)
 			(~midinote.value + ~ctranspose).midicps * ~harmonic;
 		};
 
-		[\freq, \midinote, \octave, \n].do(event.removeAt(_));
+		[\freq, \midinote, \octave].do(event.removeAt(_));
 
 		event.parent = pitchEvent;
 	}
