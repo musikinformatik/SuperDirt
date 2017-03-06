@@ -107,7 +107,7 @@ SynthDef(\dirac, { |out, sustain = 0.03, pan = 0|
 }).add;
 );
 
-
+// shepard on a cycle
 (
 SynthDef(\cyclo, { |out, freq, sustain = 1, speed = 1, begin = 0, end = 1, pan, accelerate, cycle, ratio = 1|
 	var env, sound, rate, phase;
