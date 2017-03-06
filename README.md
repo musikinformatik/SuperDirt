@@ -1,4 +1,4 @@
-# SuperDirt 0.8
+# SuperDirt 0.9
 SuperCollider implementation of the Dirt sampler for the Tidal programming language
 
 Alex McLean and Julian Rohrhuber

@@ -125,7 +125,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 	SynthDef("dirt_shape" ++ numChannels, { |out, shape = 0|
 		var signal = In.ar(out, numChannels), amp = 1;
-		shape = min(shape, 1.0 - 1e-16); // avoid division by zero
+		shape = min(shape, 1.0 - 4e-10); // avoid division by zero
 		//amp = 1.0 - (0.15 * shape / (shape + 2.0)) * amp; // optional gain comp
 		shape = (2.0 * shape) / (1.0 - shape);
 
@@ -139,31 +139,55 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		ReplaceOut.ar(out, signal)
 	}, [\ir, \ir, \ir]).add;
 
-	SynthDef("dirt_envelope" ++ numChannels, { |out, attack = 0, hold = 0, release = 100 |
+	SynthDef("dirt_envelope" ++ numChannels, { |out, attack = 0, hold = 0, release = inf |
 		var signal = In.ar(out, numChannels);
 		signal = signal * EnvGen.ar(Env.linen(attack, hold, release, 1, -3));
 		ReplaceOut.ar(out, signal);
 	}, [\ir, \ir, \ir, \ir]).add;
 
+	SynthDef("dirt_tremolo" ++ numChannels, { |out, tremolorate = 1.0, tremolodepth = 0.5 |
+		var signal, tremolowave;
 
-	// global synth defs: these synths run in each DirtOrbit and are only released when it is stopped
-	// when you change them, to update them, hit cmd-period (i.e. stop the synths on the server) once.
-	// they'll come back automatically
+		tremolodepth = tremolodepth.clip(0, 1) * 0.5;
+		tremolowave = (1 - tremolodepth) + SinOsc.ar(tremolorate, 0.5pi, tremolodepth);
+
+		signal = In.ar(out, numChannels);
+		signal = signal * tremolowave;
+
+		ReplaceOut.ar(out, signal);
+	}, [\ir, \ir, \ir]).add;
+
+
+	/*
+
+	 Global synth defs: these synths run in each DirtOrbit and are only released when it is stopped
+	 when you change them, to update them, hit cmd-period (i.e. stop the synths on the server) once.
+	 they'll come back automatically
+
+	*/
 
 	if(\SwitchDelay.asClass.notNil) {
 
 		SynthDef("dirt_delay" ++ numChannels, { |dryBus, effectBus, gate = 1, delaytime, delayfeedback, delayAmp = 1, lock = 0, cps = 1|
-			var signal = In.ar(dryBus, numChannels);
+			var signal;
+			var input = In.ar(dryBus, numChannels);
 			var maxDelayTime = 4;
 
 			delayfeedback = delayfeedback.max(0);
 			delaytime = delaytime * if(lock, reciprocal(cps), 1);
 			delaytime = delaytime.clip(0, maxDelayTime); // just to be sure
 			// from sc3-plugins
-			signal = \SwitchDelay.asClass.ar(signal, 1, 1, delaytime, delayfeedback, maxDelayTime);
+			signal = \SwitchDelay.asClass.ar(input, 1, 1, delaytime, delayfeedback, maxDelayTime);
+
+			DetectSilence.ar(signal, time:1, doneAction: 1);
+			// doesn't work properly. We don't really know when it's not used anymore.
+			// this would have to be an explicit signal from sclang
 
 			signal = signal * EnvGen.kr(Env.asr, gate, doneAction:2);
 			signal = signal * delayAmp.lag(0.01);
+
+			DirtPause.ar(signal, graceTime:4);
+
 			Out.ar(effectBus, signal);
 
 		}, [\ir, \ir]).add;
@@ -185,6 +209,9 @@ live coding them requires that you have your SuperDirt instance in an environmen
 			signal = CombL.ar(signal, maxDelayTime, delaytime.lag(1), decayTime);
 
 			signal = LeakDC.ar(signal) * delayAmp.lag(0.01) * EnvGen.kr(Env.asr, gate, doneAction:2);
+
+			DirtPause.ar(signal, graceTime:4);
+
 			Out.ar(effectBus, signal);
 		}, [\ir, \ir]).add;
 	};
@@ -234,11 +261,73 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 		snd = loop;
 		snd = snd * (1 - dry).lag(LFNoise1.kr(1).range(0.01, 0.02));
+
+		DirtPause.ar(snd, graceTime:4);
+
 		snd = snd * EnvGen.kr(Env.asr, gate, doneAction:2);
 
 		Out.ar(effectBus, snd);
 
 	}, [\ir, \ir]).add;
+
+
+	// "leslie" controls dry/wet
+	// "lrate" is the modulation rate (typical vintage rates would be 6.7 for "fast", 0.7 for "slow")
+	// "lsize" is the physical size of the cabinet in meters, this mostly affects the Doppler amount (pitch warble)
+
+	SynthDef("dirt_leslie" ++ numChannels, { |dryBus, effectBus, gate = 1, leslie=0.5, lrate=6.7, lsize=0.3|
+		var in, distance, throb, sound1, sound2, bal1, bal2, snd;
+
+		in = In.ar(dryBus, numChannels);
+		ReplaceOut.ar(dryBus, in*(1-leslie));
+		if(numChannels > 2) { in = in.clump(2).sum };
+		distance = SinOsc.ar(Lag.kr(lrate,10), 0).range(0, lsize);
+		throb = SinOsc.ar(Lag.kr(lrate*0.8, 20), 0).range(0,lsize*1.3);
+		bal1 = SinOsc.kr(Lag.kr(lrate*0.8, 4), pi/2).range(-0.2,0.2);
+		bal2 = SinOsc.kr(Lag.kr(lrate,2), pi/2).range(-0.4, 0.4);
+		sound2 = HPF.ar(in, 800);
+		sound1 = in - sound2;
+		sound1 = leslie * (1.0 - throb) * sound1;
+		sound1 = Balance2.ar(sound1[0], sound1[1], bal1);
+		sound2 = DelayC.ar(sound2, 1, distance / 343);
+		sound2 = leslie * (1.0 - distance) * sound2;
+		sound2 = Balance2.ar(sound2[0], sound2[1], bal2);
+
+		snd = 1.2 * (sound1 + sound2);
+
+		DirtPause.ar(snd, graceTime:4);
+		snd = snd * EnvGen.kr(Env.asr, gate, doneAction:2);
+
+		case(
+			{ numChannels == 1 }, { snd = snd.sum },
+			{ numChannels > 2 }, {
+				snd = [
+					// wild interpretation
+					PanAz.ar(numChannels, snd[0], LFSaw.kr(lrate)),
+					PanAz.ar(numChannels, snd[1], LFSaw.kr(lrate) + 1)
+				].sum
+			}
+		);
+
+
+		Out.ar(effectBus, snd);
+
+	}, [\ir, \ir]).add;
+
+	// Tremolo audio DSP effect definition. Params: tremolorate (Hz); tremolodepth (amplitude)
+	SynthDef("tremolo" ++ numChannels, { |out, tremolorate = 1.0, tremolodepth = 0.5 |
+		var signal, tremolowave;
+
+		tremolorate = tremolorate.clip(0, 10);
+		tremolodepth = tremolodepth.clip(0, 1) * 0.5;
+
+		tremolowave = (1 - tremolodepth) + SinOsc.ar(tremolorate, 0.5pi, tremolodepth);
+
+		signal = In.ar(out, numChannels);
+		signal = signal * tremolowave;
+
+		ReplaceOut.ar(out, signal);
+	}, [\ir, \ir, \ir]).add;
 
 	"---- core synth defs loaded ----".postln;
 
