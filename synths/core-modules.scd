@@ -170,4 +170,15 @@ they respond to the existence of a value for one of the tidal parameters
 		])
 }, { ~tremolorate.notNil });
 
+// Phaser audio DSP effect declaration
+~dirt.addModule('phaser',
+	{ |dirtEvent|
+		dirtEvent.sendSynth('dirt_phaser' ++ ~numChannels,
+			[
+				phaserrate: ~phaserrate,
+				phaserdepth: ~phaserdepth,
+				out: ~out
+		])
+}, { ~phaserrate.notNil });
+
 );

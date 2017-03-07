@@ -329,6 +329,24 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		ReplaceOut.ar(out, signal);
 	}, [\ir, \ir, \ir]).add;
 
+	// Phaser audio DSP effect definition. Params: phaserrate (Hz); phaserdepth (amplitude)
+	SynthDef("dirt_phaser" ++ numChannels, { |out, phaserrate = 1.0, phaserdepth = 0.5 |
+		var signal, phaserwave;
+		var maxDelayTime = 4;
+		var phase =  LFPar.kr(phaserrate).range(0.0088, 0.01);
+
+		phaserdepth = phaserdepth.clip(0, 1);
+
+		signal = In.ar(out, numChannels);
+
+		phaserwave = AllpassL.ar(signal, maxDelayTime, phase, 0, phaserdepth);
+
+		signal = signal + phaserwave;
+
+		ReplaceOut.ar(out, signal);
+	}, [\ir, \ir, \ir]).add;
+
+
 	"---- core synth defs loaded ----".postln;
 
 }.value
