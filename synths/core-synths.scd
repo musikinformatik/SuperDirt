@@ -330,9 +330,9 @@ live coding them requires that you have your SuperDirt instance in an environmen
 	}, [\ir, \ir, \ir]).add;
 
 	// Phaser audio DSP effect definition. Params: phaserrate (Hz); phaserdepth (amplitude)
-	SynthDef("dirt_phaser" ++ numChannels, { |out, phaserrate = 1.0, phaserdepth = 0.5 |
+	SynthDef("dirt_phaser" ++ numChannels, { |out, phaserrate = 1.0, phaserdepth = 0.5, phasersustain = 4.0 |
 		var signal, phaserwave;
-		var maxDelayTime = 4;
+		var maxDelayTime = phasersustain.clip(0, 4);
 		var phase =  LFPar.kr(phaserrate).range(0.0088, 0.01);
 
 		phaserdepth = phaserdepth.clip(0, 1);
