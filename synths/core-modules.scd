@@ -177,7 +177,6 @@ they respond to the existence of a value for one of the tidal parameters
 			[
 				phaserrate: ~phaserrate,
 				phaserdepth: ~phaserdepth,
-				phasersustain: ~phasersustain,
 				out: ~out
 		])
 }, { ~phaserrate.notNil });
