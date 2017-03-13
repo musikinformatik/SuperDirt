@@ -1,17 +1,19 @@
 
 
-// allow a maximum of four seconds, adjust to your needs: this represents one tidal cycle
-// we need two of them.
-~recBufs = { Buffer.alloc(~dirt.server, ~dirt.server.sampleRate * 4, ~dirt.numChannels) } ! 2;
-
 
 (
 var functions = ();  // make a dictionary of functions
-var recSynth, counter = 0, recording = false;
+var recSynth, recBufs, counter = 0, recording = false;
 var path = "~/tidalchunks/";
 var whichOrbit = ~dirt.orbits[0];
+var maxTime = 4; // allow a maximum of four seconds, adjust to your needs: this represents one tidal cycle
 
 if(pathMatch(path +/+ "*").isEmpty) { unixCmd("mkdir" + path) };
+
+
+~recBufs.do(_.free); // free them if they are left over (this is why we keep it in the environment variable)
+// we need two buffers
+~recBufs = recBufs = { Buffer.alloc(~dirt.server, ~dirt.server.sampleRate * maxTime, ~dirt.numChannels) } ! 2;
 
 
 SynthDef(\record, { |bufnum|
@@ -21,23 +23,37 @@ SynthDef(\record, { |bufnum|
 
 
 functions[\startRec] = {
+
 	if(recording) { functions[\stopRec].value };
 	counter = counter + 1;
-	recSynth = Synth(\record, ~recBufs @@ counter);
-	recording = true;
+	~server.makeBundle(~latency, {
+		recSynth = Synth(\record, recBufs @@ counter, ~server);
+		recording = true;
+	})
 };
 
 functions[\stopRec] = {
 	if(recording) {
-		(~recBufs @@ counter).write(path +/+ "chunk" ++ counter ++ ".aiff");
-		recSynth.free;
-		recording = false;
+		~server.makeBundle(~latency, {
+			(recBufs @@ counter).write(path +/+ "chunk" ++ Date.localtime.stamp ++ ".aiff");
+			recSynth.free;
+			recording = false;
+		})
 	}
 };
 
 // use the "diversion" key as a hook for playing the synth
-~d1.defaultParentEvent[\diversion] = {
+~dirt.orbits[0].defaultParentEvent[\diversion] = {
 	var div = functions[~s];
 	if(div.notNil) { div.value; 1.0 }
 };
+
+
+
 )
+
+
+// open the directory with the sound files
+
+systemCmd("open" + "~/tidalchunks/");
+
