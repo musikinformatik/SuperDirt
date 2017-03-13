@@ -7,6 +7,7 @@ var recSynth, recBufs, counter = 0, recording = false;
 var path = "~/tidalchunks/";
 var whichOrbit = ~dirt.orbits[0];
 var maxTime = 4; // allow a maximum of four seconds, adjust to your needs: this represents one tidal cycle
+var prevTime;
 
 if(pathMatch(path +/+ "*").isEmpty) { unixCmd("mkdir" + path) };
 
@@ -26,8 +27,9 @@ functions[\startRec] = {
 
 	if(recording) { functions[\stopRec].value };
 	counter = counter + 1;
+	prevTime = Main.elapsedTime + ~latency;
 	~server.makeBundle(~latency, {
-		recSynth = Synth(\record, recBufs @@ counter, ~server);
+		recSynth = Synth(\record, [bufnum: (recBufs @@ counter)], ~server);
 		recording = true;
 	})
 };
@@ -35,7 +37,9 @@ functions[\startRec] = {
 functions[\stopRec] = {
 	if(recording) {
 		~server.makeBundle(~latency, {
-			(recBufs @@ counter).write(path +/+ "chunk" ++ Date.localtime.stamp ++ ".aiff");
+			var p = path +/+ "chunk" ++ Date.localtime.stamp ++ ".aiff";
+			var buf = (recBufs @@ counter);
+			buf.write(p.standardizePath, numFrames: Main.elapsedTime + ~latency - prevTime * buf.sampleRate);
 			recSynth.free;
 			recording = false;
 		})
