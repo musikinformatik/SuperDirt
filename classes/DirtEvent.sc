@@ -143,14 +143,14 @@ DirtEvent {
 			1, // add action: addToTail
 			~synthGroup, // send to group
 			*[
-				in: orbit.synthBus, // read from synth bus, which is reused
-				out: orbit.dryBus, // write to orbital dry bus
-				amp: ~amp,
+				in: orbit.synthBus.index, // read from synth bus, which is reused
+				out: orbit.dryBus.index, // write to orbital dry bus
+				amp: ~amp.value,
 				sample: ~hash, // required for the cutgroup mechanism
 				sustain: ~sustain, // after sustain, free all synths and group
 				fadeInTime: ~fadeInTime, // fade in
 				fadeTime: ~fadeTime // fade out
-			].asOSCArgArray // append all other args
+			]
 		)
 	}
 
