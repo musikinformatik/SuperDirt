@@ -35,8 +35,8 @@ DirtEvent {
 	getBuffer {
 		var buffer, sound, synthDesc, sustainControl;
 		sound = ~s;
-		~hash = ~hash ?? { sound.identityHash };
 		buffer = orbit.dirt.getBuffer(sound, ~n);
+		~hash = ~hash ?? { buffer.identityHash };
 
 		if(buffer.notNil) {
 			if(buffer.sampleRate.isNil) {
