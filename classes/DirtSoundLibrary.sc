@@ -52,6 +52,7 @@ DirtSoundLibrary {
 			"\nreplacing '%' (%)\n".postf(name, synthEvents[name].size);
 			synthEvents[name] = nil;
 		};
+		if(event[\hash].notNil) { event[\hash] = name.identityHash };
 		synthEvents[name] = synthEvents[name].add(event);
 	}
 
@@ -200,7 +201,8 @@ DirtSoundLibrary {
 		^(
 			buffer: buffer.bufnum,
 			instrument: format("dirt_sample_%_%", buffer.numChannels, dirt.numChannels).asSymbol,
-			unitDuration: buffer.duration
+			unitDuration: buffer.duration,
+			hash: buffer.identityHash
 		)
 	}
 

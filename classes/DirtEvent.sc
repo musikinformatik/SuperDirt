@@ -35,9 +35,7 @@ DirtEvent {
 	}
 
 	mergeSoundEvent {
-		var soundEvent;
-		~hash = ~hash ?? { ~s.identityHash };
-		soundEvent = orbit.dirt.soundLibrary.getEvent(~s, ~n);
+		var soundEvent = orbit.dirt.soundLibrary.getEvent(~s, ~n);
 		if(soundEvent.isNil) {
 			// only call ~notFound if no ~diversion is given that anyhow redirects control
 			if(~diversion.isNil) { ~notFound.value }
