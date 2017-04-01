@@ -36,7 +36,6 @@ DirtEvent {
 		var buffer, sound, synthDesc, sustainControl;
 		sound = ~s;
 		buffer = orbit.dirt.getBuffer(sound, ~n);
-		~hash = ~hash ?? { buffer.identityHash };
 
 		if(buffer.notNil) {
 			if(buffer.sampleRate.isNil) {
@@ -46,6 +45,7 @@ DirtEvent {
 			~instrument = format("dirt_sample_%_%", buffer.numChannels, ~numChannels);
 			~buffer = buffer.bufnum;
 			~unitDuration = buffer.duration;
+			~hash = ~hash ?? { buffer.identityHash };
 
 		} {
 			synthDesc = SynthDescLib.at(sound);
@@ -54,6 +54,7 @@ DirtEvent {
 				~note = ~note ? ~n;
 				~freq = ~freq.value;
 				~unitDuration = ~delta;
+				~hash = ~hash ?? { sound.identityHash };
 				//sustainControl =  synthDesc.controlDict.at(\sustain);
 				//if(sustainControl.isNil) { ~delta } { sustainControl.defaultValue ? ~delta }
 
