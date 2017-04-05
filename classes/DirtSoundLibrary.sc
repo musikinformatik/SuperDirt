@@ -188,7 +188,7 @@ DirtSoundLibrary {
 		var allEvents = this.at(name);
 		^if(allEvents.isNil) {
 			if(SynthDescLib.at(name).notNil) {
-				(instrument: name)
+				(instrument: name, hash: name.identityHash)
 				//sustainControl =  synthDesc.controlDict.at(\sustain);
 				//if(sustainControl.notNil) { ~delta = sustainControl.defaultValue }
 			}
