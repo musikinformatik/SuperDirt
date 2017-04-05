@@ -1,7 +1,9 @@
 
-// this allows you to record the data sent from tidal and messw ith it from sclang
+// this allows you to record the data sent from tidal and mess with it from sclang
+// right now, there is some detail missing, the result is not exact
 
 (
+~recordingRunning = false;
 ~initRecording = {
 	~recording = List.new;
 
@@ -49,8 +51,9 @@ Pdef(\x, Pseq(~recording, inf)).play; // looped
 
 
 // mess with it
-Pdef(\x, Pdict(~recording, Pseq([0, 4, 5], inf))).play;
-Pdef(\x, Pdict(~recording, Pseq((0..5) + 7, inf), default:Event.silent(0.01))).play;
+Pdef(\x, Pdict(~recording, Pseq([0, 4, 5] + 100, inf)  % ~recording.size)).play;
+Pdef(\x, Pdict(~recording, Pseq((0..50) + 7, inf) % ~recording.size, default:Event.silent(0.01))).play;
+Pdef(\x, Pdict(~recording, Pseq((0..50).curdle(0.3).scramble.flat + 7, inf) % ~recording.size, default:Event.silent(0.01))).play;
 
 
 // while running, you can continue to send stuff from tidal:
