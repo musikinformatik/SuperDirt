@@ -18,7 +18,7 @@ SuperDirt {
 	var <>modules;
 
 	var <port, <senderAddr, <replyAddr, netResponders;
-	var <>receiveAction, <>warnOutOfOrbit = true, <>verbose = false, <>maxLatency = 42;
+	var <>receiveAction, <>warnOutOfOrbit = true, <>maxLatency = 42;
 
 	classvar <>default, <>maxSampleNumChannels = 2;
 
@@ -36,7 +36,7 @@ SuperDirt {
 	}
 
 	init {
-		soundLibrary = DirtSoundLibrary(this);
+		soundLibrary = DirtSoundLibrary(server, numChannels);
 		modules = [];
 		this.loadSynthDefs;
 		this.initVowels(\counterTenor);
@@ -73,6 +73,13 @@ SuperDirt {
 
 	/* sound library */
 
+	soundLibrary_ { |argSoundLibrary|
+		if(argSoundLibrary.server !== server or: { argSoundLibrary.numChannels != numChannels }) {
+			Error("The number of channels and the server of a sound library have to match.").throw
+		};
+		soundLibrary = argSoundLibrary;
+	}
+
 	loadOnly { |names, path, appendToExisting = false|
 		soundLibrary.loadOnly(names, path, appendToExisting )
 	}
@@ -99,6 +106,14 @@ SuperDirt {
 
 	postSampleInfo {
 		soundLibrary.postSampleInfo
+	}
+
+	verbose_ { |bool|
+		soundLibrary.verbose_(bool)
+	}
+
+	verbose {
+		^soundLibrary.verbose
 	}
 
 	buffers { ^soundLibrary.buffers }

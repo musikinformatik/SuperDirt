@@ -2,18 +2,18 @@
 /*
 
 This library unifies access to buffers and synth events.
-It mainly keeps a link back to dirt for the server and to generate the instrument name for a given number of channels
 
 */
 
 
 DirtSoundLibrary {
 
-	var <dirt, <buffers, <bufferEvents, <synthEvents;
+	var <server, <numChannels, <buffers, <bufferEvents, <synthEvents;
 	var <>fileExtensions = #["wav", "aif", "aiff", "aifc"];
+	var <>verbose = false;
 
-	*new { |dirt|
-		^super.newCopyArgs(dirt).init
+	*new { |server, numChannels|
+		^super.newCopyArgs(server, numChannels).init
 	}
 
 	init {
@@ -136,7 +136,7 @@ DirtSoundLibrary {
 		files = (folderPath.standardizePath +/+ "*").pathMatch;
 		name = name.asSymbol;
 
-		if(dirt.server.serverRunning.not) { "Superdirt: server not running - cannot load sound files.".throw };
+		if(server.serverRunning.not) { "Superdirt: server not running - cannot load sound files.".throw };
 
 		if(appendToExisting.not and: { buffers[name].notNil } and: { files.notEmpty }) {
 			"\nreplacing '%' (%)\n".postf(name, buffers[name].size);
@@ -156,17 +156,17 @@ DirtSoundLibrary {
 
 	loadSoundFile { |path, name, appendToExisting = false|
 		var buf, fileExt;
-		if(dirt.server.serverRunning.not) { "Superdirt: server not running - cannot load sound files.".throw };
+		if(server.serverRunning.not) { "Superdirt: server not running - cannot load sound files.".throw };
 		fileExt = (path.splitext[1] ? "").toLower;
 		if(fileExtensions.includesEqual(fileExt)) {
-			buf = Buffer.readWithInfo(dirt.server, path);
+			buf = Buffer.readWithInfo(server, path);
 			if(buf.isNil) {
 				"\n".post; "File reading failed for path: '%'\n\n".format(path).warn
 			} {
 				this.addBuffer(name, buf, appendToExisting)
 			}
 		} {
-			if(dirt.verbose) { "\nignored file: %\n".postf(path) };
+			if(verbose) { "\nignored file: %\n".postf(path) };
 		}
 	}
 
@@ -200,7 +200,7 @@ DirtSoundLibrary {
 	makeEventForBuffer { |buffer|
 		^(
 			buffer: buffer.bufnum,
-			instrument: format("dirt_sample_%_%", buffer.numChannels, dirt.numChannels).asSymbol,
+			instrument: format("dirt_sample_%_%", buffer.numChannels, this.numChannels).asSymbol,
 			unitDuration: buffer.duration,
 			hash: buffer.identityHash
 		)
