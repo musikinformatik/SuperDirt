@@ -73,9 +73,9 @@ they respond to the existence of a value for one of the tidal parameters
 			dirtEvent.sendSynth("dirt_vowel" ++ ~numChannels,
 				[
 					out: ~out,
-					vowelFreqs: vowel.freqs,
-					vowelAmps: vowel.amps,
-					vowelRqs: vowel.rqs,
+					vowelFreqs: [vowel.freqs],
+					vowelAmps: [vowel.amps],
+					vowelRqs: [vowel.rqs],
 					resonance: ~resonance,
 				]
 			)
@@ -159,7 +159,7 @@ they respond to the existence of a value for one of the tidal parameters
 		])
 }, { ~attack.notNil or: { ~release.notNil }});
 
-// Tremolo audio DSP effect declaration
+
 ~dirt.addModule('tremolo',
 	{ |dirtEvent|
 		dirtEvent.sendSynth('dirt_tremolo' ++ ~numChannels,
@@ -169,5 +169,16 @@ they respond to the existence of a value for one of the tidal parameters
 				out: ~out
 		])
 }, { ~tremolorate.notNil });
+
+// Phaser audio DSP effect declaration
+~dirt.addModule('phaser',
+	{ |dirtEvent|
+		dirtEvent.sendSynth('dirt_phaser' ++ ~numChannels,
+			[
+				phaserrate: ~phaserrate,
+				phaserdepth: ~phaserdepth,
+				out: ~out
+		])
+}, { ~phaserrate.notNil });
 
 );
