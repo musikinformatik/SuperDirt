@@ -3,6 +3,8 @@
 
 This library unifies access to buffers and synth events.
 
+valid fileExtensions can be extended, currently they are ["wav", "aif", "aiff", "aifc"]
+
 */
 
 
@@ -200,10 +202,29 @@ DirtSoundLibrary {
 	makeEventForBuffer { |buffer|
 		^(
 			buffer: buffer.bufnum,
-			instrument: format("dirt_sample_%_%", buffer.numChannels, this.numChannels).asSymbol,
+			instrument: this.instrumentForBuffer(buffer),
 			unitDuration: buffer.duration,
 			hash: buffer.identityHash
 		)
+	}
+
+	instrumentForBuffer { |buffer|
+		^format("dirt_sample_%_%", buffer.numChannels, this.numChannels).asSymbol
+	}
+
+	/* copy  */
+
+	shallowCopy {
+		^super.shallowCopy.prCopyEvents
+	}
+
+	numChannels_ { |n|
+		numChannels = n;
+		bufferEvents = bufferEvents.collect { |list|
+			list.do { |event|
+				event[\instrument] = this.instrumentForBuffer(event[\buffer])
+			}
+		}
 	}
 
 
@@ -233,6 +254,12 @@ DirtSoundLibrary {
 		^buffers.sum { |array| array.sum { |buffer| buffer.memoryFootprint.asFloat } } // in bytes
 	}
 
+	/* private implementation */
+
+	prCopyEvents {
+		bufferEvents = bufferEvents.copy;
+		synthEvents = synthEvents.copy;
+	}
 
 
 
