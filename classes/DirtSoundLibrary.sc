@@ -212,6 +212,15 @@ DirtSoundLibrary {
 		^format("dirt_sample_%_%", buffer.numChannels, this.numChannels).asSymbol
 	}
 
+	openFolder { |name, index = 0|
+		var buf, list;
+		list = buffers.at(name);
+		if(list.isNil) { "No buffer for this name: %".format(name).warn; ^this };
+		buf = list.at(index);
+		if(buf.isNil) { "No buffer at this index: %:%".format(name, index).warn; ^this };
+		systemCmd("open" + buf.path.dirname)
+	}
+
 	/* copy  */
 
 	shallowCopy {
