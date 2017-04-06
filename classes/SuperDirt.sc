@@ -2,11 +2,10 @@
 
 SuperCollider implementation of Dirt
 
-This object handles sound file loading, OSC communication and local effects.
+This object handles OSC communication and local effects.
 These are relative to a server and a number of output channels
 It keeps a number of dirt orbits (see below).
 
-valid fileExtensions can be extended, currently they are ["wav", "aif", "aiff", "aifc"]
 
 */
 
