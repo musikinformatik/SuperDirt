@@ -45,6 +45,7 @@ lag
 offset
 cut
 orbit
+cycle
 
 // core, dirt public
 // you should use this in your synthdefs
