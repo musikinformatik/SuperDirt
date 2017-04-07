@@ -123,6 +123,28 @@ DirtSplayAz : UGen {
 }
 
 
+DirtEnvGen : UGen {
+	*ar { |env, begin, end, speed, sustain, endSpeed|
+		var stretch = env.times.sum * if(endSpeed.isNil) { speed } { speed + endSpeed * 0.5 };
+		var phase = DirtPhase.ar(begin, end, speed, sustain, endSpeed) * stretch;
+		^IEnvGen.ar(env, phase)
+	}
+}
+
+DirtPhase : UGen {
+	*ar { |begin = 0, end = 1, speed = 1, sustain = 1, endSpeed|
+		var rate = DirtRateScale.ar(speed, sustain, endSpeed ? speed);
+		^LFSaw.ar(rate.reciprocal, 1, speed.sign).range(begin, end)
+	}
+}
+
+DirtRateScale : UGen {
+	*ar { |speed = 1, sustain = 1, endSpeed|
+		^Line.ar(speed, endSpeed ? speed, sustain)
+	}
+}
+
+
 /*
 In order to avoid bookkeeping on the language side, we implement cutgroups as follows:
 The language initialises the synth with its sample id (some number that correlates with the sample name) and the cutgroup.
