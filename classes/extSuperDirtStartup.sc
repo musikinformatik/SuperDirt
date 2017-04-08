@@ -14,7 +14,10 @@
 		// boot the server and start SuperDirt
 		server.waitForBoot {
 			~dirt = SuperDirt(numChannels, server);
-			~dirt.loadSoundFiles(path);   // load samples (path can be passed in)
+			"loading default samples".postln;
+			~dirt.loadSoundFiles; // load default samples
+			// now load any other samples (path can be passed in)
+			if (path.notNil, { "loading samples from supplied path".postln; ~dirt.loadSoundFiles(path); }, { "no path supplied, not loading any other samples".postln });
 			server.sync;
 			~dirt.start(port, 0 ! numOrbits, senderAddr);
 		};
@@ -23,4 +26,3 @@
 	}
 
 }
-
