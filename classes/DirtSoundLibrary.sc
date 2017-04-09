@@ -47,8 +47,7 @@ DirtSoundLibrary {
 		if(verbose) { "new sample buffer named '%':\n%\n\n".postf(name, event) };
 	}
 
-	addSynth { |name, event, appendToExisting = false, fixSynthSustain = false|
-		if(event.isNil) { Error("tried to add Nil to synth event library").throw };
+	addSynth { |name, event, appendToExisting = false, useSynthDefSustain = false|
 		if(bufferEvents[name].notNil) {
 			"a sample buffer with that name already exists: %\nSkipping...".format(name).warn;
 			^this
@@ -57,25 +56,25 @@ DirtSoundLibrary {
 			"\nreplacing '%' (%)\n".postf(name, synthEvents[name].size);
 			synthEvents[name] = nil;
 		};
+		if(event.isNil) { event = (instrument: name) };
 		if(event[\hash].isNil) { event[\hash] = name.identityHash };
-		if(fixSynthSustain) { this.fixSynthSustain(event) };
+		if(useSynthDefSustain) { this.useSynthDefSustain(event) };
 		synthEvents[name] = synthEvents[name].add(event);
 		if(verbose) { "new synth named '%':\n%\n\n".postf(name, event) };
 	}
 
-	fixSynthSustain { |event|
-		var name = event[\instrument];
-		var synthDesc = SynthDescLib.at(name);
-		var sustainControl;
-		if(synthDesc.isNil) {
-			"couldn't fix synth sustain, no SynthDesc found\n%".format(event).warn;
-			^this
-		};
-		sustainControl = synthDesc.controlDict.at(\sustain);
-		if(sustainControl.notNil) {
-			event.put(\unitDuration, sustainControl.defaultValue)
-		} {
-			"couldn't fix synth sustain, no sustain default found in '%'".format(name).warn;
+	useSynthDefSustain { |event|
+		event.use {
+			~unitDuration = {
+				var synthDesc = SynthDescLib.at(~instrument.value);
+				var sustainControl, unitDuration;
+				if(synthDesc.notNil) {
+					sustainControl = synthDesc.controlDict.at(\sustain);
+					if(sustainControl.notNil) {
+						sustainControl.defaultValue
+					}
+				}
+			}
 		}
 	}
 
