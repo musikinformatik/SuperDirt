@@ -54,7 +54,7 @@ DirtSoundLibrary {
 			"\nreplacing '%' (%)\n".postf(name, synthEvents[name].size);
 			synthEvents[name] = nil;
 		};
-		if(event[\hash].notNil) { event[\hash] = name.identityHash };
+		if(event[\hash].isNil) { event[\hash] = name.identityHash };
 		synthEvents[name] = synthEvents[name].add(event);
 	}
 
