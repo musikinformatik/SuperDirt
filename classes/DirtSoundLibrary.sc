@@ -187,12 +187,20 @@ DirtSoundLibrary {
 
 	getEvent { |name, index|
 		// first look up buffers, then synths
-		var allEvents = this.at(name);
+		var event, synthDesc, allEvents = this.at(name);
 		^if(allEvents.isNil) {
-			if(SynthDescLib.at(name).notNil) {
-				(instrument: name, hash: name.identityHash)
-				//sustainControl =  synthDesc.controlDict.at(\sustain);
-				//if(sustainControl.notNil) { ~delta = sustainControl.defaultValue }
+			if(synthDesc = SynthDescLib.at(name).notNil) {
+				event = (instrument: name, hash: name.identityHash);
+
+				if(~useSynthDefSustain == true) {
+					// this gives you the choice to use the SynthDef's sustain value
+					~sustainControl = synthDesc.controlDict.at(\sustain);
+					if(~sustainControl.notNil) {
+						event.put(\sustain, ~sustainControl.defaultValue)
+					}
+				};
+
+				event
 			}
 		} {
 			allEvents.wrapAt(index.asInteger)
