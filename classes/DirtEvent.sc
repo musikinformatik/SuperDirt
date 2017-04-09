@@ -17,7 +17,7 @@ DirtEvent {
 				this.mergeSoundEvent;
 				server = ~server.value; // as server is used a lot, make lookup more efficient
 				this.orderTimeSpan;
-				this.calcTimeSpan;
+				this.calcTimeSpan; // ~sustain is called here
 				this.finaliseParameters;
 				// unless event diversion returns something, we proceed
 				~play.(this) ?? {
@@ -53,17 +53,18 @@ DirtEvent {
 			// backwards
 			~speed = ~speed.neg;
 		};
-		~length = abs(~end - ~begin);
+		~length = absdif(~end, ~begin);
 	}
 
 	calcTimeSpan {
 
 		var sustain, unitDuration; // fixme unitDuration
-		var speed = ~speed;
-		var accelerate = ~accelerate;
+		var speed = ~speed.value;
+		var loop = ~loop.value;
+		var accelerate = ~accelerate.value;
 		var avgSpeed, endSpeed;
 
-		unitDuration = ~unitDuration ? ~delta;
+		unitDuration = ~unitDuration.value ? ~delta;
 
 		if (~unit == \c) { speed = speed * unitDuration * ~cps };
 
@@ -91,13 +92,13 @@ DirtEvent {
 			{ Error("this unit ('%') is not defined".format(~unit)).throw };
 		);
 
-		~loop !? { unitDuration = unitDuration * ~loop.abs };
+		loop !? { unitDuration = unitDuration * loop.abs };
 		sustain = ~sustain.value ?? { if(~legato.notNil) { ~delta * ~legato.value } { unitDuration } };
 
 		// let samples end if needed
 		~buffer !? { sustain = min(unitDuration, sustain) };
 
-		~fadeTime = min(~fadeTime, sustain * 0.19098);
+		~fadeTime = min(~fadeTime.value, sustain * 0.19098);
 		~fadeInTime = if(~begin != 0) { ~fadeTime } { 0.0 };
 		~sustain = sustain - (~fadeTime + ~fadeInTime);
 		~speed = speed;
@@ -106,13 +107,14 @@ DirtEvent {
 	}
 
 	finaliseParameters {
-		~amp = pow(~gain, 4) * ~amp;
-		~channel !? { ~pan = ~pan + (~channel / ~numChannels) };
+		~amp = pow(~gain.value, 4) * ~amp.value;
+		~channel !? { ~pan = ~pan.value + (~channel.value / ~numChannels) };
 		~pan = ~pan * 2 - 1; // convert unipolar (0..1) range into bipolar one (-1...1)
 		~note = ~note ? ~n;
 		~freq = ~freq.value;
 		~delayAmp = ~delay ? 0.0; // for clarity
-		~latency + ~lag + (~offset * ~speed);
+		~latency = ~latency + ~lag.value + (~offset.value * ~speed.value);
+		~cut = ~cut.value;
 	}
 
 	getMsgFunc { |instrument|
@@ -143,7 +145,7 @@ DirtEvent {
 			*[
 				in: orbit.synthBus.index, // read from synth bus, which is reused
 				out: orbit.dryBus.index, // write to orbital dry bus
-				amp: ~amp.value,
+				amp: ~amp,
 				sample: ~hash, // required for the cutgroup mechanism
 				sustain: ~sustain, // after sustain, free all synths and group
 				fadeInTime: ~fadeInTime, // fade in
