@@ -29,7 +29,7 @@ DirtSoundLibrary {
 		this.freeAllSoundFiles;
 	}
 
-	addBuffer { |name, buffer, appendToExisting = true|
+	addBuffer { |name, buffer, appendToExisting = false|
 		if(buffer.isNil) { Error("tried to add Nil to buffer library").throw };
 		if(synthEvents[name].notNil) {
 			"a synth event with that name already exists: %\nSkipping...".format(name).warn;
