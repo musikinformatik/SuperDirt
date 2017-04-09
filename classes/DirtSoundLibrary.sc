@@ -30,6 +30,7 @@ DirtSoundLibrary {
 	}
 
 	addBuffer { |name, buffer, appendToExisting = false|
+		var event;
 		if(buffer.isNil) { Error("tried to add Nil to buffer library").throw };
 		if(synthEvents[name].notNil) {
 			"a synth event with that name already exists: %\nSkipping...".format(name).warn;
@@ -40,11 +41,13 @@ DirtSoundLibrary {
 			"\nreplacing '%' (%)\n".postf(name, buffers[name].size);
 			this.freeSoundFiles(name);
 		};
+		event = this.makeEventForBuffer(buffer);
 		buffers[name] = buffers[name].add(buffer);
-		bufferEvents[name] = bufferEvents[name].add(this.makeEventForBuffer(buffer));
+		bufferEvents[name] = bufferEvents[name].add(event);
+		if(verbose) { "new sample buffer named '%':\n%\n\n".postf(name, event) };
 	}
 
-	addSynth { |name, event, appendToExisting = false|
+	addSynth { |name, event, appendToExisting = false, fixSynthSustain = false|
 		if(event.isNil) { Error("tried to add Nil to synth event library").throw };
 		if(bufferEvents[name].notNil) {
 			"a sample buffer with that name already exists: %\nSkipping...".format(name).warn;
@@ -55,7 +58,25 @@ DirtSoundLibrary {
 			synthEvents[name] = nil;
 		};
 		if(event[\hash].isNil) { event[\hash] = name.identityHash };
+		if(fixSynthSustain) { this.fixSynthSustain(event) };
 		synthEvents[name] = synthEvents[name].add(event);
+		if(verbose) { "new synth named '%':\n%\n\n".postf(name, event) };
+	}
+
+	fixSynthSustain { |event|
+		var name = event[\instrument];
+		var synthDesc = SynthDescLib.at(name);
+		var sustainControl;
+		if(synthDesc.isNil) {
+			"couldn't fix synth sustain, no SynthDesc found\n%".format(event).warn;
+			^this
+		};
+		sustainControl = synthDesc.controlDict.at(\sustain);
+		if(sustainControl.notNil) {
+			event.put(\unitDuration, sustainControl.defaultValue)
+		} {
+			"couldn't fix synth sustain, no sustain default found in '%'".format(name).warn;
+		}
 	}
 
 	freeSoundFiles { |names|
@@ -187,20 +208,10 @@ DirtSoundLibrary {
 
 	getEvent { |name, index|
 		// first look up buffers, then synths
-		var event, synthDesc, allEvents = this.at(name);
+		var allEvents = this.at(name);
 		^if(allEvents.isNil) {
-			if(synthDesc = SynthDescLib.at(name).notNil) {
-				event = (instrument: name, hash: name.identityHash);
-
-				if(~useSynthDefSustain == true) {
-					// this gives you the choice to use the SynthDef's sustain value
-					~sustainControl = synthDesc.controlDict.at(\sustain);
-					if(~sustainControl.notNil) {
-						event.put(\sustain, ~sustainControl.defaultValue)
-					}
-				};
-
-				event
+			if(SynthDescLib.at(name).notNil) {
+				(instrument: name, hash: name.identityHash)
 			}
 		} {
 			allEvents.wrapAt(index.asInteger)
