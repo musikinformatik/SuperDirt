@@ -114,7 +114,6 @@ DirtEvent {
 		~freq = ~freq.value;
 		~delayAmp = ~delay ? 0.0; // for clarity
 		~latency = ~latency + ~lag.value + (~offset.value * ~speed.value);
-		~cut = ~cut.value;
 	}
 
 	getMsgFunc { |instrument|
@@ -161,8 +160,11 @@ DirtEvent {
 
 	playSynths {
 		var cutGroup;
-
-		if(~cut != 0) { cutGroup = orbit.getCutGroup(~cut) };
+		~cut = ~cut.value;
+		if(~cut != 0) {
+			cutGroup = orbit.getCutGroup(~cut);
+			~hash ?? { ~hash = ~sound.identityHash }; // just to be safe
+		};
 
 		server.makeBundle(~latency, { // use this to build a bundle
 
