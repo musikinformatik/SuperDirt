@@ -95,7 +95,7 @@ DirtEvent {
 		loop !? { unitDuration = unitDuration * loop.abs };
 		sustain = ~sustain.value ?? { if(~legato.notNil) { ~delta * ~legato.value } { unitDuration } };
 
-		// let samples end if needed
+		// end samples if sustain exceeds buffer duration
 		~buffer !? { sustain = min(unitDuration, sustain) };
 
 		~fadeTime = min(~fadeTime.value, sustain * 0.19098);
