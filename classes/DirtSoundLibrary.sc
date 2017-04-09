@@ -44,7 +44,7 @@ DirtSoundLibrary {
 		bufferEvents[name] = bufferEvents[name].add(this.makeEventForBuffer(buffer));
 	}
 
-	addSynth { |name, event, appendToExisting = true|
+	addSynth { |name, event, appendToExisting = false|
 		if(event.isNil) { Error("tried to add Nil to synth event library").throw };
 		if(bufferEvents[name].notNil) {
 			"a sample buffer with that name already exists: %\nSkipping...".format(name).warn;
