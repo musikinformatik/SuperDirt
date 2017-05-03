@@ -58,15 +58,20 @@ DirtEvent {
 
 	calcTimeSpan {
 
-		var sustain, unitDuration; // fixme unitDuration
+		var sustain, unitDuration;
 		var speed = ~speed.value;
 		var loop = ~loop.value;
 		var accelerate = ~accelerate.value;
 		var avgSpeed, endSpeed;
+		var useUnit;
 
-		unitDuration = ~unitDuration.value ? ~delta;
+		unitDuration = ~unitDuration.value;
+		useUnit = unitDuration.notNil;
 
-		if (~unit == \c) { speed = speed * unitDuration * ~cps };
+
+		if (~unit == \c) {
+			speed = speed * ~cps * if(useUnit) { unitDuration  } { 1.0 }
+		};
 
 		if(accelerate.isNil) {
 			endSpeed = speed;
@@ -76,26 +81,33 @@ DirtEvent {
 			avgSpeed = speed.abs + endSpeed.abs * 0.5;
 		};
 
-		if(~unit == \rate) { ~unit = \r }; // API adaption to tidal output
+		if(useUnit) {
+			if(~unit == \rate) { ~unit = \r }; // API adaption to tidal output
+			switch(~unit,
+				\r, {
+					unitDuration = unitDuration * ~length / avgSpeed;
+				},
+				\c, {
+					unitDuration = unitDuration * ~length / avgSpeed;
+				},
+				\s, {
+					unitDuration = ~length;
+				},
+				{ Error("this unit ('%') is not defined".format(~unit)).throw };
+			)
+		};
 
-		// sustain is the duration of the sample
-		switch(~unit,
-			\r, {
-				unitDuration = unitDuration * ~length / avgSpeed;
-			},
-			\c, {
-				unitDuration = unitDuration * ~length / avgSpeed;
-			},
-			\s, {
-				unitDuration = ~length;
-			},
-			{ Error("this unit ('%') is not defined".format(~unit)).throw };
-		);
-
-		loop !? { unitDuration = unitDuration * loop.abs };
-		sustain = ~sustain.value ?? { if(~legato.notNil) { ~delta * ~legato.value } { unitDuration } };
+		sustain = ~sustain.value ?? {
+			if(~legato.notNil) {
+				~delta * ~legato.value
+			} {
+				unitDuration = unitDuration ? ~delta;
+				loop !? { unitDuration = unitDuration * loop.abs };
+			}
+		};
 
 		// end samples if sustain exceeds buffer duration
+		// for every buffer, unitDuration is (and should be) defined.
 		~buffer !? { sustain = min(unitDuration, sustain) };
 
 		~fadeTime = min(~fadeTime.value, sustain * 0.19098);
