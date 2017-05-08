@@ -37,7 +37,7 @@ SuperDirt {
 				values.do { |each|
 					var e = Event(parent: currentEnvironment);
 					keys.do { |key, i| e.put(key, each.at(i)) };
-					dirt.orbits.wrapAt(~orbit ? 0).value(e)
+					dirt.orbits.wrapAt(e[\orbit] ? 0).value(e)
 				}
 			} {
 				dirt.orbits.wrapAt(~orbit ? 0).value(currentEnvironment)
