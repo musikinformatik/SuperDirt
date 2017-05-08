@@ -27,10 +27,21 @@ SuperDirt {
 
 	*initClass {
 		Event.addEventType(\dirt, {
+			var keys, values;
 			var dirt = ~dirt ? SuperDirt.default;
 			~delta = ~delta ?? { ~stretch.value * ~dur.value };
 			~latency = ~latency ?? { dirt.server.latency };
-			dirt.orbits.wrapAt(~orbit ? 0).value(currentEnvironment)
+			if(~n.isArray) {
+				keys = currentEnvironment.keys.asArray;
+				values = keys.collect(_.envirGet).flop;
+				values.do { |each|
+					var e = Event(parent: currentEnvironment);
+					keys.do { |key, i| e.put(key, each.at(i)) };
+					dirt.orbits.wrapAt(~orbit ? 0).value(e)
+				}
+			} {
+				dirt.orbits.wrapAt(~orbit ? 0).value(currentEnvironment)
+			}
 		})
 	}
 
