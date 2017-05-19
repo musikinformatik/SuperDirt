@@ -166,7 +166,12 @@ DirtSoundLibrary {
 		};
 
 		files.do { |filepath|
-			this.loadSoundFile(filepath, name, true)
+			try {
+				this.loadSoundFile(filepath, name, true)
+			} { |err|
+				"An error occurred reading the path: '%'\n couldn't add synth named '%'\n".postf(filepath, name);
+				err.postln;
+			}
 		};
 
 		if(files.notEmpty) {
