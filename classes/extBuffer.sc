@@ -6,6 +6,7 @@
 
 	*readWithInfo { |server, path, startFrame = 0, numFrames = -1|
 		var buffer = this.new(server), failed;
+		if(server.serverRunning.not) { "server not running - cannot load sound file.".postln; this.throw };
 		SoundFile.use(path, { |file|
 			buffer.sampleRate = file.sampleRate;
 			buffer.numFrames = file.numFrames;

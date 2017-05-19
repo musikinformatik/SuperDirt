@@ -147,30 +147,28 @@ DirtSoundLibrary {
 		folderPaths.do { |folderPath|
 			this.loadSoundFileFolder(folderPath, namingFunction.(folderPath), appendToExisting)
 		};
-		"\n... file reading complete. Required % MB of memory.\n\n".format(this.memoryFootprint - memory div: 1e6).post;
+		"\n... file reading complete. Required % MB of memory.\n\n".format(
+			this.memoryFootprint - memory div: 1e6
+		).post;
 	}
 
 	loadSoundFileFolder { |folderPath, name, appendToExisting = false|
-		var files;
+		var files, buf;
+
 		if(File.exists(folderPath).not) {
-			"\ncouldn't load '%' files, path doesn't exist: %.".format(name, folderPath).postln; ^this
+			"\ncouldn't load '%' files, path doesn't exist: %.".format(name, folderPath).postln;
+			^this
 		};
 		files = (folderPath.standardizePath +/+ "*").pathMatch;
 		name = name.asSymbol;
 
-		if(server.serverRunning.not) { "Superdirt: server not running - cannot load sound files.".throw };
-
-		if(appendToExisting.not and: { buffers[name].notNil } and: { files.notEmpty }) {
-			"\nreplacing '%' (%)\n".postf(name, buffers[name].size);
-			this.freeSoundFiles(name);
-		};
-
 		files.do { |filepath|
 			try {
-				this.loadSoundFile(filepath, name, true)
-			} { |err|
-				"An error occurred reading the path: '%'\n couldn't add synth named '%'\n".postf(filepath, name);
-				err.postln;
+				buf = this.readSoundFile(filepath);
+				if(buf.notNil) {
+					this.addBuffer(name, buf, appendToExisting);
+					appendToExisting = true; // append all others
+				}
 			}
 		};
 
@@ -188,7 +186,6 @@ DirtSoundLibrary {
 
 	readSoundFile { |path|
 		var fileExt = (path.splitext[1] ? "").toLower;
-		if(server.serverRunning.not) { "Superdirt: server not running - cannot load sound files.".throw };
 		if(fileExtensions.includesEqual(fileExt).not) {
 			if(verbose) { "\nignored file: %\n".postf(path) };
 			^nil
