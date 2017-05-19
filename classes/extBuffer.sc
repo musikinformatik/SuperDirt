@@ -13,6 +13,7 @@
 		});
 		failed = buffer.numFrames == 0;
 		^if(failed) {
+			"\n".post; "File reading failed for path: '%'\n\n".format(path).warn;
 			buffer.free; // free buffer number
 			nil
 		} {

@@ -182,21 +182,19 @@ DirtSoundLibrary {
 	}
 
 	loadSoundFile { |path, name, appendToExisting = false|
-		var buf, fileExt;
-		if(server.serverRunning.not) { "Superdirt: server not running - cannot load sound files.".throw };
-		fileExt = (path.splitext[1] ? "").toLower;
-		if(fileExtensions.includesEqual(fileExt)) {
-			buf = Buffer.readWithInfo(server, path);
-			if(buf.isNil) {
-				"\n".post; "File reading failed for path: '%'\n\n".format(path).warn
-			} {
-				this.addBuffer(name, buf, appendToExisting)
-			}
-		} {
-			if(verbose) { "\nignored file: %\n".postf(path) };
-		}
+		var buf = this.readSoundFile(path);
+		if(buf.notNil) { this.addBuffer(name, buf, appendToExisting) }
 	}
 
+	readSoundFile { |path|
+		var fileExt = (path.splitext[1] ? "").toLower;
+		if(server.serverRunning.not) { "Superdirt: server not running - cannot load sound files.".throw };
+		if(fileExtensions.includesEqual(fileExt).not) {
+			if(verbose) { "\nignored file: %\n".postf(path) };
+			^nil
+		}
+		^Buffer.readWithInfo(server, path)
+	}
 
 
 	/* access */
