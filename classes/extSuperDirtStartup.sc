@@ -8,7 +8,7 @@
 	*start { |numChannels = 2, server, numOrbits = 2, port = 57120, senderAddr, path|
 		~dirt.free;
 		server = server ? Server.default;
-		server.options.numBuffers = 1024 * 16;
+		server.options.numBuffers = 1024 * 256;
 		server.options.memSize = 8192 * 16;
 		server.options.maxNodes = 1024 * 32;
 		// boot the server and start SuperDirt
