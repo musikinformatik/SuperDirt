@@ -63,7 +63,7 @@ let xsdelay = make' VI xsdelay_p
 			out: ~out
 		]
 	)
-}, { ~sdelay.notNil or: { ~xsdelay.notNil } }); // play synth only if at least one of the two was given
+}, { ~tsdelay.notNil or: { ~xsdelay.notNil } }); // play synth only if at least one of the two was given
 )
 
 // here you can see the effect order:
