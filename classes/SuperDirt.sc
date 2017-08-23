@@ -334,6 +334,7 @@ DirtOrbit {
 	initDefaultGlobalEffects {
 		this.globalEffects = [
 			GlobalDirtEffect(\dirt_delay, [\delaytime, \delayfeedback, \delayAmp, \lock, \cps]),
+			GlobalDirtEffect(\dirt_tape, [\tape, \taped, \tapefb, \tapec]),
 			GlobalDirtEffect(\dirt_reverb, [\size, \room, \dry]),
 			GlobalDirtEffect(\dirt_leslie, [\leslie, \lrate, \lsize]),
 			GlobalDirtEffect(\dirt_monitor, [\dirtOut])
