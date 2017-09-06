@@ -17,7 +17,7 @@ DirtEvent {
 				this.mergeSoundEvent;
 				server = ~server.value; // as server is used a lot, make lookup more efficient
 				this.orderTimeSpan;
-				this.calcTimeSpan;
+				this.calcTimeSpan; // ~sustain is called here
 				this.finaliseParameters;
 				// unless event diversion returns something, we proceed
 				~play.(this) ?? {
@@ -53,19 +53,25 @@ DirtEvent {
 			// backwards
 			~speed = ~speed.neg;
 		};
-		~length = abs(~end - ~begin);
+		~length = absdif(~end, ~begin);
 	}
 
 	calcTimeSpan {
 
-		var sustain, unitDuration; // fixme unitDuration
-		var speed = ~speed;
-		var accelerate = ~accelerate;
+		var sustain, unitDuration;
+		var speed = ~speed.value;
+		var loop = ~loop.value;
+		var accelerate = ~accelerate.value;
 		var avgSpeed, endSpeed;
+		var useUnit;
 
-		unitDuration = ~unitDuration ? ~delta;
+		unitDuration = ~unitDuration.value;
+		useUnit = unitDuration.notNil;
 
-		if (~unit == \c) { speed = speed * unitDuration * ~cps };
+
+		if (~unit == \c) {
+			speed = speed * ~cps * if(useUnit) { unitDuration  } { 1.0 }
+		};
 
 		if(accelerate.isNil) {
 			endSpeed = speed;
@@ -75,29 +81,36 @@ DirtEvent {
 			avgSpeed = speed.abs + endSpeed.abs * 0.5;
 		};
 
-		if(~unit == \rate) { ~unit = \r }; // API adaption to tidal output
+		if(useUnit) {
+			if(~unit == \rate) { ~unit = \r }; // API adaption to tidal output
+			switch(~unit,
+				\r, {
+					unitDuration = unitDuration * ~length / avgSpeed;
+				},
+				\c, {
+					unitDuration = unitDuration * ~length / avgSpeed;
+				},
+				\s, {
+					unitDuration = ~length;
+				},
+				{ Error("this unit ('%') is not defined".format(~unit)).throw };
+			)
+		};
 
-		// sustain is the duration of the sample
-		switch(~unit,
-			\r, {
-				unitDuration = unitDuration * ~length / avgSpeed;
-			},
-			\c, {
-				unitDuration = unitDuration * ~length / avgSpeed;
-			},
-			\s, {
-				unitDuration = ~length;
-			},
-			{ Error("this unit ('%') is not defined".format(~unit)).throw };
-		);
+		sustain = ~sustain.value ?? {
+			if(~legato.notNil) {
+				~delta * ~legato.value
+			} {
+				unitDuration = unitDuration ? ~delta;
+				loop !? { unitDuration = unitDuration * loop.abs };
+			}
+		};
 
-		~loop !? { unitDuration = unitDuration * ~loop.abs };
-		sustain = ~sustain ?? { if(~legato.notNil) { ~delta * ~legato } { unitDuration } };
-
-		// let samples end if needed
+		// end samples if sustain exceeds buffer duration
+		// for every buffer, unitDuration is (and should be) defined.
 		~buffer !? { sustain = min(unitDuration, sustain) };
 
-		~fadeTime = min(~fadeTime, sustain * 0.19098);
+		~fadeTime = min(~fadeTime.value, sustain * 0.19098);
 		~fadeInTime = if(~begin != 0) { ~fadeTime } { 0.0 };
 		~sustain = sustain - (~fadeTime + ~fadeInTime);
 		~speed = speed;
@@ -106,13 +119,13 @@ DirtEvent {
 	}
 
 	finaliseParameters {
-		~amp = pow(~gain, 4) * ~amp;
-		~channel !? { ~pan = ~pan + (~channel / ~numChannels) };
+		~amp = pow(~gain.value, 4) * ~amp.value;
+		~channel !? { ~pan = ~pan.value + (~channel.value / ~numChannels) };
 		~pan = ~pan * 2 - 1; // convert unipolar (0..1) range into bipolar one (-1...1)
 		~note = ~note ? ~n;
 		~freq = ~freq.value;
 		~delayAmp = ~delay ? 0.0; // for clarity
-		~latency + ~lag + (~offset * ~speed);
+		~latency = ~latency + ~lag.value + (~offset.value * ~speed.value);
 	}
 
 	getMsgFunc { |instrument|
@@ -143,7 +156,7 @@ DirtEvent {
 			*[
 				in: orbit.synthBus.index, // read from synth bus, which is reused
 				out: orbit.dryBus.index, // write to orbital dry bus
-				amp: ~amp.value,
+				amp: ~amp,
 				sample: ~hash, // required for the cutgroup mechanism
 				sustain: ~sustain, // after sustain, free all synths and group
 				fadeInTime: ~fadeInTime, // fade in
@@ -159,8 +172,11 @@ DirtEvent {
 
 	playSynths {
 		var cutGroup;
-
-		if(~cut != 0) { cutGroup = orbit.getCutGroup(~cut) };
+		~cut = ~cut.value;
+		if(~cut != 0) {
+			cutGroup = orbit.getCutGroup(~cut);
+			~hash ?? { ~hash = ~sound.identityHash }; // just to be safe
+		};
 
 		server.makeBundle(~latency, { // use this to build a bundle
 

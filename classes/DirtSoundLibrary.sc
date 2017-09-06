@@ -29,7 +29,8 @@ DirtSoundLibrary {
 		this.freeAllSoundFiles;
 	}
 
-	addBuffer { |name, buffer, appendToExisting = true|
+	addBuffer { |name, buffer, appendToExisting = false|
+		var event;
 		if(buffer.isNil) { Error("tried to add Nil to buffer library").throw };
 		if(synthEvents[name].notNil) {
 			"a synth event with that name already exists: %\nSkipping...".format(name).warn;
@@ -40,12 +41,13 @@ DirtSoundLibrary {
 			"\nreplacing '%' (%)\n".postf(name, buffers[name].size);
 			this.freeSoundFiles(name);
 		};
+		event = this.makeEventForBuffer(buffer);
 		buffers[name] = buffers[name].add(buffer);
-		bufferEvents[name] = bufferEvents[name].add(this.makeEventForBuffer(buffer));
+		bufferEvents[name] = bufferEvents[name].add(event);
+		if(verbose) { "new sample buffer named '%':\n%\n\n".postf(name, event) };
 	}
 
-	addSynth { |name, event, appendToExisting = true|
-		if(event.isNil) { Error("tried to add Nil to synth event library").throw };
+	addSynth { |name, event, appendToExisting = false, useSynthDefSustain = false|
 		if(bufferEvents[name].notNil) {
 			"a sample buffer with that name already exists: %\nSkipping...".format(name).warn;
 			^this
@@ -54,8 +56,26 @@ DirtSoundLibrary {
 			"\nreplacing '%' (%)\n".postf(name, synthEvents[name].size);
 			synthEvents[name] = nil;
 		};
-		if(event[\hash].notNil) { event[\hash] = name.identityHash };
+		if(event.isNil) { event = (instrument: name) };
+		if(event[\hash].isNil) { event[\hash] = name.identityHash };
+		if(useSynthDefSustain) { this.useSynthDefSustain(event) };
 		synthEvents[name] = synthEvents[name].add(event);
+		if(verbose) { "new synth named '%':\n%\n\n".postf(name, event) };
+	}
+
+	useSynthDefSustain { |event|
+		event.use {
+			~unitDuration = {
+				var synthDesc = SynthDescLib.at(~instrument.value);
+				var sustainControl, unitDuration;
+				if(synthDesc.notNil) {
+					sustainControl = synthDesc.controlDict.at(\sustain);
+					if(sustainControl.notNil) {
+						sustainControl.defaultValue
+					}
+				}
+			}
+		}
 	}
 
 	freeSoundFiles { |names|
@@ -127,26 +147,29 @@ DirtSoundLibrary {
 		folderPaths.do { |folderPath|
 			this.loadSoundFileFolder(folderPath, namingFunction.(folderPath), appendToExisting)
 		};
-		"\n... file reading complete. Required % MB of memory.\n\n".format(this.memoryFootprint - memory div: 1e6).post;
+		"\n... file reading complete. Required % MB of memory.\n\n".format(
+			this.memoryFootprint - memory div: 1e6
+		).post;
 	}
 
 	loadSoundFileFolder { |folderPath, name, appendToExisting = false|
-		var files;
+		var files, buf;
+
 		if(File.exists(folderPath).not) {
-			"\ncouldn't load '%' files, path doesn't exist: %.".format(name, folderPath).postln; ^this
+			"\ncouldn't load '%' files, path doesn't exist: %.".format(name, folderPath).postln;
+			^this
 		};
 		files = (folderPath.standardizePath +/+ "*").pathMatch;
 		name = name.asSymbol;
 
-		if(server.serverRunning.not) { "Superdirt: server not running - cannot load sound files.".throw };
-
-		if(appendToExisting.not and: { buffers[name].notNil } and: { files.notEmpty }) {
-			"\nreplacing '%' (%)\n".postf(name, buffers[name].size);
-			this.freeSoundFiles(name);
-		};
-
 		files.do { |filepath|
-			this.loadSoundFile(filepath, name, true)
+			try {
+				buf = this.readSoundFile(filepath);
+				if(buf.notNil) {
+					this.addBuffer(name, buf, appendToExisting);
+					appendToExisting = true; // append all others
+				}
+			}
 		};
 
 		if(files.notEmpty) {
@@ -157,21 +180,18 @@ DirtSoundLibrary {
 	}
 
 	loadSoundFile { |path, name, appendToExisting = false|
-		var buf, fileExt;
-		if(server.serverRunning.not) { "Superdirt: server not running - cannot load sound files.".throw };
-		fileExt = (path.splitext[1] ? "").toLower;
-		if(fileExtensions.includesEqual(fileExt)) {
-			buf = Buffer.readWithInfo(server, path);
-			if(buf.isNil) {
-				"\n".post; "File reading failed for path: '%'\n\n".format(path).warn
-			} {
-				this.addBuffer(name, buf, appendToExisting)
-			}
-		} {
-			if(verbose) { "\nignored file: %\n".postf(path) };
-		}
+		var buf = this.readSoundFile(path);
+		if(buf.notNil) { this.addBuffer(name, buf, appendToExisting) }
 	}
 
+	readSoundFile { |path|
+		var fileExt = (path.splitext[1] ? "").toLower;
+		if(fileExtensions.includesEqual(fileExt).not) {
+			if(verbose) { "\nignored file: %\n".postf(path) };
+			^nil
+		}
+		^Buffer.readWithInfo(server, path)
+	}
 
 
 	/* access */
@@ -191,8 +211,6 @@ DirtSoundLibrary {
 		^if(allEvents.isNil) {
 			if(SynthDescLib.at(name).notNil) {
 				(instrument: name, hash: name.identityHash)
-				//sustainControl =  synthDesc.controlDict.at(\sustain);
-				//if(sustainControl.notNil) { ~delta = sustainControl.defaultValue }
 			}
 		} {
 			allEvents.wrapAt(index.asInteger)

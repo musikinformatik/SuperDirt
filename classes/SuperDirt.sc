@@ -27,10 +27,21 @@ SuperDirt {
 
 	*initClass {
 		Event.addEventType(\dirt, {
+			var keys, values;
 			var dirt = ~dirt ? SuperDirt.default;
 			~delta = ~delta ?? { ~stretch.value * ~dur.value };
 			~latency = ~latency ?? { dirt.server.latency };
-			dirt.orbits.wrapAt(~orbit ? 0).value(currentEnvironment)
+			if(~n.isArray) {
+				keys = currentEnvironment.keys.asArray;
+				values = keys.collect(_.envirGet).flop;
+				values.do { |each|
+					var e = Event(parent: currentEnvironment);
+					keys.do { |key, i| e.put(key, each.at(i)) };
+					dirt.orbits.wrapAt(e[\orbit] ? 0).value(e)
+				}
+			} {
+				dirt.orbits.wrapAt(~orbit ? 0).value(currentEnvironment)
+			}
 		})
 	}
 
@@ -449,7 +460,6 @@ DirtOrbit {
 			~latency = 0.0;
 			~lag = 0.0;
 			~length = 1.0;
-			~unitDuration = 1.0;
 			~loop = 1.0;
 			~dry = 0.0;
 			~lock = 0; // if set to 1, syncs delay times with cps
