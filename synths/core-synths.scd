@@ -222,6 +222,8 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		//var signal = XFade2.ar(wetSignal, drySignal, dry * 2 - 1);
 		var signal = wetSignal + drySignal;
 
+		signal = signal.collect { |x| Select.ar(CheckBadValues.ar(x) > 0, [x, DC.ar(0)]) };
+
 		signal = Limiter.ar(signal);
 
 		// or if you like it harsher
