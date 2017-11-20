@@ -54,7 +54,7 @@ this may be refacored later.
 					"instrument not found: %".format(~sound).postln
 				} {
 					// here, we just derive the arguments as necessary from the environment
-					dirtEvent.sendSynth(~instrument)
+					dirtEvent.sendSynth(~instrument, ~argNames)
 				}
 			}
 		}
