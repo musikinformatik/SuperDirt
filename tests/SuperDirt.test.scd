@@ -71,7 +71,7 @@ TEST SPEED/START/END
 (
 Tdef(\x, {
 	loop {
-		~d1.((sound: 'cy:10', speed: 2.0.rand2, accelerate:2.5.rand2));
+		~d1.((sound: '808cy:10', speed: 2.0.rand2, accelerate:2.5.rand2));
 		(0.2 * [1, 2, 1/3]).choose.wait;
 	}
 }).play;
@@ -88,19 +88,19 @@ Tdef(\x, {
 Tdef(\x).stop;
 
 
-~d1.((sound: 'cy:10', speed: 1));
-~d1.((sound: 'cy:10', speed: -1));
-~d1.((sound: 'cy:10', speed: 2, accelerate: -1));
-~d1.((sound: 'cy:10', speed: -2, accelerate: 1));
+~d1.((sound: '808cy:10', speed: 1));
+~d1.((sound: '808cy:10', speed: -1));
+~d1.((sound: '808cy:10', speed: 2, accelerate: -1));
+~d1.((sound: '808cy:10', speed: -2, accelerate: 1));
 
-~d1.((sound: 'cy:10', speed: 1, accelerate: -0.2));
-~d1.((sound: 'cy:10', speed: 0.5, accelerate: -0.3));
+~d1.((sound: '808cy:10', speed: 1, accelerate: -0.2));
+~d1.((sound: '808cy:10', speed: 0.5, accelerate: -0.3));
 
-~d1.(('sd:8', speed: 1));
-~d1.((sound: 'cy:10', speed: 2));
+~d1.((sound: 'sd:8', speed: 1));
+~d1.((sound: '808cy:10', speed: 2));
 
 
-~d1.value2((sound: 'cy:10', speed: 1]));
+// ~d1.value2((sound: '808cy:10', speed: 1]));
 
 
 
@@ -109,9 +109,9 @@ TEST PANNING
 */
 
 
-~d1.((sound: 'cy:10', pan:0));
-~d1.((sound: 'cy:10', pan:1));
-~d1.((sound: 'cy:10', pan:0.5));
+~d1.((sound: '808cy:10', pan:0));
+~d1.((sound: '808cy:10', pan:1));
+~d1.((sound: '808cy:10', pan:0.5));
 ~d1.((sound: 'uxay', pan:0));
 ~d1.((sound: 'uxay', pan:1));
 ~d1.((sound: 'uxay', pan:0.5));
@@ -123,29 +123,30 @@ TEST EFFECTS
 */
 
 
-~d1.((sound: 'cy:10', speed: 0.2, crush: 4));
-~d1.((sound: 'cy:10', speed: 0.2, coarse: 8));
+~d1.((sound: '808cy:10', speed: 0.2, crush: 4));
+~d1.((sound: '808cy:10', speed: 0.2, coarse: 8));
 
-~d1.((sound: 'cy:10', speed: 0.2, crush: 4, coarse: 38));
-~d1.((sound: 'cy:10', speed: 1, crush: 4));
-~d1.((sound: 'cy:10', speed: 1, hcutoff: 1000, hresonance: 20));
-~d1.((sound: 'cy:10', speed: 1, hcutoff: 3000, hresonance: 10));
-~d1.((sound: 'cy:10', speed: 1, bandqf: 3000, bandq: 100));
-~d1.((sound: 'cy:10', speed: 1, bandqf: 3000, bandq: 100, coarse: 13));
-~d1.((sound: 'cy:10', speed: 1, bandqf: 3000, bandq: 100, crush: 1));
-~d1.((sound: 'cy:10', speed: 1, hcutoff: 1000, hresonance: 20, coarse: 0.10));
+
+~d1.((sound: '808cy:10', speed: 0.2, crush: 4, coarse: 38));
+~d1.((sound: '808cy:10', speed: 1, crush: 4));
+~d1.((sound: '808cy:10', speed: 1, hcutoff: 1000, hresonance: 20));
+~d1.((sound: '808cy:10', speed: 1, hcutoff: 3000, hresonance: 10));
+~d1.((sound: '808cy:10', speed: 1, bandqf: 3000, bandq: 100));
+~d1.((sound: '808cy:10', speed: 1, bandqf: 3000, bandq: 100, coarse: 13));
+~d1.((sound: '808cy:10', speed: 1, bandqf: 3000, bandq: 100, crush: 1));
+~d1.((sound: '808cy:10', speed: 1, hcutoff: 1000, hresonance: 20, coarse: 0.10));
 
 
 // test vowels
-~d1.((sound: 'cy:10', speed: 1, vowel: \a));
-~d1.((sound: 'cy:10', speed: 1, vowel: \i, resonance: 1, cutoff: 200, gain: 2));
-~d1.((sound: 'cy:10', speed: 1, vowel: \a, resonance: 0.1));
-~d1.((sound: 'cy:10', speed: 1, vowel: \o, resonance: 0.1));
-~d1.((sound: 'cy:10', speed: 1, vowel: \o, resonance: 0.1, coarse: 30));
+~d1.((sound: '808cy:10', speed: 1, vowel: \a));
+~d1.((sound: '808cy:10', speed: 1, vowel: \i, resonance: 1, cutoff: 200, gain: 2));
+~d1.((sound: '808cy:10', speed: 1, vowel: \a, resonance: 0.1));
+~d1.((sound: '808cy:10', speed: 1, vowel: \o, resonance: 0.1));
+~d1.((sound: '808cy:10', speed: 1, vowel: \o, resonance: 0.1, coarse: 30));
 
 
-~d1.((sound: 'cy:10', speed: 1, vowel: \a, resonance: 0.1, pan: 0));
-~d1.((sound: 'cy:10', speed: 1, vowel: \a, resonance: 0.1, pan: 1));
+~d1.((sound: '808cy:10', speed: 1, vowel: \a, resonance: 0.1, pan: 0));
+~d1.((sound: '808cy:10', speed: 1, vowel: \a, resonance: 0.1, pan: 1));
 
 
 
@@ -188,12 +189,12 @@ GLOBAL EFFECTS
 
 // test delay:
 
-~d1.((sound: 'cy:10', speed: 1, delaytime: 0.8, delay: 1));
-~d1.((sound: 'cy:10', speed: 1, delaytime: 0.8, delay: 1, delayfeedback: 0.4));
-~d1.((sound: 'cy:10', speed: 1, delaytime: 0.8, delay: 0));
-~d1.((sound: 'cy:10', speed: 1, delaytime: 0.2, delay: 1));
+~d1.((sound: '808cy:10', speed: 1, delaytime: 0.8, delay: 1));
+~d1.((sound: '808cy:10', speed: 1, delaytime: 0.8, delay: 1, delayfeedback: 0.4));
+~d1.((sound: '808cy:10', speed: 1, delaytime: 0.8, delay: 0));
+~d1.((sound: '808cy:10', speed: 1, delaytime: 0.2, delay: 1));
 
-fork { (0, 0.1 ..1).do { |a| ~d1.((sound: 'cy:10', speed: 1, delaytime: 0.33, delay: a)); 1.wait } };
+fork { (0, 0.1 ..1).do { |a| ~d1.((sound: '808cy:10', speed: 1, delaytime: 0.33, delay: a)); 1.wait } };
 
 
 /*
@@ -205,21 +206,21 @@ TEST CUTGROUPS
 
 // cutgroup tests
 
-~d1.((sound: 'cy:10', speed: 0.02, cut: -8)); // really slow, to keep it on: see synth reading
-~d1.((sound: 'cy:10', speed: 0.02, cut: -8)); // cut the old one: number stays the same
-~d1.((sound: 'cy:10', speed: 0.02, cut: -8)); // ... again
+~d1.((sound: '808cy:10', speed: 0.02, cut: -8)); // really slow, to keep it on: see synth reading
+~d1.((sound: '808cy:10', speed: 0.02, cut: -8)); // cut the old one: number stays the same
+~d1.((sound: '808cy:10', speed: 0.02, cut: -8)); // ... again
 
 // this should add another one, as the cuts are independent between ~d1 and ~d2
-~d1.((sound:'cy:10', speed: 0.02, cut: -8));
-~d1.((sound:'cy:10', speed: 0.02, cut: -8)); // cut the old one, add the new one, same synth count
+~d1.((sound:'808cy:10', speed: 0.02, cut: -8));
+~d1.((sound:'808cy:10', speed: 0.02, cut: -8)); // cut the old one, add the new one, same synth count
 
 
 //  With negative, only stop the same sample from playing in the same cutgroup
-~d1.((sound: 'cy:9', speed: 0.02, cut: -8)); // a different sample, is added
-~d1.((sound: 'cy:9', speed: 0.02, cut: -8)); // the same sample, frees
+~d1.((sound: '808cy:9', speed: 0.02, cut: -8)); // a different sample, is added
+~d1.((sound: '808cy:9', speed: 0.02, cut: -8)); // the same sample, frees
 
 //  with positive integers, stop samples playing that are in the same cutgroup.
-~d1.((sound: 'cy:10', speed: 0.02, cut: 8)); // should free all others
+~d1.((sound: '808cy:10', speed: 0.02, cut: 8)); // should free all others
 
 ~d1.releaseTime = 0.3;
 
@@ -249,7 +250,7 @@ cycle), and
 
 (
 Tdef(\x, {
-	var name = 'cy:10';
+	var name = '808cy:10';
 	var cps = 2;
 	20.do {
 		~d1.((cps:cps, sound:name, unit: \r, begin: 0, end: 1));
@@ -263,7 +264,7 @@ Tdef(\x, {
 // \c
 (
 Tdef(\x, {
-	var name = 'cy:10';
+	var name = '808cy:10';
 	var cps = 2;
 	20.do {
 		~d1.((cps:cps, sound:name, unit: \c, begin: 0, end: 1));
@@ -276,7 +277,7 @@ Tdef(\x, {
 // \s
 (
 Tdef(\x, {
-	var name = 'cy:10';
+	var name = '808cy:10';
 	var cps = 0.2;
 	loop {
 		~d1.((cps:cps, sound:name, unit: \s, begin: 0, end: 0.2));
@@ -285,6 +286,7 @@ Tdef(\x, {
 }).play
 )
 
+Tdef(\x).stop;
 
 /*
 
@@ -364,6 +366,8 @@ SynthDef(\imp, { |speed = 1, begin=0, end=1, pan, accelerate, amp = 1, offset|
 }).add;
 )
 
+Tdef(\x).stop;
+
 
 
 
@@ -373,18 +377,21 @@ NETWORK TEST
 
 */
 
+OSCFunc.trace(true, true); // see if network messages are coming in from tidal
+OSCFunc.trace(false); // stop tracing
+
 
 // network test
 n = NetAddr("127.0.0.1", 57120);
 
 // Should pan left and right?
-n.sendMsg(\play, 1, 'cy:10',0,0,1,1,0);
-n.sendMsg(\play, 1, 'cy:10',0,0,1,1,1);
+n.sendMsg(\play, 1, '808cy:10',0,0,1,1,0);
+n.sendMsg(\play, 1, '808cy:10',0,0,1,1,1);
 
 // feeding back
-n.sendMsg(\play, 1, 'cy:10',0,0,1,1,0.5,0,"o");
+n.sendMsg(\play, 1, '808cy:10',0,0,1,1,0.5,0,"o");
 
-n.sendMsg(\play, 1, 'cy:10',0,0,1,1,0.5,0);
+n.sendMsg(\play, 1, '808cy:10',0,0,1,1,0.5,0);
 
 
 n.sendMsg(\play, 1, 'breaks125');
