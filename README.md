@@ -36,6 +36,7 @@ s.options.numInputBusChannels = 2; // set this to your hardware input channel si
 s.waitForBoot {
 	~dirt = SuperDirt(2, s); // two output channels, increase if you want to pan across more channels
 	~dirt.loadSoundFiles;   // load samples (path containing a wildcard can be passed in)
+	// for example: ~dirt.loadSoundFiles("/Users/myUserName/Dirt/samples/*");
 	s.sync; // wait for samples to be read
 	~dirt.start(57120, [0, 0]);   // start listening on port 57120, create two orbits, each sending audio to channel 0. You can direct sounds to the orbits from tidal e.g. by: `# orbit "0 1 1"
 }
@@ -68,12 +69,14 @@ If you want SuperDirt to start automatically, you can load it from the startup f
 - add sound files. `~dirt.loadSoundFiles("path/to/my/samples/*")` You can drag and drop folders into the editor and add a wildcard (*) after it.
 - you can pass the udp port on which superdirt is listenting and the output channel offsets: `~dirt.start(port, channels)`
 - new orbits can be created on the fly (e.g. `~dirt.makeBusses([0, 0, 0])`).
-- add or edit SynthDef files to add your own synthesis methods to be called from tidal: https://github.com/telephon/SuperDirt/blob/master/synths/default-synths.scd
+- add or edit SynthDef files to add your own synthesis methods to be called from tidal: https://github.com/musikinformatik/SuperDirt/blob/master/synths/default-synths.scd
 - you can live rewrite the core synths (but take care not to break them ...): https://github.com/musikinformatik/SuperDirt/blob/master/synths/core-synths.scd
 
 
 ## Using SuperDirt with SuperCollider 3.6
-It is possible to use SuperCollider 3.6, but startup will be much slower by comparison.
+It is in principle possible to use SuperCollider 3.6, but startup will be much slower by comparison. It is **not** recommended if you expect it to run smoothly.
+
+For reference, we leave here the instructions if you want to try anyway:
 
 The install works differently: don't do `include("SuperDirt")`, but instead download the three quarks to the SuperCollider `Extensions` folder:
 - https://github.com/musikinformatik/SuperDirt
