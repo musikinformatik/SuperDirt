@@ -74,7 +74,9 @@ If you want SuperDirt to start automatically, you can load it from the startup f
 
 
 ## Using SuperDirt with SuperCollider 3.6
-It is possible to use SuperCollider 3.6, but startup will be much slower by comparison.
+It is in principle possible to use SuperCollider 3.6, but startup will be much slower by comparison. It is **not** recommended if you expect it to run smoothly.
+
+For reference, we leave here the instructions if you want to try anyway:
 
 The install works differently: don't do `include("SuperDirt")`, but instead download the three quarks to the SuperCollider `Extensions` folder:
 - https://github.com/musikinformatik/SuperDirt
