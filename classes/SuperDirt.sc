@@ -255,27 +255,31 @@ SuperDirt {
 	}
 
 	*postTidalParameters { |synthNames, excluding |
-		var descs, paramString;
+		var descs, paramString, parameterNames;
 
 		excluding = this.predefinedSynthParameters ++ excluding;
 
 		descs = synthNames.asArray.collect { |name| SynthDescLib.at(name) };
 		descs = descs.reject { |x, i|
 			var notFound = x.isNil;
-			if(notFound) { "no Synth Description with this name found: %".format(synthNames[i]).warn };
+			if(notFound) { "no Synth Description with this name found: %".format(synthNames[i]).warn; ^this };
 			notFound
 		};
 
-		paramString = descs.collect { |x|
+
+
+		parameterNames = descs.collect { |x|
 			x.controls.collect { |y| y.name }
-		}
-		.flat.as(Set).as(Array).sort
-		.reject { |x| excluding.includes(x) }
-		.collect { |x| format("(%, %_p) = pF \"%\" (Nothing)", x, x, x) }
-		.join("\n    ");
+		};
+		parameterNames = parameterNames.flat.as(Set).as(Array).sort.reject { |x| excluding.includes(x) };
+		paramString = this.tidalParameterString(parameterNames);
 
 		^"\n-- | parameters for the SynthDefs: %\nlet %\n\n".format(synthNames.join(", "), paramString)
 
+	}
+
+	*tidalParameterString { |keys|
+		^keys.collect { |x| format("(%, %_p) = pF \"%\" (Nothing)", x, x, x) }.join("\n    ");
 	}
 
 	*predefinedSynthParameters {
