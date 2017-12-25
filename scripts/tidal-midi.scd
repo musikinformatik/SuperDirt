@@ -6,13 +6,13 @@ MIDIClient.init;
 MIDIClient.list; // to check, which are there, you can query them
 )
 
+
 // create a midi out connection
-(
-// substitute your own device here
-~midiOut = MIDIOut.newByName("FastLane USB", "Port A");
-~latency = ~dirt.server.latency; // you may want to adjust the latency here by hand.
-~midiOut.latency = ~latency;
-)
+~midiOut = MIDIOut.newByName("FastLane USB", "Port A"); // substitute your own device here
+
+ // you may want to adjust the latency here
+~midiOut.latency = ~dirt.server.latency + 0.1;
+
 
 
 // define one instrument called "midi" (you may call it what you like)
