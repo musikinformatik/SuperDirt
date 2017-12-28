@@ -11,7 +11,7 @@ MIDIClient.list; // to check, which are there, you can query them
 ~midiOut = MIDIOut.newByName("FastLane USB", "Port A"); // substitute your own device here
 
  // you may want to adjust the latency here
-~midiOut.latency = ~dirt.server.latency + 0.1;
+~midiOut.latency = 0.0;
 
 
 
@@ -27,6 +27,7 @@ var p = (
 	(
 		play: {
 			var e = (
+				lag: ~lag + ~latency, // in the midi event, lag is used as latency
 				note: ~note ? 0,
 				sustain: ~sustain.value,
 				midicmd: ~midicmd ? \noteOn,
