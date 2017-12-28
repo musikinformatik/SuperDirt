@@ -1,4 +1,5 @@
 
+// version 0.2
 
 // first, initialize your midi device.
 (
