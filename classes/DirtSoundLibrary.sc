@@ -63,6 +63,27 @@ DirtSoundLibrary {
 		if(verbose) { "new synth named '%':\n%\n\n".postf(name, event) };
 	}
 
+	addMIDI { |name, device|
+
+		this.addSynth(name,
+			(
+				play: {
+					(
+						type: \midi,
+						midiout: device,
+						lag: ~lag + ~latency, // in the midi event, lag is used as latency
+						note: ~note ? 0,
+						sustain: ~sustain.value,
+						midicmd: ~midicmd ? \noteOn,
+						ctlNum: ~ctlNum ? 0, // this one is missing from the default values
+						chan: ~midichan ? 0,
+					).play;
+				}
+			)
+		);
+
+	}
+
 	useSynthDefSustain { |event|
 		event.use {
 			~unitDuration = {

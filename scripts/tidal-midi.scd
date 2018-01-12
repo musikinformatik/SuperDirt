@@ -1,5 +1,5 @@
 
-// version 0.2
+// version 0.3
 
 // first, initialize your midi device.
 (
@@ -18,28 +18,10 @@ MIDIClient.list; // to check, which are there, you can query them
 
 // define one instrument called "midi" (you may call it what you like)
 // it uses the built in event type "midi" (this is predefined).
-(
-var p = (
-	type:\midi,
-	midiout: ~midiOut
-);
 
-~dirt.soundLibrary.addSynth(\midi,
-	(
-		play: {
-			var e = (
-				lag: ~lag + ~latency, // in the midi event, lag is used as latency
-				note: ~note ? 0,
-				sustain: ~sustain.value,
-				midicmd: ~midicmd ? \noteOn,
-				chan: ~midichan ? 0,
-			);
-			e.proto = p;
-			e.play;
-		}
-	)
-);
-)
+~dirt.soundLibrary.addMIDI(\midi, ~midiOut);
+
+
 
 // in tidal, define the following parameters:
 
