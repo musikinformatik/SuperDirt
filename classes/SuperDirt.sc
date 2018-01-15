@@ -42,6 +42,43 @@ SuperDirt {
 			} {
 				dirt.orbits.wrapAt(~orbit ? 0).value(currentEnvironment)
 			}
+		});
+
+		Event.addEventType(\tidalmidi, #{|server|
+
+			var freqs, lag, sustain, strum;
+			var args, midiout, hasGate, midicmd, latency;
+
+			freqs = ~freq.value;
+
+			~amp = ~amp.value;
+			~midinote = (freqs.cpsmidi).round(1).asInteger;
+			strum = ~strum;
+			lag = ~lag + ~latency;
+			sustain = ~sustain = ~sustain.value;
+			midiout = ~midiout.value;
+			~uid ?? { ~uid = midiout.uid };  // mainly for sysex cmd
+			hasGate = ~hasGate ? true; // TODO
+			midicmd = ~midicmd ? \noteOn;
+			~ctlNum = ~ctlNum ? 0;
+
+			args = ~midiEventFunctions[midicmd].valueEnvir.asCollection;
+
+			latency = i * strum + lag;
+
+			if(latency == 0.0) {
+				midiout.performList(midicmd, args)
+			} {
+				thisThread.clock.sched(latency, {
+					midiout.performList(midicmd, args);
+				})
+			};
+			if(hasGate and: { midicmd === \noteOn }) {
+				thisThread.clock.sched(sustain + latency, {
+					midiout.noteOff(*args)
+				});
+			};
+
 		})
 	}
 
