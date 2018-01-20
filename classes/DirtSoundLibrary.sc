@@ -13,6 +13,7 @@ DirtSoundLibrary {
 	var <server, <numChannels, <buffers, <bufferEvents, <synthEvents;
 	var <>fileExtensions = #["wav", "aif", "aiff", "aifc"];
 	var <>verbose = false;
+	var <>defaultEvent;
 
 	*new { |server, numChannels|
 		^super.newCopyArgs(server, numChannels).init
@@ -232,6 +233,10 @@ DirtSoundLibrary {
 		^if(allEvents.isNil) {
 			if(SynthDescLib.at(name).notNil) {
 				(instrument: name, hash: name.identityHash)
+			} {
+				if(defaultEvent.notNil) {
+					(instrument: name, hash: name.identityHash).putAll(defaultEvent)
+				}
 			}
 		} {
 			allEvents.wrapAt(index.asInteger)
