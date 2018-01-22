@@ -22,11 +22,12 @@ MIDIClient.list; // to check, which are there, you can query them
 ~dirt.soundLibrary.addMIDI(\midi, ~midiOut);
 
 
+// note: parameter names may change in the future!
 
 // in tidal, define the following parameters:
 
     (midicmd, midicmd_p) = pS "midicmd" (Nothing)
-    (chan, chan_p) = pF "chan" (Nothing)
+    (midichan, midichan_p) = pF "midichan" (Nothing)
     (progNum, progNum_p) = pF "progNum" (Nothing)
     (val, val_p) = pF "val" (Nothing)
     (uid, uid_p) = pF "uid" (Nothing)
@@ -44,16 +45,16 @@ MIDIClient.list; // to check, which are there, you can query them
 // the following midicmds and their parameters are then supported
 // the usual note/freq and legato/sustain parameters are taken into account
 
-polyTouch: chan, midinote, polyTouch
-program: chan, progNum
-bend: chan, val
+polyTouch: midichan, midinote, polyTouch
+program: midichan, progNum
+bend: midichan, val
 sysex: uid, array
-noteOn: chan, midinote, amp // default
-allNotesOff: chan
+noteOn: midichan, midinote, amp // default
+allNotesOff: midichan
 smpte: frames, seconds, minutes, hours, frameRate
 songPtr: songPtr
-control: chan, ctlNum, control
-touch: chan, val
-noteOff: chan, midinote, amp // sent automatically, after sustain.
+control: midichan, ctlNum, control
+touch: midichan, val
+noteOff: midichan, midinote, amp // sent automatically, after sustain.
 
 

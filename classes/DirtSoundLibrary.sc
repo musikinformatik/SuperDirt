@@ -64,12 +64,13 @@ DirtSoundLibrary {
 		if(verbose) { "new synth named '%':\n%\n\n".postf(name, event) };
 	}
 
-	addMIDI { |name, device|
+	addMIDI { |name, device, event|
 
 		this.addSynth(name,
 			(
 				play: {
-					(
+
+					var midiEvent =  (
 						type: \midi,
 						midiout: device,
 						amp: ~amp,
@@ -79,7 +80,10 @@ DirtSoundLibrary {
 						midicmd: ~midicmd ? \noteOn,
 						ctlNum: ~ctlNum ? 0, // this one is missing from the default values
 						chan: ~midichan ? 0,
-					).play;
+					);
+
+					if(event.notNil) { midiEvent.proto = event.copy };
+					midiEvent.play;
 				}
 			)
 		);
