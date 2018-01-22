@@ -72,6 +72,7 @@ DirtSoundLibrary {
 					(
 						type: \midi,
 						midiout: device,
+						amp: ~amp,
 						lag: ~lag + ~latency, // in the midi event, lag is used as latency
 						note: ~note ? 0,
 						sustain: ~sustain.value,
