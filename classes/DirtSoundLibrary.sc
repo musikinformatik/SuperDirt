@@ -13,6 +13,7 @@ DirtSoundLibrary {
 	var <server, <numChannels, <buffers, <bufferEvents, <synthEvents;
 	var <>fileExtensions = #["wav", "aif", "aiff", "aifc"];
 	var <>verbose = false;
+	var <>defaultEvent;
 
 	*new { |server, numChannels|
 		^super.newCopyArgs(server, numChannels).init
@@ -61,6 +62,32 @@ DirtSoundLibrary {
 		if(useSynthDefSustain) { this.useSynthDefSustain(event) };
 		synthEvents[name] = synthEvents[name].add(event);
 		if(verbose) { "new synth named '%':\n%\n\n".postf(name, event) };
+	}
+
+	addMIDI { |name, device, event|
+
+		this.addSynth(name,
+			(
+				play: {
+
+					var midiEvent =  (
+						type: \midi,
+						midiout: device,
+						amp: ~amp,
+						lag: ~lag + ~latency, // in the midi event, lag is used as latency
+						note: ~note ? 0,
+						sustain: ~sustain.value,
+						midicmd: ~midicmd ? \noteOn,
+						ctlNum: ~ctlNum ? 0, // this one is missing from the default values
+						chan: ~midichan ? 0,
+					);
+
+					if(event.notNil) { midiEvent.proto = event.copy };
+					midiEvent.play;
+				}
+			)
+		);
+
 	}
 
 	useSynthDefSustain { |event|
@@ -211,6 +238,10 @@ DirtSoundLibrary {
 		^if(allEvents.isNil) {
 			if(SynthDescLib.at(name).notNil) {
 				(instrument: name, hash: name.identityHash)
+			} {
+				if(defaultEvent.notNil) {
+					(instrument: name, hash: name.identityHash).putAll(defaultEvent)
+				}
 			}
 		} {
 			allEvents.wrapAt(index.asInteger)

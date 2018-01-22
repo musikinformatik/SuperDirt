@@ -130,7 +130,7 @@ DirtEvent {
 
 	getMsgFunc { |instrument|
 		var desc = SynthDescLib.global.at(instrument.asSymbol);
-		^if(desc.notNil) { desc.msgFunc }
+		^if(desc.notNil) { desc.msgFunc } { ~msgFunc }
 	}
 
 	sendSynth { |instrument, args|

@@ -42,6 +42,43 @@ SuperDirt {
 			} {
 				dirt.orbits.wrapAt(~orbit ? 0).value(currentEnvironment)
 			}
+		});
+
+		Event.addEventType(\tidalmidi, #{|server|
+
+			var freqs, lag, sustain, strum;
+			var args, midiout, hasGate, midicmd, latency;
+
+			freqs = ~freq.value;
+
+			~amp = ~amp.value;
+			~midinote = (freqs.cpsmidi).round(1).asInteger;
+			strum = ~strum;
+			lag = ~lag + ~latency;
+			sustain = ~sustain = ~sustain.value;
+			midiout = ~midiout.value;
+			~uid ?? { ~uid = midiout.uid };  // mainly for sysex cmd
+			hasGate = ~hasGate ? true; // TODO
+			midicmd = ~midicmd ? \noteOn;
+			~ctlNum = ~ctlNum ? 0;
+
+			args = ~midiEventFunctions[midicmd].valueEnvir.asCollection;
+
+			latency = i * strum + lag;
+
+			if(latency == 0.0) {
+				midiout.performList(midicmd, args)
+			} {
+				thisThread.clock.sched(latency, {
+					midiout.performList(midicmd, args);
+				})
+			};
+			if(hasGate and: { midicmd === \noteOn }) {
+				thisThread.clock.sched(sustain + latency, {
+					midiout.noteOff(*args)
+				});
+			};
+
 		})
 	}
 
@@ -255,27 +292,31 @@ SuperDirt {
 	}
 
 	*postTidalParameters { |synthNames, excluding |
-		var descs, paramString;
+		var descs, paramString, parameterNames;
 
 		excluding = this.predefinedSynthParameters ++ excluding;
 
 		descs = synthNames.asArray.collect { |name| SynthDescLib.at(name) };
 		descs = descs.reject { |x, i|
 			var notFound = x.isNil;
-			if(notFound) { "no Synth Description with this name found: %".format(synthNames[i]).warn };
+			if(notFound) { "no Synth Description with this name found: %".format(synthNames[i]).warn; ^this };
 			notFound
 		};
 
-		paramString = descs.collect { |x|
+
+
+		parameterNames = descs.collect { |x|
 			x.controls.collect { |y| y.name }
-		}
-		.flat.as(Set).as(Array).sort
-		.reject { |x| excluding.includes(x) }
-		.collect { |x| format("(%, %_p) = pF \"%\" (Nothing)", x, x, x) }
-		.join("\n    ");
+		};
+		parameterNames = parameterNames.flat.as(Set).as(Array).sort.reject { |x| excluding.includes(x) };
+		paramString = this.tidalParameterString(parameterNames);
 
 		^"\n-- | parameters for the SynthDefs: %\nlet %\n\n".format(synthNames.join(", "), paramString)
 
+	}
+
+	*tidalParameterString { |keys|
+		^keys.collect { |x| format("(%, %_p) = pF \"%\" (Nothing)", x, x, x) }.join("\n    ");
 	}
 
 	*predefinedSynthParameters {

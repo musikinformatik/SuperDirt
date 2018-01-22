@@ -111,7 +111,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 	SynthDef("dirt_hpf" ++ numChannels, { |out, hcutoff = 440, hresonance = 0|
 		var signal = In.ar(out, numChannels);
-		signal = RHPF.ar(signal, hcutoff, hresonance.linexp(0, 1, 1, 0.001));
+		signal = RHPF.ar(signal, hcutoff.abs, hresonance.linexp(0, 1, 1, 0.001));
 		ReplaceOut.ar(out, signal)
 	}, [\ir, \ir, \ir]).add;
 
@@ -135,7 +135,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 	SynthDef("dirt_lpf" ++ numChannels, { |out, cutoff = 440, resonance = 0|
 		var signal = In.ar(out, numChannels);
-		signal = RLPF.ar(signal, cutoff, resonance.linexp(0, 1, 1, 0.001));
+		signal = RLPF.ar(signal, cutoff.abs, resonance.linexp(0, 1, 1, 0.001));
 		ReplaceOut.ar(out, signal)
 	}, [\ir, \ir, \ir]).add;
 
@@ -221,6 +221,8 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		var wetSignal = In.ar(effectBus, numChannels);
 		//var signal = XFade2.ar(wetSignal, drySignal, dry * 2 - 1);
 		var signal = wetSignal + drySignal;
+
+		signal = signal.collect { |x| Select.ar(CheckBadValues.ar(x) > 0, [x, DC.ar(0)]) };
 
 		signal = Limiter.ar(signal);
 
