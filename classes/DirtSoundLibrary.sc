@@ -69,24 +69,20 @@ DirtSoundLibrary {
 		this.addSynth(name,
 			(
 				play: {
-
-					var midiEvent =  (
+					(
 						type: \midi,
 						midiout: device,
 						amp: ~amp,
 						lag: ~lag + ~latency, // in the midi event, lag is used as latency
-						note: ~note ? 0,
+						note:  ~note ? 0,
 						sustain: ~sustain.value,
 						hasGate: ~hasGate ? true,
 						midicmd: ~midicmd ? \noteOn,
 						ctlNum: ~ctlNum ? 0, // this one is missing from the default values
-						chan: ~midichan ? 0,
-					);
-
-					if(event.notNil) { midiEvent.proto = event.copy };
-					midiEvent.play;
+						chan: ~midichan.postln ? 0
+					).play
 				}
-			)
+			).proto_(event.copy)
 		);
 
 	}
