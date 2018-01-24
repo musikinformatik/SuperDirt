@@ -77,6 +77,7 @@ DirtSoundLibrary {
 						lag: ~lag + ~latency, // in the midi event, lag is used as latency
 						note: ~note ? 0,
 						sustain: ~sustain.value,
+						hasGate: ~hasGate ? true,
 						midicmd: ~midicmd ? \noteOn,
 						ctlNum: ~ctlNum ? 0, // this one is missing from the default values
 						chan: ~midichan ? 0,
