@@ -494,7 +494,7 @@ DirtOrbit {
 			~n = 0; // sample number or note
 			~octave = 5;
 			~midinote = #{ ~n + (~octave * 12) };
-			~freq = #{ ~midinote.midicps };
+			~freq = #{ ~midinote.midicps * ~speed };
 			~delta = 1.0;
 
 			~latency = 0.0;
