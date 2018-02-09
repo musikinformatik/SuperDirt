@@ -353,7 +353,7 @@ Via the defaultParentEvent, you can also set parameters (use the set message):
 DirtOrbit {
 
 	var <dirt, <server, <outBus;
-	var <synthBus, <globalEffectBus, <dryBus;
+	var <synthBus, <globalEffectBus, <dryBus, <tapeBus, <gateBus;
 	var <group, <globalEffects, <cutGroups;
 	var <>minSustain;
 
@@ -373,6 +373,8 @@ DirtOrbit {
 		cutGroups = IdentityDictionary.new;
 		synthBus = Bus.audio(server, dirt.numChannels);
 		dryBus = Bus.audio(server, dirt.numChannels);
+		tapeBus = Bus.audio(server, dirt.numChannels);
+		gateBus = Bus.audio(server, dirt.numChannels);
 		globalEffectBus = Bus.audio(server, dirt.numChannels);
 		minSustain = 8 / server.sampleRate;
 		this.initDefaultGlobalEffects;
@@ -389,6 +391,7 @@ DirtOrbit {
 			GlobalDirtEffect(\dirt_tape, [\tape, \taped, \tapefb, \tapec]),
 			GlobalDirtEffect(\dirt_reverb, [\size, \room, \dry]),
 			GlobalDirtEffect(\dirt_leslie, [\leslie, \lrate, \lsize]),
+			GlobalDirtEffect(\dirt_gateverb, [\gateverbd, \gateverbg, \gateverbr]),
 			GlobalDirtEffect(\dirt_monitor, [\dirtOut])
 		]
 	}
@@ -409,7 +412,7 @@ DirtOrbit {
 	initNodeTree {
 		server.makeBundle(nil, { // make sure they are in order
 			server.sendMsg("/g_new", group, 0, 1); // make sure group exists
-			globalEffects.reverseDo { |x| x.play(group, outBus, dryBus, globalEffectBus) };
+			globalEffects.reverseDo { |x| x.play(group, outBus, dryBus, globalEffectBus, tapeBus, gateBus) };
 		})
 	}
 
@@ -514,6 +517,8 @@ DirtOrbit {
 			~dirt = dirt;
 			~out = synthBus;
 			~dryBus = dryBus;
+			~tapeBus= tapeBus;
+			~gateBus = gateBus;
 			~effectBus = globalEffectBus;
 			~numChannels = dirt.numChannels;
 			~server = server;
@@ -580,10 +585,10 @@ GlobalDirtEffect {
 		^super.newCopyArgs(name, paramNames, numChannels, ())
 	}
 
-	play { |group, outBus, dryBus, effectBus|
+	play { |group, outBus, dryBus, effectBus, tapeBus, gateBus|
 		this.release;
 		synth = Synth.after(group, name.asString ++ numChannels,
-			[\outBus, outBus, \dryBus, dryBus, \effectBus, effectBus] ++ state.asPairs
+			[\outBus, outBus, \dryBus, dryBus, \effectBus, effectBus, \tapeBus, tapeBus, \gateBus, gateBus] ++ state.asPairs
 		)
 	}
 

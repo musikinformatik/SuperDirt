@@ -125,6 +125,9 @@ DirtEvent {
 		~note = ~note ? ~n;
 		~freq = ~freq.value;
 		~delayAmp = ~delay ? 0.0; // for clarity
+		~tapec = ~tapec ? -1.0;
+		~tapefb = ~tapefb ? -1.0;
+		~gateverbr = ~gateverbr ? -1.0;
 		~latency = ~latency + ~lag.value + (~offset.value * ~speed.value);
 	}
 
@@ -156,6 +159,10 @@ DirtEvent {
 			*[
 				in: orbit.synthBus.index, // read from synth bus, which is reused
 				out: orbit.dryBus.index, // write to orbital dry bus
+				tapeBus: orbit.tapeBus.index, // write to orbital send bus
+				tape: ~tape, // send amount
+				gateBus: orbit.gateBus.index,
+				gateverb: ~gateverb,
 				amp: ~amp,
 				sample: ~hash, // required for the cutgroup mechanism
 				sustain: ~sustain, // after sustain, free all synths and group

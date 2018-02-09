@@ -61,12 +61,14 @@ live coding them requires that you have your SuperDirt instance in an environmen
 	// the monitor does the mixing and zeroing of the busses for each sample grain
 	// so that they can all play in one bus
 
-	SynthDef("dirt_gate" ++ numChannels, { |out, in, sustain = 1, fadeInTime = 0.001, fadeTime = 0.001, amp = 1|
+	SynthDef("dirt_gate" ++ numChannels, { |out, in, sustain = 1, fadeInTime = 0.001, fadeTime = 0.001, amp = 1,tapeBus,tape, gateBus, gateverb|
 		var signal = In.ar(in, numChannels);
 		 //  doneAction: 14: free surrounding group and all nodes
 		var env = EnvGen.ar(Env([0, 1, 1, 0], [fadeInTime, sustain, fadeTime], \sin), levelScale: amp, doneAction: 14);
 		signal = signal * env * DirtGateCutGroup.ar(fadeTime, doneAction: 14);
 		OffsetOut.ar(out, signal);
+		OffsetOut.ar(tapeBus, signal*tape);
+		OffsetOut.ar(gateBus, signal * gateverb);
 		ReplaceOut.ar(in, Silent.ar(numChannels)) // clears bus signal for subsequent synths
 	}, [\ir, \ir, \ir, \ir, \ir, \ir]).add;
 
@@ -316,26 +318,37 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 	}, [\ir, \ir]).add;
 
-	SynthDef("dirt_tape" ++ numChannels, { |dryBus, effectBus, gate = 1, tape=1, taped, tapefb, tapec|
-		var in = In.ar(dryBus, numChannels);
+	SynthDef("dirt_tape" ++ numChannels, { |dryBus, tapeBus, effectBus, gate = 1, taped, tapefb, tapec|
+		var in = In.ar(tapeBus, numChannels);
 		var maxDelayTime = 8;
-		var decayTime, delay, delayfb, loop;
+		var decayTime, delay, delayfb, loop, localTapec;
 
-		delayfb = tapefb.clip(0, 0.99);
-		delay = (Lag.kr(taped, 0.1) + LPF.kr(PinkNoise.kr(0.015), 1)).clip(0.001, maxDelayTime); //wow
+		localTapec = Gate.kr(tapec, tapec+1e-4);
+		delayfb = Gate.kr(tapefb, tapefb+1e-4).clip(0, 0.99);
+		delay = (Lag.kr(Gate.kr(taped, taped), 0.1) + LPF.kr(PinkNoise.kr(0.015), 1)).clip(0.001, maxDelayTime); //wow
 		loop = LocalIn.ar(numChannels);
-		loop = DelayL.ar((loop*delayfb) + (in*tape), maxDelayTime, delay*SinOsc.kr(1/delay, 0.25, 0.001, 1));
+		loop = DelayL.ar((loop*delayfb) + in, maxDelayTime, delay*SinOsc.kr(1/delay, 0.25*pi, 0.001, 1));
 		loop = loop * WhiteNoise.ar(0.01,1); //flutter
 		loop = MantissaMask.ar(loop, 2);
-		loop = CompanderD.ar(loop, 0.3, 1, (1-tapec).clip(0,1), 0.005, 0.005); //compression, but could be better
-		loop = LPF.ar(tanh(loop)*1.2, (2700+SinOsc.kr(0.1,mul:20)-(1000*tapec)).clip(20,10000)); //distortion and hi cutoff
+		loop = CompanderD.ar(loop, 0.3, 1, (1-localTapec).clip(0,1), 0.005, 0.005); //compression, but could be better
+		loop = LPF.ar(tanh(loop)*1.2, (2700+SinOsc.kr(0.1,mul:20)-(1000*localTapec)).clip(20,10000)); //distortion and hi cutoff
 		loop = HPF.ar(loop, 20);
 		LocalOut.ar(LeakDC.ar(loop));
-		DirtPause.ar(loop, graceTime:4);
+		DirtPause.ar(in+loop, graceTime:8);
 		loop = loop * EnvGen.kr(Env.asr, gate, doneAction:2);
 		Out.ar(effectBus, loop);
 	}, [\ir, \ir]).add;
 
+	SynthDef("dirt_gateverb" ++ numChannels, { |gateBus, effectBus, gate=1, gateverbg, gateverbd, gateverbr|
+		var in = In.ar(gateBus, numChannels);
+		var snd;
+
+		snd = CheapVerb.ar(in, decayTime:Gate.kr(gateverbd, gateverbd), numDelays:6);
+		snd = Compander.ar(snd, in, 0.1, 10, 1, clampTime:0.005, relaxTime:Gate.kr(gateverbg, gateverbg));
+		DirtPause.ar(in+snd, graceTime:4);
+		snd = snd * EnvGen.kr(Env.asr, gate, doneAction:2);
+		Out.ar(effectBus, snd*Gate.kr(gateverbr,gateverbr+1e-4));
+	}, [\ir, \ir]).add;
 
 	// Tremolo audio DSP effect definition. Params: tremolorate (Hz); tremolodepth (amplitude)
 	SynthDef("tremolo" ++ numChannels, { |out, tremolorate = 1.0, tremolodepth = 0.5 |
