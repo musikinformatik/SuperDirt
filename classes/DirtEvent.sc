@@ -126,9 +126,13 @@ DirtEvent {
 		~freq = ~freq.value;
 		~delayAmp = ~delay ? 0.0; // for clarity
 		~dry = ~dry ? 1.0;
+		~delaytime = ~delaytime ? -1.0;
+		~delayfeedback = ~delayfeedback ? -1.0;
 		~size = ~size ? -1.0;
 		~tapec = ~tapec ? -1.0;
 		~tapefb = ~tapefb ? -1.0;
+		~lrate = ~lrate ? -1.0;
+		~lsize = ~lsize ? -1.0;
 		~gateverbr = ~gateverbr ? -1.0;
 		~latency = ~latency + ~lag.value + (~offset.value * ~speed.value);
 	}
@@ -162,12 +166,16 @@ DirtEvent {
 				in: orbit.synthBus.index, // read from synth bus, which is reused
 				out: orbit.dryBus.index, // write to orbital dry bus
 				dry: ~dry,
+				delayBus: orbit.delayBus.index,
+				delay: ~delay,
 				reverbBus: orbit.reverbBus.index,
 				room: ~room,
 				tapeBus: orbit.tapeBus.index, // write to orbital send bus
 				tape: ~tape, // send amount
 				gateBus: orbit.gateBus.index,
 				gateverb: ~gateverb,
+				leslieBus: orbit.leslieBus.index,
+				leslie: ~leslie,
 				amp: ~amp,
 				sample: ~hash, // required for the cutgroup mechanism
 				sustain: ~sustain, // after sustain, free all synths and group

@@ -62,12 +62,14 @@ live coding them requires that you have your SuperDirt instance in an environmen
 	// so that they can all play in one bus
 
 	SynthDef("dirt_gate" ++ numChannels, { |out, in, sustain = 1, fadeInTime = 0.001, fadeTime = 0.001, amp = 1,
-		   dry, room, reverbBus, tapeBus,tape, gateBus, gateverb|
+		   dry, delay, delayBus, room, reverbBus, tapeBus,tape, gateBus, gateverb, leslieBus, leslie|
 		var signal = In.ar(in, numChannels);
 		 //  doneAction: 14: free surrounding group and all nodes
 		var env = EnvGen.ar(Env([0, 1, 1, 0], [fadeInTime, sustain, fadeTime], \sin), levelScale: amp, doneAction: 14);
 		signal = signal * env * DirtGateCutGroup.ar(fadeTime, doneAction: 14);
 		OffsetOut.ar(out, signal*dry);
+		OffsetOut.ar(delayBus, signal*delay);
+		OffsetOut.ar(leslieBus, signal*leslie);
 		OffsetOut.ar(tapeBus, signal*tape);
 		OffsetOut.ar(gateBus, signal*gateverb);
 		OffsetOut.ar(reverbBus, signal*room);
@@ -172,23 +174,23 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 	if(\SwitchDelay.asClass.notNil) {
 
-		SynthDef("dirt_delay" ++ numChannels, { |dryBus, effectBus, gate = 1, delaytime, delayfeedback, delayAmp = 1, lock = 0, cps = 1|
+		SynthDef("dirt_delay" ++ numChannels, { |dryBus, effectBus, delayBus, gate = 1, delaytime=0.1, delayfeedback=0, lock = 0, cps = 1|
 			var signal;
-			var input = In.ar(dryBus, numChannels);
+			var input = In.ar(delayBus, numChannels);
 			var maxDelayTime = 4;
+			var dfb = Gate.kr(delayfeedback, delayfeedback + 1e-4);
+			var dt = Gate.kr(delaytime, delaytime);
 
-			delayfeedback = delayfeedback.max(0);
-			delaytime = delaytime * if(lock, reciprocal(cps), 1);
-			delaytime = delaytime.clip(0, maxDelayTime); // just to be sure
+			dt = dt * if(lock, reciprocal(cps), 1);
+			dt = dt.clip(0, maxDelayTime); // just to be sure
 			// from sc3-plugins
-			signal = \SwitchDelay.asClass.ar(input, 1, 1, delaytime, delayfeedback, maxDelayTime);
+			signal = \SwitchDelay.asClass.ar(input, 1, 1, dt, dfb, maxDelayTime);
 
 			DetectSilence.ar(signal, time:1, doneAction: 1);
 			// doesn't work properly. We don't really know when it's not used anymore.
 			// this would have to be an explicit signal from sclang
 
 			signal = signal * EnvGen.kr(Env.asr, gate, doneAction:2);
-			signal = signal * delayAmp.lag(0.01);
 
 			DirtPause.ar(signal, graceTime:4);
 
@@ -199,20 +201,22 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		"\n\n ---- SC3-Plugins not found. This is not a problem."
 		"Note that we are using a comb delay, which may not sound the same as SwitchDelay from the plugins".postln;
 
-		SynthDef("dirt_delay" ++ numChannels, { |dryBus, effectBus, gate = 1, delaytime, delayfeedback, delayAmp = 1, lock = 0, cps = 1|
-			var signal = In.ar(dryBus, numChannels);
+		SynthDef("dirt_delay" ++ numChannels, { |dryBus, effectBus, delayBus, gate = 1, delaytime=0.1, delayfeedback=0, lock = 0, cps = 1|
+			var signal = In.ar(delayBus, numChannels);
 			var maxDelayTime = 4;
+			var dfb = Gate.kr(delayfeedback, delayfeedback + 1e-4);
+			var dt = Gate.kr(delaytime, delaytime);
 			var decayTime;
 
-			delayfeedback = delayfeedback.clip(0, 0.99);
-			delaytime = delaytime * if(lock, reciprocal(cps), 1);
-			delaytime = delaytime.clip(0, maxDelayTime); // just to be sure
-			decayTime = log2(-60.dbamp) / log2(delayfeedback) * delaytime;
+			dfb = dfb.clip(0, 0.99);
+			dt = dt * if(lock, reciprocal(cps), 1);
+			dt = dt.clip(0, maxDelayTime); // just to be sure
+			decayTime = log2(-60.dbamp) / log2(dfb) * dt;
 			decayTime = decayTime.clip(0, 20);
 
-			signal = CombL.ar(signal, maxDelayTime, delaytime.lag(1), decayTime);
+			signal = CombL.ar(signal, maxDelayTime, dt.lag(1), decayTime);
 
-			signal = LeakDC.ar(signal) * delayAmp.lag(0.01) * EnvGen.kr(Env.asr, gate, doneAction:2);
+			signal = LeakDC.ar(signal) * EnvGen.kr(Env.asr, gate, doneAction:2);
 
 			DirtPause.ar(signal, graceTime:4);
 
@@ -278,22 +282,23 @@ live coding them requires that you have your SuperDirt instance in an environmen
 	// "lrate" is the modulation rate (typical vintage rates would be 6.7 for "fast", 0.7 for "slow")
 	// "lsize" is the physical size of the cabinet in meters, this mostly affects the Doppler amount (pitch warble)
 
-	SynthDef("dirt_leslie" ++ numChannels, { |dryBus, effectBus, gate = 1, leslie=0.5, lrate=6.7, lsize=0.3|
+	SynthDef("dirt_leslie" ++ numChannels, { |dryBus, effectBus, leslieBus, gate = 1, lrate=6.7, lsize=0.3|
 		var in, distance, throb, sound1, sound2, bal1, bal2, snd;
+		var localrate = Gate.kr(lrate, lrate);
+		var localsize = Gate.kr(lsize, lsize);
 
-		in = In.ar(dryBus, numChannels);
-		ReplaceOut.ar(dryBus, in*(1-leslie));
+		in = In.ar(leslieBus, numChannels);
 		if(numChannels > 2) { in = in.clump(2).sum };
-		distance = SinOsc.ar(Lag.kr(lrate,10), 0).range(0, lsize);
-		throb = SinOsc.ar(Lag.kr(lrate*0.8, 20), 0).range(0,lsize*1.3);
-		bal1 = SinOsc.kr(Lag.kr(lrate*0.8, 4), pi/2).range(-0.2,0.2);
-		bal2 = SinOsc.kr(Lag.kr(lrate,2), pi/2).range(-0.4, 0.4);
+		distance = SinOsc.ar(Lag.kr(localrate,10), 0).range(0, localsize);
+		throb = SinOsc.ar(Lag.kr(localrate*0.8, 20), 0).range(0,localsize*1.3);
+		bal1 = SinOsc.kr(Lag.kr(localrate*0.8, 4), pi/2).range(-0.2,0.2);
+		bal2 = SinOsc.kr(Lag.kr(localrate,2), pi/2).range(-0.4, 0.4);
 		sound2 = HPF.ar(in, 800);
 		sound1 = in - sound2;
-		sound1 = leslie * (1.0 - throb) * sound1;
+		sound1 = (1.0 - throb) * sound1;
 		sound1 = Balance2.ar(sound1[0], sound1[1], bal1);
 		sound2 = DelayC.ar(sound2, 1, distance / 343);
-		sound2 = leslie * (1.0 - distance) * sound2;
+		sound2 = (1.0 - distance) * sound2;
 		sound2 = Balance2.ar(sound2[0], sound2[1], bal2);
 
 		snd = 1.2 * (sound1 + sound2);
@@ -306,8 +311,8 @@ live coding them requires that you have your SuperDirt instance in an environmen
 			{ numChannels > 2 }, {
 				snd = [
 					// wild interpretation
-					PanAz.ar(numChannels, snd[0], LFSaw.kr(lrate)),
-					PanAz.ar(numChannels, snd[1], LFSaw.kr(lrate) + 1)
+					PanAz.ar(numChannels, snd[0], LFSaw.kr(localrate)),
+					PanAz.ar(numChannels, snd[1], LFSaw.kr(localrate) + 1)
 				].sum
 			}
 		);

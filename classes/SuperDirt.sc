@@ -353,7 +353,7 @@ Via the defaultParentEvent, you can also set parameters (use the set message):
 DirtOrbit {
 
 	var <dirt, <server, <outBus;
-	var <synthBus, <globalEffectBus, <dryBus, <tapeBus, <gateBus, <reverbBus;
+	var <synthBus, <globalEffectBus, <dryBus, <delayBus, <leslieBus, <tapeBus, <gateBus, <reverbBus;
 	var <group, <globalEffects, <cutGroups;
 	var <>minSustain;
 
@@ -373,7 +373,9 @@ DirtOrbit {
 		cutGroups = IdentityDictionary.new;
 		synthBus = Bus.audio(server, dirt.numChannels);
 		dryBus = Bus.audio(server, dirt.numChannels);
+		delayBus = Bus.audio(server, dirt.numChannels);
 		reverbBus = Bus.audio(server, dirt.numChannels);
+		leslieBus = Bus.audio(server, dirt.numChannels);
 		tapeBus = Bus.audio(server, dirt.numChannels);
 		gateBus = Bus.audio(server, dirt.numChannels);
 		globalEffectBus = Bus.audio(server, dirt.numChannels);
@@ -388,10 +390,10 @@ DirtOrbit {
 
 	initDefaultGlobalEffects {
 		this.globalEffects = [
-			GlobalDirtEffect(\dirt_delay, [\delaytime, \delayfeedback, \delayAmp, \lock, \cps]),
-			GlobalDirtEffect(\dirt_tape, [\tape, \taped, \tapefb, \tapec]),
-			GlobalDirtEffect(\dirt_reverb, [\size, \room, \dry]),
-			GlobalDirtEffect(\dirt_leslie, [\leslie, \lrate, \lsize]),
+			GlobalDirtEffect(\dirt_delay, [\delaytime, \delayfeedback, \lock, \cps]),
+			GlobalDirtEffect(\dirt_tape, [\taped, \tapefb, \tapec]),
+			GlobalDirtEffect(\dirt_reverb, [\size]),
+			GlobalDirtEffect(\dirt_leslie, [\lrate, \lsize]),
 			GlobalDirtEffect(\dirt_gateverb, [\gateverbd, \gateverbg, \gateverbr]),
 			GlobalDirtEffect(\dirt_monitor, [\dirtOut])
 		]
@@ -413,7 +415,7 @@ DirtOrbit {
 	initNodeTree {
 		server.makeBundle(nil, { // make sure they are in order
 			server.sendMsg("/g_new", group, 0, 1); // make sure group exists
-			globalEffects.reverseDo { |x| x.play(group, outBus, dryBus, globalEffectBus, reverbBus, tapeBus, gateBus) };
+			globalEffects.reverseDo { |x| x.play(group, outBus, dryBus, globalEffectBus, delayBus, reverbBus, leslieBus, tapeBus, gateBus) };
 		})
 	}
 
@@ -518,7 +520,9 @@ DirtOrbit {
 			~dirt = dirt;
 			~out = synthBus;
 			~dryBus = dryBus;
+			~delayBus = delayBus;
 			~reverbBus = reverbBus;
+			~leslieBus = leslieBus;
 			~tapeBus= tapeBus;
 			~gateBus = gateBus;
 			~effectBus = globalEffectBus;
@@ -587,10 +591,10 @@ GlobalDirtEffect {
 		^super.newCopyArgs(name, paramNames, numChannels, ())
 	}
 
-	play { |group, outBus, dryBus, effectBus, reverbBus, tapeBus, gateBus|
+	play { |group, outBus, dryBus, effectBus, delayBus, reverbBus, leslieBus, tapeBus, gateBus|
 		this.release;
 		synth = Synth.after(group, name.asString ++ numChannels,
-			[\outBus, outBus, \dryBus, dryBus, \effectBus, effectBus, \reverbBus, reverbBus, \tapeBus, tapeBus, \gateBus, gateBus] ++ state.asPairs
+			[\outBus, outBus, \dryBus, dryBus, \effectBus, effectBus, \delayBus, delayBus, \reverbBus, reverbBus, \leslieBus, leslieBus, \tapeBus, tapeBus, \gateBus, gateBus] ++ state.asPairs
 		)
 	}
 
