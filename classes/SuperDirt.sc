@@ -353,7 +353,7 @@ Via the defaultParentEvent, you can also set parameters (use the set message):
 DirtOrbit {
 
 	var <dirt, <server, <outBus;
-	var <synthBus, <globalEffectBus, <dryBus, <tapeBus, <gateBus;
+	var <synthBus, <globalEffectBus, <dryBus, <tapeBus, <gateBus, <reverbBus;
 	var <group, <globalEffects, <cutGroups;
 	var <>minSustain;
 
@@ -373,6 +373,7 @@ DirtOrbit {
 		cutGroups = IdentityDictionary.new;
 		synthBus = Bus.audio(server, dirt.numChannels);
 		dryBus = Bus.audio(server, dirt.numChannels);
+		reverbBus = Bus.audio(server, dirt.numChannels);
 		tapeBus = Bus.audio(server, dirt.numChannels);
 		gateBus = Bus.audio(server, dirt.numChannels);
 		globalEffectBus = Bus.audio(server, dirt.numChannels);
@@ -412,7 +413,7 @@ DirtOrbit {
 	initNodeTree {
 		server.makeBundle(nil, { // make sure they are in order
 			server.sendMsg("/g_new", group, 0, 1); // make sure group exists
-			globalEffects.reverseDo { |x| x.play(group, outBus, dryBus, globalEffectBus, tapeBus, gateBus) };
+			globalEffects.reverseDo { |x| x.play(group, outBus, dryBus, globalEffectBus, reverbBus, tapeBus, gateBus) };
 		})
 	}
 
@@ -505,7 +506,7 @@ DirtOrbit {
 			~lag = 0.0;
 			~length = 1.0;
 			~loop = 1.0;
-			~dry = 0.0;
+			~dry = 1.0;
 			~lock = 0; // if set to 1, syncs delay times with cps
 
 			~amp = 0.4;
@@ -517,6 +518,7 @@ DirtOrbit {
 			~dirt = dirt;
 			~out = synthBus;
 			~dryBus = dryBus;
+			~reverbBus = reverbBus;
 			~tapeBus= tapeBus;
 			~gateBus = gateBus;
 			~effectBus = globalEffectBus;
@@ -585,10 +587,10 @@ GlobalDirtEffect {
 		^super.newCopyArgs(name, paramNames, numChannels, ())
 	}
 
-	play { |group, outBus, dryBus, effectBus, tapeBus, gateBus|
+	play { |group, outBus, dryBus, effectBus, reverbBus, tapeBus, gateBus|
 		this.release;
 		synth = Synth.after(group, name.asString ++ numChannels,
-			[\outBus, outBus, \dryBus, dryBus, \effectBus, effectBus, \tapeBus, tapeBus, \gateBus, gateBus] ++ state.asPairs
+			[\outBus, outBus, \dryBus, dryBus, \effectBus, effectBus, \reverbBus, reverbBus, \tapeBus, tapeBus, \gateBus, gateBus] ++ state.asPairs
 		)
 	}
 

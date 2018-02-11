@@ -125,6 +125,8 @@ DirtEvent {
 		~note = ~note ? ~n;
 		~freq = ~freq.value;
 		~delayAmp = ~delay ? 0.0; // for clarity
+		~dry = ~dry ? 1.0;
+		~size = ~size ? -1.0;
 		~tapec = ~tapec ? -1.0;
 		~tapefb = ~tapefb ? -1.0;
 		~gateverbr = ~gateverbr ? -1.0;
@@ -159,6 +161,9 @@ DirtEvent {
 			*[
 				in: orbit.synthBus.index, // read from synth bus, which is reused
 				out: orbit.dryBus.index, // write to orbital dry bus
+				dry: ~dry,
+				reverbBus: orbit.reverbBus.index,
+				room: ~room,
 				tapeBus: orbit.tapeBus.index, // write to orbital send bus
 				tape: ~tape, // send amount
 				gateBus: orbit.gateBus.index,

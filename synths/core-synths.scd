@@ -61,14 +61,16 @@ live coding them requires that you have your SuperDirt instance in an environmen
 	// the monitor does the mixing and zeroing of the busses for each sample grain
 	// so that they can all play in one bus
 
-	SynthDef("dirt_gate" ++ numChannels, { |out, in, sustain = 1, fadeInTime = 0.001, fadeTime = 0.001, amp = 1,tapeBus,tape, gateBus, gateverb|
+	SynthDef("dirt_gate" ++ numChannels, { |out, in, sustain = 1, fadeInTime = 0.001, fadeTime = 0.001, amp = 1,
+		   dry, room, reverbBus, tapeBus,tape, gateBus, gateverb|
 		var signal = In.ar(in, numChannels);
 		 //  doneAction: 14: free surrounding group and all nodes
 		var env = EnvGen.ar(Env([0, 1, 1, 0], [fadeInTime, sustain, fadeTime], \sin), levelScale: amp, doneAction: 14);
 		signal = signal * env * DirtGateCutGroup.ar(fadeTime, doneAction: 14);
-		OffsetOut.ar(out, signal);
+		OffsetOut.ar(out, signal*dry);
 		OffsetOut.ar(tapeBus, signal*tape);
-		OffsetOut.ar(gateBus, signal * gateverb);
+		OffsetOut.ar(gateBus, signal*gateverb);
+		OffsetOut.ar(reverbBus, signal*room);
 		ReplaceOut.ar(in, Silent.ar(numChannels)) // clears bus signal for subsequent synths
 	}, [\ir, \ir, \ir, \ir, \ir, \ir]).add;
 
@@ -240,16 +242,14 @@ live coding them requires that you have your SuperDirt instance in an environmen
 	// thanks to Jost Muxfeld and James McCartney
 	// note that "size" is not room size, just a depth metaphor
 
-	SynthDef("dirt_reverb" ++ numChannels, { |dryBus, effectBus, gate = 1, room = 0, size = 0.1, dry = 0|
+	SynthDef("dirt_reverb" ++ numChannels, { |dryBus, effectBus, reverbBus, gate = 1, room = 0, size = 0.1|
 		var in, snd, loop, depth;
 
-		in = In.ar(dryBus, numChannels).asArray.sum;
-
-		in = in * room.lag(LFNoise1.kr(1).range(0.01, 0.02)); // regulate input
+		in = In.ar(reverbBus, numChannels).asArray.sum;
 
 		4.do { in = AllpassN.ar(in, 0.03, { Rand(0.005, 0.02) }.dup(numChannels), 1) };
 
-		depth = size.lag(0.02).linexp(0, 1, 0.01, 0.98); // change depth between 0.1 and 0.98
+		depth = Gate.kr(size,size+1e-4).lag(0.02).linexp(0, 1, 0.01, 0.98); // change depth between 0.1 and 0.98
 		loop = LocalIn.ar(numChannels) * { depth + Rand(0, 0.05) }.dup(numChannels);
 		loop = OnePole.ar(loop, 0.5);  // 0-1
 
@@ -264,7 +264,6 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		LocalOut.ar(loop);
 
 		snd = loop;
-		snd = snd * (1 - dry).lag(LFNoise1.kr(1).range(0.01, 0.02));
 
 		DirtPause.ar(snd, graceTime:4);
 
