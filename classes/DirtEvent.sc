@@ -126,14 +126,6 @@ DirtEvent {
 		~freq = ~freq.value;
 		~delayAmp = ~delay ? 0.0; // for clarity
 		~dry = ~dry ? 1.0;
-		~delaytime = ~delaytime ? -1.0;
-		~delayfeedback = ~delayfeedback ? -1.0;
-		~size = ~size ? -1.0;
-		~tapec = ~tapec ? -1.0;
-		~tapefb = ~tapefb ? -1.0;
-		~lrate = ~lrate ? -1.0;
-		~lsize = ~lsize ? -1.0;
-		~gateverbr = ~gateverbr ? -1.0;
 		~latency = ~latency + ~lag.value + (~offset.value * ~speed.value);
 	}
 
