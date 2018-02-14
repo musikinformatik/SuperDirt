@@ -103,8 +103,8 @@ SuperDirt {
 	}
 
 	makeOrbits { |outBusses|
-		var new;
-		new = outBusses.asArray.collect(DirtOrbit(this, _));
+		var new, i0 = if(orbits.isNil) { 0 } { orbits.lastIndex };
+		new = outBusses.asArray.collect { |bus, i| DirtOrbit(this, bus, i + i0) };
 		orbits = orbits ++ new;
 		^new.unbubble
 	}
@@ -352,7 +352,8 @@ Via the defaultParentEvent, you can also set parameters (use the set message):
 
 DirtOrbit {
 
-	var <dirt, <server, <outBus;
+	var <dirt,  <outBus, <orbitIndex;
+	var <server;
 	var <synthBus, <globalEffectBus, <dryBus;
 	var <group, <globalEffects, <cutGroups;
 	var <>minSustain;
@@ -360,11 +361,12 @@ DirtOrbit {
 
 	var <>defaultParentEvent;
 
-	*new { |dirt, outBus|
-		^super.newCopyArgs(dirt, dirt.server, outBus).init
+	*new { |dirt, outBus, orbitIndex = 0|
+		^super.newCopyArgs(dirt, outBus, orbitIndex).init
 	}
 
 	init {
+		server = dirt.server;
 		if(server.serverRunning.not) {
 			Error("SuperColldier server '%' not running. Couldn't start DirtOrbit".format(server.name)).warn;
 			^this
@@ -388,7 +390,8 @@ DirtOrbit {
 			GlobalDirtEffect(\dirt_delay, [\delaytime, \delayfeedback, \delayAmp, \lock, \cps]),
 			GlobalDirtEffect(\dirt_reverb, [\size, \room, \dry]),
 			GlobalDirtEffect(\dirt_leslie, [\leslie, \lrate, \lsize]),
-			GlobalDirtEffect(\dirt_monitor, [\dirtOut])
+			GlobalDirtEffect(\dirt_monitor, [\dirtOut]),
+			GlobalDirtEffect(\dirt_rms, [\dirtOut])
 		]
 	}
 
@@ -408,7 +411,7 @@ DirtOrbit {
 	initNodeTree {
 		server.makeBundle(nil, { // make sure they are in order
 			server.sendMsg("/g_new", group, 0, 1); // make sure group exists
-			globalEffects.reverseDo { |x| x.play(group, outBus, dryBus, globalEffectBus) };
+			globalEffects.reverseDo { |x| x.play(group, outBus, dryBus, globalEffectBus, orbitIndex) };
 		})
 	}
 
@@ -579,10 +582,10 @@ GlobalDirtEffect {
 		^super.newCopyArgs(name, paramNames, numChannels, ())
 	}
 
-	play { |group, outBus, dryBus, effectBus|
+	play { |group, outBus, dryBus, effectBus, orbitIndex|
 		this.release;
 		synth = Synth.after(group, name.asString ++ numChannels,
-			[\outBus, outBus, \dryBus, dryBus, \effectBus, effectBus] ++ state.asPairs
+			[\outBus, outBus, \dryBus, dryBus, \effectBus, effectBus, \orbitIndex, orbitIndex] ++ state.asPairs
 		)
 	}
 

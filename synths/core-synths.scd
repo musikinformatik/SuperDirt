@@ -235,6 +235,15 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		Out.ar(outBus, signal)
 	}, [\ir, \ir, \kr, \kr]).add;
 
+
+	// RMS measurement, sending back to editor
+
+	SynthDef("dirt_rms" ++ numChannels, { |outBus, orbitIndex, replyRate = 8, peakLag = 3|
+		var signal = In.ar(outBus, numChannels);
+		SendPeakRMS.kr(signal, replyRate: replyRate, peakLag: peakLag, cmdName:"/rms", replyID: orbitIndex)
+	}, [\ir]).add;
+
+
 	// thanks to Jost Muxfeld and James McCartney
 	// note that "size" is not room size, just a depth metaphor
 
