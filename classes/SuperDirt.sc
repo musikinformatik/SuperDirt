@@ -391,7 +391,7 @@ DirtOrbit {
 			GlobalDirtEffect(\dirt_reverb, [\size, \room, \dry]),
 			GlobalDirtEffect(\dirt_leslie, [\leslie, \lrate, \lsize]),
 			GlobalDirtEffect(\dirt_monitor, [\dirtOut]),
-			GlobalDirtEffect(\dirt_rms, [\dirtOut])
+			GlobalDirtEffect(\dirt_rms, [\dirtOut, \rmsReplyRate, \rmsPeakLag])
 		]
 	}
 
@@ -523,6 +523,11 @@ DirtOrbit {
 			~notFound = {
 				"no synth or sample named '%' could be found.".format(~s).postln;
 			};
+
+			// analysis
+
+			~rmsPeakLag = 0;
+			~rmsReplyRate = 0;
 
 		}
 	}

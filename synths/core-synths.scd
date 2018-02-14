@@ -238,9 +238,9 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 	// RMS measurement, sending back to editor
 
-	SynthDef("dirt_rms" ++ numChannels, { |outBus, orbitIndex, replyRate = 8, peakLag = 3|
+	SynthDef("dirt_rms" ++ numChannels, { |outBus, orbitIndex, rmsReplyRate, rmsPeakLag|
 		var signal = In.ar(outBus, numChannels);
-		SendPeakRMS.kr(signal, replyRate: replyRate, peakLag: peakLag, cmdName:"/rms", replyID: orbitIndex)
+		SendPeakRMS.kr(signal, replyRate: rmsReplyRate, peakLag: rmsPeakLag, cmdName:"/rms", replyID: orbitIndex)
 	}, [\ir]).add;
 
 
