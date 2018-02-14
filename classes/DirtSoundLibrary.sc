@@ -78,6 +78,7 @@ DirtSoundLibrary {
 						sustain: ~sustain.value,
 						hasGate: ~hasGate ? true,
 						midicmd: ~midicmd ? \noteOn,
+						control: ~control ? 0,
 						ctlNum: ~ctlNum ? 0, // this one is missing from the default values
 						chan: ~midichan.postln ? 0
 					).play
