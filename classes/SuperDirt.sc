@@ -118,6 +118,16 @@ SuperDirt {
 		this.stop;
 	}
 
+	/* analysis */
+
+	startSendRMS { |rmsReplyRate = 8, rmsPeakLag = 3|
+		orbits.do(_.startSendRMS(rmsReplyRate, rmsPeakLag))
+	}
+
+	stopSendRMS {
+		orbits.do(_.stopSendRMS)
+	}
+
 	/* sound library */
 
 	soundLibrary_ { |argSoundLibrary|
@@ -390,8 +400,8 @@ DirtOrbit {
 			GlobalDirtEffect(\dirt_delay, [\delaytime, \delayfeedback, \delayAmp, \lock, \cps]),
 			GlobalDirtEffect(\dirt_reverb, [\size, \room, \dry]),
 			GlobalDirtEffect(\dirt_leslie, [\leslie, \lrate, \lsize]),
+			GlobalDirtEffect(\dirt_rms, [\dirtOut, \rmsReplyRate, \rmsPeakLag]),
 			GlobalDirtEffect(\dirt_monitor, [\dirtOut]),
-			GlobalDirtEffect(\dirt_rms, [\dirtOut, \rmsReplyRate, \rmsPeakLag])
 		]
 	}
 
@@ -438,6 +448,11 @@ DirtOrbit {
 		^defaultParentEvent.at(key)
 	}
 
+	setGlobalEffects { |...pairs|
+		var event = ().putPairs(pairs);
+		globalEffects.do { |x| x.set(event) };
+	}
+
 	amp_ { |val|
 		this.set(\amp, val)
 	}
@@ -459,6 +474,14 @@ DirtOrbit {
 			server.sendMsg("/n_free", group);
 			this.initNodeTree
 		}
+	}
+
+	startSendRMS { |rmsReplyRate = 8, rmsPeakLag = 3|
+		this.setGlobalEffects(\rmsReplyRate, rmsReplyRate, \rmsPeakLag, rmsPeakLag)
+	}
+
+	stopSendRMS {
+		this.setGlobalEffects(\rmsReplyRate, 0, \rmsPeakLag, 0)
 	}
 
 	free {
