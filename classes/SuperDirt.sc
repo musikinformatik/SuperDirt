@@ -547,11 +547,6 @@ DirtOrbit {
 				"no synth or sample named '%' could be found.".format(~s).postln;
 			};
 
-			// analysis
-
-			~rmsPeakLag = 0;
-			~rmsReplyRate = 0;
-
 		}
 	}
 
