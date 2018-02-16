@@ -477,11 +477,13 @@ DirtOrbit {
 	}
 
 	startSendRMS { |rmsReplyRate = 8, rmsPeakLag = 3|
-		this.setGlobalEffects(\rmsReplyRate, rmsReplyRate, \rmsPeakLag, rmsPeakLag)
+		this.setGlobalEffects(\rmsReplyRate, rmsReplyRate, \rmsPeakLag, rmsPeakLag);
+		this.initNodeTree; // for now, we need this. check later why.
 	}
 
 	stopSendRMS {
-		this.setGlobalEffects(\rmsReplyRate, 0, \rmsPeakLag, 0)
+		this.setGlobalEffects(\rmsReplyRate, 0, \rmsPeakLag, 0);
+		this.initNodeTree;
 	}
 
 	free {
