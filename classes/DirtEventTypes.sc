@@ -34,6 +34,17 @@ DirtEventTypes {
 
 			var freqs, lag, sustain, strum;
 			var args, midiout, hasGate, midicmd, latency;
+			midicmd = ~midicmd;
+
+			if(midicmd.isNil) {
+				if(~ccn.notNil) { midicmd = \control; ~ctlNum = ~ccn };
+				if(~ccv.notNil) { midicmd = \control; ~control = ~ccv };
+				if(~progNum.notNil) { midicmd = \program };
+				if(~polyTouch.notNil) { midicmd = \polyTouch };
+				if(~midibend.notNil) { midicmd = \bend; ~val = ~midibend; };
+				if(~miditouch.notNil) { midicmd = \touch; ~val = ~miditouch; };
+				if(midicmd.isNil) { midicmd = \noteOn }; // if still nil
+			};
 
 			freqs = ~freq.value;
 
@@ -45,7 +56,7 @@ DirtEventTypes {
 			midiout = ~midiout.value;
 			~uid ?? { ~uid = midiout.uid };  // mainly for sysex cmd
 			hasGate = ~hasGate ? true; // TODO
-			midicmd = ~midicmd ? \noteOn;
+
 			~ctlNum = ~ctlNum ? 0;
 
 			args = ~midiEventFunctions[midicmd].valueEnvir.asCollection;
