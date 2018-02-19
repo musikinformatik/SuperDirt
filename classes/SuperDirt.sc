@@ -296,7 +296,7 @@ Via the defaultParentEvent, you can also set parameters (use the set message):
 DirtOrbit {
 
 	var <dirt, <server, <outBus;
-	var <synthBus, <globalEffectBus, <dryBus;
+	var <synthBus, <globalEffectBus, <dryBus, <delayBus, <leslieBus, <tapeBus, <gateBus, <reverbBus;
 	var <group, <globalEffects, <cutGroups;
 	var <>minSustain;
 
@@ -316,6 +316,11 @@ DirtOrbit {
 		cutGroups = IdentityDictionary.new;
 		synthBus = Bus.audio(server, dirt.numChannels);
 		dryBus = Bus.audio(server, dirt.numChannels);
+		delayBus = Bus.audio(server, dirt.numChannels);
+		reverbBus = Bus.audio(server, dirt.numChannels);
+		leslieBus = Bus.audio(server, dirt.numChannels);
+		tapeBus = Bus.audio(server, dirt.numChannels);
+		gateBus = Bus.audio(server, dirt.numChannels);
 		globalEffectBus = Bus.audio(server, dirt.numChannels);
 		minSustain = 8 / server.sampleRate;
 		this.initDefaultGlobalEffects;
@@ -328,9 +333,11 @@ DirtOrbit {
 
 	initDefaultGlobalEffects {
 		this.globalEffects = [
-			GlobalDirtEffect(\dirt_delay, [\delaytime, \delayfeedback, \delayAmp, \lock, \cps]),
-			GlobalDirtEffect(\dirt_reverb, [\size, \room, \dry]),
-			GlobalDirtEffect(\dirt_leslie, [\leslie, \lrate, \lsize]),
+			GlobalDirtEffect(\dirt_delay, [\delaytime, \delayfeedback, \lock, \cps]),
+			GlobalDirtEffect(\dirt_tape, [\taped, \tapefb, \tapec]),
+			GlobalDirtEffect(\dirt_reverb, [\size]),
+			GlobalDirtEffect(\dirt_leslie, [\lrate, \lsize]),
+			GlobalDirtEffect(\dirt_gateverb, [\gateverbd, \gateverbg, \gateverbr]),
 			GlobalDirtEffect(\dirt_monitor, [\dirtOut])
 		]
 	}
@@ -351,7 +358,7 @@ DirtOrbit {
 	initNodeTree {
 		server.makeBundle(nil, { // make sure they are in order
 			server.sendMsg("/g_new", group, 0, 1); // make sure group exists
-			globalEffects.reverseDo { |x| x.play(group, outBus, dryBus, globalEffectBus) };
+			globalEffects.reverseDo { |x| x.play(group, outBus, dryBus, globalEffectBus, delayBus, reverbBus, leslieBus, tapeBus, gateBus) };
 		})
 	}
 
@@ -444,7 +451,7 @@ DirtOrbit {
 			~lag = 0.0;
 			~length = 1.0;
 			~loop = 1.0;
-			~dry = 0.0;
+			~dry = 1.0;
 			~lock = 0; // if set to 1, syncs delay times with cps
 
 			~amp = 0.4;
@@ -456,6 +463,11 @@ DirtOrbit {
 			~dirt = dirt;
 			~out = synthBus;
 			~dryBus = dryBus;
+			~delayBus = delayBus;
+			~reverbBus = reverbBus;
+			~leslieBus = leslieBus;
+			~tapeBus= tapeBus;
+			~gateBus = gateBus;
 			~effectBus = globalEffectBus;
 			~numChannels = dirt.numChannels;
 			~server = server;
@@ -522,10 +534,10 @@ GlobalDirtEffect {
 		^super.newCopyArgs(name, paramNames, numChannels, ())
 	}
 
-	play { |group, outBus, dryBus, effectBus|
+	play { |group, outBus, dryBus, effectBus, delayBus, reverbBus, leslieBus, tapeBus, gateBus|
 		this.release;
 		synth = Synth.after(group, name.asString ++ numChannels,
-			[\outBus, outBus, \dryBus, dryBus, \effectBus, effectBus] ++ state.asPairs
+			[\outBus, outBus, \dryBus, dryBus, \effectBus, effectBus, \delayBus, delayBus, \reverbBus, reverbBus, \leslieBus, leslieBus, \tapeBus, tapeBus, \gateBus, gateBus] ++ state.asPairs
 		)
 	}
 
@@ -544,10 +556,12 @@ GlobalDirtEffect {
 		var argsChanged, someArgsNotNil = false;
 		paramNames.do { |key|
 			var value = event[key];
-			value !? { someArgsNotNil = true };
-			if(state[key] != value) {
-				argsChanged = argsChanged.add(key).add(value);
-				state[key] = value;
+			if (value != nil) {
+				someArgsNotNil = true;
+				if(state[key] != value) {
+					argsChanged = argsChanged.add(key).add(value);
+					state[key] = value;
+				}
 			}
 		};
 		if(someArgsNotNil) { synth.run };

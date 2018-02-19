@@ -61,12 +61,18 @@ live coding them requires that you have your SuperDirt instance in an environmen
 	// the monitor does the mixing and zeroing of the busses for each sample grain
 	// so that they can all play in one bus
 
-	SynthDef("dirt_gate" ++ numChannels, { |out, in, sustain = 1, fadeInTime = 0.001, fadeTime = 0.001, amp = 1|
+	SynthDef("dirt_gate" ++ numChannels, { |out, in, sustain = 1, fadeInTime = 0.001, fadeTime = 0.001, amp = 1,
+		   dry, delay, delayBus, room, reverbBus, tapeBus,tape, gateBus, gateverb, leslieBus, leslie|
 		var signal = In.ar(in, numChannels);
 		 //  doneAction: 14: free surrounding group and all nodes
 		var env = EnvGen.ar(Env([0, 1, 1, 0], [fadeInTime, sustain, fadeTime], \sin), levelScale: amp, doneAction: 14);
 		signal = signal * env * DirtGateCutGroup.ar(fadeTime, doneAction: 14);
-		OffsetOut.ar(out, signal);
+		OffsetOut.ar(out, signal*dry);
+		OffsetOut.ar(delayBus, signal*delay);
+		OffsetOut.ar(leslieBus, signal*leslie);
+		OffsetOut.ar(tapeBus, signal*tape);
+		OffsetOut.ar(gateBus, signal*gateverb);
+		OffsetOut.ar(reverbBus, signal*room);
 		ReplaceOut.ar(in, Silent.ar(numChannels)) // clears bus signal for subsequent synths
 	}, [\ir, \ir, \ir, \ir, \ir, \ir]).add;
 
@@ -168,12 +174,11 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 	if(\SwitchDelay.asClass.notNil) {
 
-		SynthDef("dirt_delay" ++ numChannels, { |dryBus, effectBus, gate = 1, delaytime, delayfeedback, delayAmp = 1, lock = 0, cps = 1|
+		SynthDef("dirt_delay" ++ numChannels, { |dryBus, effectBus, delayBus, gate = 1, delaytime=0.1, delayfeedback=0, lock = 0, cps = 1|
 			var signal;
-			var input = In.ar(dryBus, numChannels);
+			var input = In.ar(delayBus, numChannels);
 			var maxDelayTime = 4;
 
-			delayfeedback = delayfeedback.max(0);
 			delaytime = delaytime * if(lock, reciprocal(cps), 1);
 			delaytime = delaytime.clip(0, maxDelayTime); // just to be sure
 			// from sc3-plugins
@@ -184,7 +189,6 @@ live coding them requires that you have your SuperDirt instance in an environmen
 			// this would have to be an explicit signal from sclang
 
 			signal = signal * EnvGen.kr(Env.asr, gate, doneAction:2);
-			signal = signal * delayAmp.lag(0.01);
 
 			DirtPause.ar(signal, graceTime:4);
 
@@ -195,8 +199,8 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		"\n\n ---- SC3-Plugins not found. This is not a problem."
 		"Note that we are using a comb delay, which may not sound the same as SwitchDelay from the plugins".postln;
 
-		SynthDef("dirt_delay" ++ numChannels, { |dryBus, effectBus, gate = 1, delaytime, delayfeedback, delayAmp = 1, lock = 0, cps = 1|
-			var signal = In.ar(dryBus, numChannels);
+		SynthDef("dirt_delay" ++ numChannels, { |dryBus, effectBus, delayBus, gate = 1, delaytime=0.1, delayfeedback=0, lock = 0, cps = 1|
+			var signal = In.ar(delayBus, numChannels);
 			var maxDelayTime = 4;
 			var decayTime;
 
@@ -208,7 +212,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 			signal = CombL.ar(signal, maxDelayTime, delaytime.lag(1), decayTime);
 
-			signal = LeakDC.ar(signal) * delayAmp.lag(0.01) * EnvGen.kr(Env.asr, gate, doneAction:2);
+			signal = LeakDC.ar(signal) * EnvGen.kr(Env.asr, gate, doneAction:2);
 
 			DirtPause.ar(signal, graceTime:4);
 
@@ -238,12 +242,10 @@ live coding them requires that you have your SuperDirt instance in an environmen
 	// thanks to Jost Muxfeld and James McCartney
 	// note that "size" is not room size, just a depth metaphor
 
-	SynthDef("dirt_reverb" ++ numChannels, { |dryBus, effectBus, gate = 1, room = 0, size = 0.1, dry = 0|
+	SynthDef("dirt_reverb" ++ numChannels, { |dryBus, effectBus, reverbBus, gate = 1, room = 0, size = 0.1|
 		var in, snd, loop, depth;
 
-		in = In.ar(dryBus, numChannels).asArray.sum;
-
-		in = in * room.lag(LFNoise1.kr(1).range(0.01, 0.02)); // regulate input
+		in = In.ar(reverbBus, numChannels).asArray.sum;
 
 		4.do { in = AllpassN.ar(in, 0.03, { Rand(0.005, 0.02) }.dup(numChannels), 1) };
 
@@ -262,7 +264,6 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		LocalOut.ar(loop);
 
 		snd = loop;
-		snd = snd * (1 - dry).lag(LFNoise1.kr(1).range(0.01, 0.02));
 
 		DirtPause.ar(snd, graceTime:4);
 
@@ -277,11 +278,10 @@ live coding them requires that you have your SuperDirt instance in an environmen
 	// "lrate" is the modulation rate (typical vintage rates would be 6.7 for "fast", 0.7 for "slow")
 	// "lsize" is the physical size of the cabinet in meters, this mostly affects the Doppler amount (pitch warble)
 
-	SynthDef("dirt_leslie" ++ numChannels, { |dryBus, effectBus, gate = 1, leslie=0.5, lrate=6.7, lsize=0.3|
+	SynthDef("dirt_leslie" ++ numChannels, { |dryBus, effectBus, leslieBus, gate = 1, lrate=6.7, lsize=0.3|
 		var in, distance, throb, sound1, sound2, bal1, bal2, snd;
 
-		in = In.ar(dryBus, numChannels);
-		ReplaceOut.ar(dryBus, in*(1-leslie));
+		in = In.ar(leslieBus, numChannels);
 		if(numChannels > 2) { in = in.clump(2).sum };
 		distance = SinOsc.ar(Lag.kr(lrate,10), 0).range(0, lsize);
 		throb = SinOsc.ar(Lag.kr(lrate*0.8, 20), 0).range(0,lsize*1.3);
@@ -289,10 +289,10 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		bal2 = SinOsc.kr(Lag.kr(lrate,2), pi/2).range(-0.4, 0.4);
 		sound2 = HPF.ar(in, 800);
 		sound1 = in - sound2;
-		sound1 = leslie * (1.0 - throb) * sound1;
+		sound1 = (1.0 - throb) * sound1;
 		sound1 = Balance2.ar(sound1[0], sound1[1], bal1);
 		sound2 = DelayC.ar(sound2, 1, distance / 343);
-		sound2 = leslie * (1.0 - distance) * sound2;
+		sound2 = (1.0 - distance) * sound2;
 		sound2 = Balance2.ar(sound2[0], sound2[1], bal2);
 
 		snd = 1.2 * (sound1 + sound2);
@@ -314,6 +314,37 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 		Out.ar(effectBus, snd);
 
+	}, [\ir, \ir]).add;
+
+	SynthDef("dirt_tape" ++ numChannels, { |dryBus, tapeBus, effectBus, gate = 1, taped, tapefb, tapec|
+		var in = In.ar(tapeBus, numChannels);
+		var maxDelayTime = 8;
+		var decayTime, delay, delayfb, loop;
+
+		delayfb = tapefb.clip(0, 0.99);
+		delay = (Lag.kr(taped, 0.1) + LPF.kr(PinkNoise.kr(0.015), 1)).clip(0.001, maxDelayTime); //wow
+		loop = LocalIn.ar(numChannels);
+		loop = DelayL.ar((loop*delayfb) + in, maxDelayTime, delay*SinOsc.kr(1/delay, 0.25*pi, 0.001, 1));
+		loop = loop * WhiteNoise.ar(0.01,1); //flutter
+		loop = MantissaMask.ar(loop, 2);
+		loop = CompanderD.ar(loop, 0.3, 1, (1-tapec).clip(0,1), 0.005, 0.005); //compression, but could be better
+		loop = LPF.ar(tanh(loop)*1.2, (2700+SinOsc.kr(0.1,mul:20)-(1000*tapec)).clip(20,10000)); //distortion and hi cutoff
+		loop = HPF.ar(loop, 20);
+		LocalOut.ar(LeakDC.ar(loop));
+		DirtPause.ar(in+loop, graceTime:8);
+		loop = loop * EnvGen.kr(Env.asr, gate, doneAction:2);
+		Out.ar(effectBus, loop);
+	}, [\ir, \ir]).add;
+
+	SynthDef("dirt_gateverb" ++ numChannels, { |gateBus, effectBus, gate=1, gateverbg=0.3, gateverbd=1, gateverbr=1|
+		var in = In.ar(gateBus, numChannels);
+		var snd;
+
+		snd = CheapVerb.ar(in, decayTime:gateverbd, numDelays:6);
+		snd = Compander.ar(snd, in, 0.1, 10, 1, clampTime:0.005, relaxTime:gateverbg);
+		DirtPause.ar(in+snd, graceTime:4);
+		snd = snd * EnvGen.kr(Env.asr, gate, doneAction:2);
+		Out.ar(effectBus, snd*gateverbr);
 	}, [\ir, \ir]).add;
 
 	// Tremolo audio DSP effect definition. Params: tremolorate (Hz); tremolodepth (amplitude)
