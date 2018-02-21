@@ -120,7 +120,7 @@ SuperDirt {
 
 	/* analysis */
 
-	startSendRMS { |rmsReplyRate = 8, rmsPeakLag = 3|
+	startSendRMS { |rmsReplyRate = 20, rmsPeakLag = 3|
 		orbits.do(_.startSendRMS(rmsReplyRate, rmsPeakLag))
 	}
 
