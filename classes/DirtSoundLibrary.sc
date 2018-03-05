@@ -248,11 +248,11 @@ DirtSoundLibrary {
 	}
 
 	makeEventForBuffer { |buffer|
-		var freqDiv = 60.midicps.reciprocal;
+		var baseFreq = 60.midicps;
 		^(
 			buffer: buffer.bufnum,
 			instrument: this.instrumentForBuffer(buffer),
-			unitDuration: { buffer.duration * ~freq * freqDiv },
+			unitDuration: { buffer.duration * baseFreq / ~freq },
 			hash: buffer.identityHash
 		)
 	}
