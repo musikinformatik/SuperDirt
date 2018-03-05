@@ -26,8 +26,6 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 			var sound, rate, phase, sawrate, numFrames;
 
-			freq.poll(0);
-
 			// playback speed
 			rate = Line.kr(speed, endSpeed, sustain) * (freq / 440);
 
