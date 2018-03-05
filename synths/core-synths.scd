@@ -27,7 +27,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 			var sound, rate, phase, sawrate, numFrames;
 
 			// playback speed
-			rate = Line.kr(speed, endSpeed, sustain) * (freq / 440);
+			rate = Line.kr(speed, endSpeed, sustain) * (freq / 60.midicps);
 
 			// sample phase
 			// BufSampleRate adjusts the rate if the sound file doesn't have the same rate as the soundcard
