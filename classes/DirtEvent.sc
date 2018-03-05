@@ -65,6 +65,7 @@ DirtEvent {
 		var avgSpeed, endSpeed;
 		var useUnit;
 
+		~freq = ~freq.value;
 		unitDuration = ~unitDuration.value;
 		useUnit = unitDuration.notNil;
 
@@ -122,7 +123,6 @@ DirtEvent {
 		~amp = pow(~gain.value, 4) * ~amp.value;
 		~channel !? { ~pan = ~pan.value + (~channel.value / ~numChannels) };
 		~pan = ~pan * 2 - 1; // convert unipolar (0..1) range into bipolar one (-1...1)
-		~freq = ~freq.value;
 		~delayAmp = ~delay ? 0.0; // for clarity
 		~latency = ~latency + ~lag.value + (~offset.value * ~speed.value);
 	}
