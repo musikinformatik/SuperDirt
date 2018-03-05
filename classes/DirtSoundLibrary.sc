@@ -235,10 +235,11 @@ DirtSoundLibrary {
 		var allEvents = this.at(name);
 		^if(allEvents.isNil) {
 			if(SynthDescLib.at(name).notNil) {
-				(instrument: name, hash: name.identityHash)
+				// use tidal's "n" as note, only for synths that have no event defined
+				(instrument: name, hash: name.identityHash, note: index)
 			} {
 				if(defaultEvent.notNil) {
-					(instrument: name, hash: name.identityHash).putAll(defaultEvent)
+					(instrument: name, hash: name.identityHash, note: index).putAll(defaultEvent)
 				}
 			}
 		} {
