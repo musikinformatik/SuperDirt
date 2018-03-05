@@ -1,4 +1,4 @@
-# SuperDirt 0.9
+# SuperDirt 1.0-dev
 SuperCollider implementation of the Dirt sampler for the Tidal programming language
 
 Alex McLean and Julian Rohrhuber
@@ -23,39 +23,8 @@ Note: this also automatically installs the DirtSamples quark, which contains a l
 You can pass `port`, `outBusses`, `senderAddr` as arguments.
 
 ## Setup with options
-```
-(
-// configure the sound server: here you could add hardware specific options
-// see http://doc.sccode.org/Classes/ServerOptions.html
-s.options.numBuffers = 1024 * 16; // increase this if you need to load more samples
-s.options.memSize = 8192 * 16; // increase this if you get "alloc failed" messages
-s.options.maxNodes = 1024 * 32; // increase this if you are getting drop outs and the message "too many nodes"
-s.options.numOutputBusChannels = 2; // set this to your hardware output channel size, if necessary
-s.options.numInputBusChannels = 2; // set this to your hardware input channel size, if necessary
-// boot the server and start SuperDirt
-s.waitForBoot {
-	~dirt = SuperDirt(2, s); // two output channels, increase if you want to pan across more channels
-	~dirt.loadSoundFiles;   // load samples (path containing a wildcard can be passed in)
-	// for example: ~dirt.loadSoundFiles("/Users/myUserName/Dirt/samples/*");
-	s.sync; // wait for samples to be read
-	~dirt.start(57120, [0, 0]);   // start listening on port 57120, create two orbits, each sending audio to channel 0. You can direct sounds to the orbits from tidal e.g. by: `# orbit "0 1 1"
-}
-)
-// now you should be able to send from tidal via port 57120
-```
+For an example startup file, see the file `superdirt_startup.scd`. you can `load(<path>)` this from the SuperCollider startup file.
 
-## Setup from Tidal
-```
-(cps, getNow) <- bpsUtils
-(d1, t1) <- superDirtSetters getNow
-(d2, t2) <- superDirtSetters getNow
-```
-Now you can run a pattern, e.g.
-```
-d1 $ sound "[bd bd bd, sn cp sn cp]"
-
-d2 $ sound "[sn*2 imp bd*3]" |+| speed "1"
-```
 
 ## Automatic startup
 If you want SuperDirt to start automatically, you can load it from the startup file. To do this, open the sc startup file (```File>Open startup file```) and add: ```load("... path to your tidal startup file ...")```. This path you can get by dropping the file onto the text editor.
