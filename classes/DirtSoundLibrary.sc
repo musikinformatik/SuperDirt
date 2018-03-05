@@ -80,7 +80,7 @@ DirtSoundLibrary {
 						midicmd: ~midicmd ? \noteOn,
 						control: ~control ? 0,
 						ctlNum: ~ctlNum ? 0, // this one is missing from the default values
-						chan: ~midichan.postln ? 0
+						chan: ~midichan ? 0
 					).play
 				}
 			).proto_(event.copy)
