@@ -63,6 +63,8 @@ CORE SYNTHDEFS FOR DIRT
 
 	Each must have at least: dryBus, effectBus, gate
 
+	dryBus and effectBus have \ir as rates (they shouldn't change at runtime)
+
 	*/
 
 
@@ -70,10 +72,12 @@ CORE SYNTHDEFS FOR DIRT
 
 	if(\SwitchDelay.asClass.notNil) {
 
-		SynthDef("dirt_delay" ++ numChannels, { |dryBus, effectBus, gate = 1, delaytime, delayfeedback, delayAmp = 1, lock = 0, cps = 1|
+		SynthDef("dirt_delay" ++ numChannels, { |dryBus, effectBus, gate = 1, delaytime, delayfeedback, delaySend = 1, delayAmp = 1, lock = 0, cps = 1|
 			var signal;
 			var input = In.ar(dryBus, numChannels);
 			var maxDelayTime = 4;
+
+			input = input * delaySend.lag(LFNoise1.kr(1).range(0.01, 0.02)); // regulate input
 
 			delayfeedback = delayfeedback.max(0);
 			delaytime = delaytime * if(lock, reciprocal(cps), 1);
@@ -120,7 +124,7 @@ CORE SYNTHDEFS FOR DIRT
 
 
 	// thanks to Jost Muxfeld and James McCartney
-	// note that "size" is not room size, just a depth metaphor
+	// note that "size" is not room size, just the feed level into the room
 
 	SynthDef("dirt_reverb" ++ numChannels, { |dryBus, effectBus, gate = 1, room = 0, size = 0.1, dry = 0|
 		var in, snd, loop, depth;
@@ -165,7 +169,8 @@ CORE SYNTHDEFS FOR DIRT
 		var in, distance, throb, sound1, sound2, bal1, bal2, snd;
 
 		in = In.ar(dryBus, numChannels);
-		ReplaceOut.ar(dryBus, in*(1-leslie));
+		ReplaceOut.ar(dryBus, in * (1 - leslie));
+
 		if(numChannels > 2) { in = in.clump(2).sum };
 		distance = SinOsc.ar(Lag.kr(lrate,10), 0).range(0, lsize);
 		throb = SinOsc.ar(Lag.kr(lrate*0.8, 20), 0).range(0,lsize*1.3);

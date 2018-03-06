@@ -100,6 +100,7 @@ vowel
 delaytime
 delayfeedback
 delayAmp
+delaySend
 lock
 cps
 size
