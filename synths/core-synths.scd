@@ -223,7 +223,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		var signal = wetSignal + drySignal;
 		var post = if(SuperDirt.postBadValues) { 2 } { 0 };
 
-		signal = signal.collect { |x| Select.ar(CheckBadValues.ar(x, post: post) > 0, [x, DC.ar(0)]) };
+		signal = Select.ar(CheckBadValues.ar(signal, post: post) > 0, [signal, DC.ar(0)]);
 
 		signal = Limiter.ar(signal);
 
