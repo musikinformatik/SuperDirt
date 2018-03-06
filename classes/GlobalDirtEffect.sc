@@ -1,12 +1,14 @@
 
+/*
+this keeps state of running synths that have a livespan of the DirtOrbit
+sends only OSC when an update is necessary
 
-// this keeps state of running synths that have a livespan of the DirtOrbit
-// sends only OSC when an update is necessary
+"name" is the name of the SynthDef
+(for each possible number of channels appended by a number, see: core-synths)
+"paramNames" is an array of keys (symbols) which to look up as arguments
+"numChannels" is the number of synth channels (no need to specify if you use it in a DirtOrbit)
+*/
 
-// "name" is the name of the SynthDef
-// (for each possible number of channels appended by a number, see: core-synths)
-// "paramNames" is an array of keys (symbols) which to look up as arguments
-// "numChannels" is the number of synth channels (no need to specify if you use it in a DirtOrbit)
 
 
 GlobalDirtEffect {
