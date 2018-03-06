@@ -80,7 +80,7 @@ DirtSoundLibrary {
 						midicmd: ~midicmd ? \noteOn,
 						control: ~control ? 0,
 						ctlNum: ~ctlNum ? 0, // this one is missing from the default values
-						chan: ~midichan.postln ? 0
+						chan: ~midichan ? 0
 					).play
 				}
 			).proto_(event.copy)
@@ -235,10 +235,11 @@ DirtSoundLibrary {
 		var allEvents = this.at(name);
 		^if(allEvents.isNil) {
 			if(SynthDescLib.at(name).notNil) {
-				(instrument: name, hash: name.identityHash)
+				// use tidal's "n" as note, only for synths that have no event defined
+				(instrument: name, hash: name.identityHash, note: index)
 			} {
 				if(defaultEvent.notNil) {
-					(instrument: name, hash: name.identityHash).putAll(defaultEvent)
+					(instrument: name, hash: name.identityHash, note: index).putAll(defaultEvent)
 				}
 			}
 		} {
@@ -247,10 +248,11 @@ DirtSoundLibrary {
 	}
 
 	makeEventForBuffer { |buffer|
+		var baseFreq = 60.midicps;
 		^(
 			buffer: buffer.bufnum,
 			instrument: this.instrumentForBuffer(buffer),
-			unitDuration: buffer.duration,
+			unitDuration: { buffer.duration * baseFreq / ~freq },
 			hash: buffer.identityHash
 		)
 	}

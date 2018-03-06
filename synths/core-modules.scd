@@ -42,6 +42,7 @@ this may be refacored later.
 					bufnum: ~buffer,
 					sustain: ~sustain,
 					speed: ~speed,
+					freq: ~freq,
 					endSpeed: ~endSpeed,
 					begin: ~begin,
 					end: ~end,
