@@ -158,22 +158,6 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		ReplaceOut.ar(out, signal);
 	}, [\ir, \ir, \ir]).add;
 
-
-	// Tremolo audio DSP effect definition. Params: tremolorate (Hz); tremolodepth (amplitude)
-	SynthDef("tremolo" ++ numChannels, { |out, tremolorate = 1.0, tremolodepth = 0.5 |
-		var signal, tremolowave;
-
-		tremolorate = tremolorate.clip(0, 10);
-		tremolodepth = tremolodepth.clip(0, 1) * 0.5;
-
-		tremolowave = (1 - tremolodepth) + SinOsc.ar(tremolorate, 0.5pi, tremolodepth);
-
-		signal = In.ar(out, numChannels);
-		signal = signal * tremolowave;
-
-		ReplaceOut.ar(out, signal);
-	}, [\ir, \ir, \ir]).add;
-
 	// Phaser audio DSP effect definition. Params: phaserrate (Hz); phaserdepth (amplitude)
 	SynthDef("dirt_phaser" ++ numChannels, { |out, phaserrate = 1.0, phaserdepth = 0.5, sustain = 4 |
 		var signal, phaserwave;

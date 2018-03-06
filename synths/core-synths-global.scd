@@ -16,6 +16,58 @@ CORE SYNTHDEFS FOR DIRT
 {
 	var numChannels = ~dirt.numChannels;
 
+
+	/*
+
+	Routing and Analysis
+
+	*/
+
+	SynthDef("dirt_monitor" ++ numChannels, { |dryBus, effectBus, outBus, gate = 1|
+		var drySignal = In.ar(dryBus, numChannels);
+		var wetSignal = In.ar(effectBus, numChannels);
+		//var signal = XFade2.ar(wetSignal, drySignal, dry * 2 - 1);
+		var signal = wetSignal + drySignal;
+		var post = if(SuperDirt.postBadValues) { 2 } { 0 };
+
+		signal = Select.ar(CheckBadValues.ar(signal, post: post) > 0, [signal, DC.ar(0)]);
+
+		signal = Limiter.ar(signal);
+
+		// or if you like it harsher
+		//signal = tanh(signal);
+		// or:
+		//signal = distort(signal);
+
+		signal = signal * EnvGen.kr(Env.asr, gate, doneAction:2);
+		Out.ar(outBus, signal)
+	}, [\ir, \ir, \kr, \kr]).add;
+
+
+	// RMS measurement, sending back to editor
+
+	SynthDef("dirt_rms" ++ numChannels, { |gate = 1, dryBus, effectBus, rmsReplyRate, rmsPeakLag, orbitIndex|
+		var drySignal = In.ar(dryBus, numChannels);
+		var wetSignal = In.ar(effectBus, numChannels);
+		var signal = wetSignal + drySignal;
+		EnvGen.kr(Env.asr, gate, doneAction:2);
+		SendPeakRMS.kr(signal, replyRate: rmsReplyRate, peakLag: rmsPeakLag, cmdName:"/rms", replyID: orbitIndex)
+	}, [\kr, \ir, \ir, \kr, \kr, \kr]).add;
+
+
+
+
+	/*
+
+	Effect synths
+
+	Each must have at least: dryBus, effectBus, gate
+
+	*/
+
+
+
+
 	if(\SwitchDelay.asClass.notNil) {
 
 		SynthDef("dirt_delay" ++ numChannels, { |dryBus, effectBus, gate = 1, delaytime, delayfeedback, delayAmp = 1, lock = 0, cps = 1|
@@ -65,37 +117,6 @@ CORE SYNTHDEFS FOR DIRT
 			Out.ar(effectBus, signal);
 		}, [\ir, \ir]).add;
 	};
-
-	SynthDef("dirt_monitor" ++ numChannels, { |dryBus, effectBus, outBus, gate = 1|
-		var drySignal = In.ar(dryBus, numChannels);
-		var wetSignal = In.ar(effectBus, numChannels);
-		//var signal = XFade2.ar(wetSignal, drySignal, dry * 2 - 1);
-		var signal = wetSignal + drySignal;
-		var post = if(SuperDirt.postBadValues) { 2 } { 0 };
-
-		signal = Select.ar(CheckBadValues.ar(signal, post: post) > 0, [signal, DC.ar(0)]);
-
-		signal = Limiter.ar(signal);
-
-		// or if you like it harsher
-		//signal = tanh(signal);
-		// or:
-		//signal = distort(signal);
-
-		signal = signal * EnvGen.kr(Env.asr, gate, doneAction:2);
-		Out.ar(outBus, signal)
-	}, [\ir, \ir, \kr, \kr]).add;
-
-
-	// RMS measurement, sending back to editor
-
-	SynthDef("dirt_rms" ++ numChannels, { |gate = 1, dryBus, effectBus, rmsReplyRate, rmsPeakLag, orbitIndex|
-		var drySignal = In.ar(dryBus, numChannels);
-		var wetSignal = In.ar(effectBus, numChannels);
-		var signal = wetSignal + drySignal;
-		EnvGen.kr(Env.asr, gate, doneAction:2);
-		SendPeakRMS.kr(signal, replyRate: rmsReplyRate, peakLag: rmsPeakLag, cmdName:"/rms", replyID: orbitIndex)
-	}, [\kr, \ir, \ir, \kr, \kr, \kr]).add;
 
 
 	// thanks to Jost Muxfeld and James McCartney
