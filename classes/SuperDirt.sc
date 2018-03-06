@@ -19,7 +19,7 @@ SuperDirt {
 	var <port, <senderAddr, <replyAddr, netResponders;
 	var <>receiveAction, <>warnOutOfOrbit = true, <>maxLatency = 42;
 
-	classvar <>default, <>maxSampleNumChannels = 2;
+	classvar <>default, <>maxSampleNumChannels = 2, <>postBadValues = true;
 
 	*new { |numChannels = 2, server|
 		^super.newCopyArgs(numChannels, server ? Server.default).init
