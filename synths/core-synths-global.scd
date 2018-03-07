@@ -39,21 +39,25 @@ CORE SYNTHDEFS FOR DIRT
 		// or:
 		//signal = distort(signal);
 
+		DirtPause.ar(signal, graceTime:4);
+
 		signal = signal * EnvGen.kr(Env.asr, gate, doneAction:2);
 		Out.ar(outBus, signal)
 	}, [\ir, \ir, \kr, \kr]).add;
 
 
 	// RMS measurement, sending back to editor
-
 	SynthDef("dirt_rms" ++ numChannels, { |gate = 1, dryBus, effectBus, rmsReplyRate, rmsPeakLag, orbitIndex|
 		var drySignal = In.ar(dryBus, numChannels);
 		var wetSignal = In.ar(effectBus, numChannels);
 		var signal = wetSignal + drySignal;
-		EnvGen.kr(Env.asr, gate, doneAction:2);
-		SendPeakRMS.kr(signal, replyRate: rmsReplyRate, peakLag: rmsPeakLag, cmdName:"/rms", replyID: orbitIndex)
-	}, [\kr, \ir, \ir, \kr, \kr, \kr]).add;
 
+		DirtPause.ar(signal, graceTime:4);
+		EnvGen.kr(Env.asr, gate, doneAction:2);
+
+		SendPeakRMS.kr(signal, replyRate: rmsReplyRate, peakLag: rmsPeakLag, cmdName:"/rms", replyID: orbitIndex)
+
+	}, [\kr, \ir, \ir, \kr, \kr, \kr]).add;
 
 
 
@@ -66,7 +70,6 @@ CORE SYNTHDEFS FOR DIRT
 	dryBus and effectBus have \ir as rates (they shouldn't change at runtime)
 
 	*/
-
 
 
 
