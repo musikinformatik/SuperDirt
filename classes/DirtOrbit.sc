@@ -58,11 +58,13 @@ DirtOrbit {
 
 	initDefaultGlobalEffects {
 		this.globalEffects = [
+			// all global effects sleep when the input is quiet for long enough and no parameters are set.
 			GlobalDirtEffect(\dirt_delay, [\delaytime, \delayfeedback, \delaySend, \delayAmp, \lock, \cps]),
 			GlobalDirtEffect(\dirt_reverb, [\size, \room, \dry]),
 			GlobalDirtEffect(\dirt_leslie, [\leslie, \lrate, \lsize]),
-			GlobalDirtEffect(\dirt_rms, [\dirtOut, \rmsReplyRate, \rmsPeakLag]),
-			GlobalDirtEffect(\dirt_monitor, [\dirtOut]),
+			GlobalDirtEffect(\dirt_rms, [\rmsReplyRate, \rmsPeakLag]).alwaysRun_(true),
+			GlobalDirtEffect(\dirt_monitor).alwaysRun_(true),
+
 		]
 	}
 
@@ -82,7 +84,9 @@ DirtOrbit {
 	initNodeTree {
 		server.makeBundle(nil, { // make sure they are in order
 			server.sendMsg("/g_new", group, 0, 1); // make sure group exists
-			globalEffects.reverseDo { |x| x.play(group, outBus, dryBus, globalEffectBus, orbitIndex) };
+			globalEffects.reverseDo { |x|
+				x.play(group, outBus, dryBus, globalEffectBus, orbitIndex)
+			}
 		})
 	}
 

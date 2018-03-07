@@ -14,6 +14,7 @@ sends only OSC when an update is necessary
 GlobalDirtEffect {
 
 	var <>name, <>paramNames, <>numChannels, <state;
+	var <>alwaysRun = false;
 	var synth, defName;
 
 	*new { |name, paramNames, numChannels|
@@ -39,7 +40,7 @@ GlobalDirtEffect {
 	}
 
 	set { |event|
-		var argsChanged, someArgsNotNil = false;
+		var argsChanged, someArgsNotNil = alwaysRun;
 		paramNames.do { |key|
 			var value = event[key];
 			value !? { someArgsNotNil = true };
