@@ -149,6 +149,16 @@ they respond to the existence of a value for one of the tidal parameters
 
 }, { ~cutoff.notNil });
 
+~dirt.addModule('pshift',
+	{ |dirtEvent|
+		dirtEvent.sendSynth('dirt_pitch_shift' ++ ~numChannels,
+			[
+				psrate: ~psrate,
+				sustain: ~sustain,
+				out: ~out
+		])
+}, { ~psrate.notNil });
+
 ~dirt.addModule('envelope',
 	{ |dirtEvent|
 		dirtEvent.sendSynth('dirt_envelope' ++ ~dirt.numChannels,

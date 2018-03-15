@@ -146,6 +146,14 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		ReplaceOut.ar(out, signal);
 	}, [\ir, \ir, \ir, \ir]).add;
 
+	SynthDef("dirt_pitch_shift" ++ numChannels, { |out, psratio = 1, sustain = 1|
+		var signal = In.ar(out, numChannels);
+		var windowSize = sustain.linlin(0.01, 0.3, 0.01, 0.18);
+		windowSize.poll(0, "windowSize");
+		signal = PitchShift.ar(signal, windowSize:windowSize, pitchRatio:psratio, pitchDispersion:0, timeDispersion:0);
+		ReplaceOut.ar(out, signal)
+	}, [\ir, \ir, \ir]).add;
+
 	SynthDef("dirt_tremolo" ++ numChannels, { |out, tremolorate = 1.0, tremolodepth = 0.5 |
 		var signal, tremolowave;
 
