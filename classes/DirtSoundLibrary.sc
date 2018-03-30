@@ -65,7 +65,7 @@ DirtSoundLibrary {
 	}
 
 	addMIDI { |name, device, event|
-		var midiEvent = (type: \tidalmidi, midiout: device).proto_(event.copy);
+		var midiEvent = (play: { (type: \tidalmidi, midiout: device).proto_(event.copy).play });
 		this.addSynth(name, midiEvent)
 	}
 
