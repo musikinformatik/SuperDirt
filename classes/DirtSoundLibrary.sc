@@ -65,27 +65,8 @@ DirtSoundLibrary {
 	}
 
 	addMIDI { |name, device, event|
-
-		this.addSynth(name,
-			(
-				play: {
-					(
-						type: \midi,
-						midiout: device,
-						amp: ~amp,
-						lag: ~lag + ~latency, // in the midi event, lag is used as latency
-						note:  ~note ? 0,
-						sustain: ~sustain.value,
-						hasGate: ~hasGate ? true,
-						midicmd: ~midicmd ? \noteOn,
-						control: ~control ? 0,
-						ctlNum: ~ctlNum ? 0, // this one is missing from the default values
-						chan: ~midichan ? 0
-					).play
-				}
-			).proto_(event.copy)
-		);
-
+		var midiEvent = (type: \tidalmidi, midiout: device).proto_(event.copy);
+		this.addSynth(name, midiEvent)
 	}
 
 	useSynthDefSustain { |event|
