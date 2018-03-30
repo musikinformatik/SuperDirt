@@ -51,7 +51,7 @@ DirtEventTypes {
 			~amp = ~amp.value;
 			~midinote = (freqs.cpsmidi).round(1).asInteger;
 			strum = ~strum;
-			lag = ~lag + (~latency ?? { ~server.latency });
+			lag = ~lag + (~latency ? 0);
 			sustain = ~sustain = ~sustain.value;
 			midiout = ~midiout.value;
 			~uid ?? { ~uid = midiout.uid };  // mainly for sysex cmd
