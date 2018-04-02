@@ -62,7 +62,7 @@ DirtEventTypes {
 
 			args = ~midiEventFunctions[midicmd].valueEnvir.asCollection;
 
-			latency = i * strum + lag;
+			latency = lag; // for now.
 
 			if(latency == 0.0) {
 				midiout.performList(midicmd, args)
