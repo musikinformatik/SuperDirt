@@ -353,7 +353,7 @@ Via the defaultParentEvent, you can also set parameters (use the set message):
 DirtOrbit {
 
 	var <dirt, <server, <outBus;
-	var <synthBus, <globalEffectBus, <dryBus, <delayBus, <leslieBus, <tapeBus, <gateBus, <reverbBus;
+	var <synthBus, <globalEffectBus, <dryBus, <delayBus, <leslieBus, <tapeBus, <gateBus, <hallBus, <reverbBus;
 	var <group, <globalEffects, <cutGroups;
 	var <>minSustain;
 
@@ -378,6 +378,7 @@ DirtOrbit {
 		leslieBus = Bus.audio(server, dirt.numChannels);
 		tapeBus = Bus.audio(server, dirt.numChannels);
 		gateBus = Bus.audio(server, dirt.numChannels);
+		hallBus = Bus.audio(server, dirt.numChannels);
 		globalEffectBus = Bus.audio(server, dirt.numChannels);
 		minSustain = 8 / server.sampleRate;
 		this.initDefaultGlobalEffects;
@@ -395,6 +396,7 @@ DirtOrbit {
 			GlobalDirtEffect(\dirt_reverb, [\size]),
 			GlobalDirtEffect(\dirt_leslie, [\lrate, \lsize]),
 			GlobalDirtEffect(\dirt_gateverb, [\gateverbd, \gateverbg, \gateverbr]),
+			GlobalDirtEffect(\dirt_hall, [\hallfb, \hallcutoff, \halltail, \hallpredelay, \halldelay, \halldelayt, \halldelayfb, \hallshift]),
 			GlobalDirtEffect(\dirt_monitor, [\dirtOut])
 		]
 	}
@@ -415,7 +417,7 @@ DirtOrbit {
 	initNodeTree {
 		server.makeBundle(nil, { // make sure they are in order
 			server.sendMsg("/g_new", group, 0, 1); // make sure group exists
-			globalEffects.reverseDo { |x| x.play(group, outBus, dryBus, globalEffectBus, delayBus, reverbBus, leslieBus, tapeBus, gateBus) };
+			globalEffects.reverseDo { |x| x.play(group, outBus, dryBus, globalEffectBus, delayBus, reverbBus, leslieBus, tapeBus, gateBus, hallBus) };
 		})
 	}
 
@@ -525,6 +527,7 @@ DirtOrbit {
 			~leslieBus = leslieBus;
 			~tapeBus= tapeBus;
 			~gateBus = gateBus;
+			~hallBus = hallBus;
 			~effectBus = globalEffectBus;
 			~numChannels = dirt.numChannels;
 			~server = server;
@@ -591,10 +594,10 @@ GlobalDirtEffect {
 		^super.newCopyArgs(name, paramNames, numChannels, ())
 	}
 
-	play { |group, outBus, dryBus, effectBus, delayBus, reverbBus, leslieBus, tapeBus, gateBus|
+	play { |group, outBus, dryBus, effectBus, delayBus, reverbBus, leslieBus, tapeBus, gateBus, hallBus|
 		this.release;
 		synth = Synth.after(group, name.asString ++ numChannels,
-			[\outBus, outBus, \dryBus, dryBus, \effectBus, effectBus, \delayBus, delayBus, \reverbBus, reverbBus, \leslieBus, leslieBus, \tapeBus, tapeBus, \gateBus, gateBus] ++ state.asPairs
+			[\outBus, outBus, \dryBus, dryBus, \effectBus, effectBus, \delayBus, delayBus, \reverbBus, reverbBus, \leslieBus, leslieBus, \tapeBus, tapeBus, \gateBus, gateBus, \hallBus, hallBus] ++ state.asPairs
 		)
 	}
 

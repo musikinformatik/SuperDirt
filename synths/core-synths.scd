@@ -62,7 +62,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 	// so that they can all play in one bus
 
 	SynthDef("dirt_gate" ++ numChannels, { |out, in, sustain = 1, fadeInTime = 0.001, fadeTime = 0.001, amp = 1,
-		   dry, delay, delayBus, room, reverbBus, tapeBus,tape, gateBus, gateverb, leslieBus, leslie|
+		   dry, delay, delayBus, room, reverbBus, tapeBus,tape, gateBus, gateverb, leslieBus, leslie, hallBus, hall|
 		var signal = In.ar(in, numChannels);
 		 //  doneAction: 14: free surrounding group and all nodes
 		var env = EnvGen.ar(Env([0, 1, 1, 0], [fadeInTime, sustain, fadeTime], \sin), levelScale: amp, doneAction: 14);
@@ -72,6 +72,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		OffsetOut.ar(leslieBus, signal*leslie);
 		OffsetOut.ar(tapeBus, signal*tape);
 		OffsetOut.ar(gateBus, signal*gateverb);
+		OffsetOut.ar(hallBus, signal*hall);
 		OffsetOut.ar(reverbBus, signal*room);
 		ReplaceOut.ar(in, Silent.ar(numChannels)) // clears bus signal for subsequent synths
 	}, [\ir, \ir, \ir, \ir, \ir, \ir]).add;
@@ -345,6 +346,43 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		DirtPause.ar(in+snd, graceTime:4);
 		snd = snd * EnvGen.kr(Env.asr, gate, doneAction:2);
 		Out.ar(effectBus, snd*gateverbr);
+	}, [\ir, \ir]).add;
+
+	SynthDef("dirt_hall" ++ numChannels, { |dryBus, hallBus, effectBus, gate = 1,
+		hallfb=0.2, hallcutoff=3500, halltail=1, hallpredelay=0, halldelay=0.0, halldelayt=1.0, halldelayfb=0.5, hallshift= (-2)|
+		var in = In.ar(hallBus, numChannels);
+
+		var snd;
+		var a1d = 337.0 / 44100.0;
+		var a2d = 113.0 / 44100.0;
+		var a3d = 37.0 / 44100.0;
+		var a4d = 997.0 / 44100.0;
+		var a5d = 4639.0 / 44100.0;
+		var del = ([1687, 1601, 2053, 2251, 6043, 14831] + LFNoise2.ar(0.1, 33)) / 44100.0;
+		var lrdel = 0.002;
+		var feedback = hallfb.linlin(0,1,0.3,0.8);
+		var lagcutoff = Lag.kr(hallcutoff, 0.2);
+		var lagshift = Lag.kr(hallshift, 0.2);
+
+		snd = DelayN.ar(in, 0.2, hallpredelay); // pre-delay
+		snd = feedback * LocalIn.ar(2) + snd; // first number is feedback, can go up to 0.8 for squealing
+		snd = AllpassN.ar(snd, 0.5, a1d+LFNoise2.ar(0.1, a1d/2), a1d*19.37);
+		snd = AllpassN.ar(snd, 0.5, a2d+LFNoise2.ar(0.1, a3d), a2d*19.37);
+		snd = AllpassN.ar(snd, 0.5, a3d+LFNoise2.ar(0.1, a3d/4.0), a3d*19.37);
+		snd = AllpassN.ar(snd, 1.5, a4d+LFNoise2.ar(0.1, a2d), a4d*19.37);
+		snd = AllpassN.ar(snd, 2.5, a5d+LFNoise2.ar(0.1, a1d), a5d*19.37);
+		snd[0] = Mix.ar( CombN.ar(snd[0], 4.0, del, del*19.37*halltail*2+LFNoise2.ar(0.1, 0.2)) / 6.0);
+		snd[1] = Mix.ar( CombN.ar(snd[1], 4.0, del+lrdel, del*19.37*halltail*2+LFNoise2.ar(0.11, 0.2)) / 6.0);
+		snd = halldelay * SwitchDelay.ar(in, 0, 1, halldelayt*[1.0, 1.0+lrdel], halldelayfb) + snd;
+		snd = LPF.ar(snd, (lagcutoff * 1.732).clip(20,20000)); // damping
+		snd = LPF.ar(snd, (lagcutoff / 1.732).clip(20,20000)); // damping
+		snd = HPF.ar(snd, 64);
+		snd = FreqShift.ar(snd, [lagshift+LFNoise2.ar(0.1,lagshift/2), lagshift+LFNoise2.ar(0.11,lagshift/2)]); // fun
+		LocalOut.ar(LeakDC.ar(snd));
+
+		DirtPause.ar(in+snd, graceTime:8);
+		snd = snd * EnvGen.kr(Env.asr, gate, doneAction:2);
+		Out.ar(effectBus, snd);
 	}, [\ir, \ir]).add;
 
 	// Tremolo audio DSP effect definition. Params: tremolorate (Hz); tremolodepth (amplitude)

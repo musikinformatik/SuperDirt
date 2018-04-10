@@ -168,6 +168,8 @@ DirtEvent {
 				gateverb: ~gateverb,
 				leslieBus: orbit.leslieBus.index,
 				leslie: ~leslie,
+				hallBus: orbit.hallBus.index,
+				hall: ~hall,
 				amp: ~amp,
 				sample: ~hash, // required for the cutgroup mechanism
 				sustain: ~sustain, // after sustain, free all synths and group
