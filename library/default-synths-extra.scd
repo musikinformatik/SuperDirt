@@ -70,7 +70,7 @@
 	SynthDef(\superkick, {|out, sustain=1, pan, accelerate, n, pitch1=1, decay=1 |
 		var env, sound, dur, clickdur;
 		env = EnvGen.ar(Env.linen(0.01, 0, 0.5, 1, -3), timeScale:sustain, doneAction:2);
-		sound = SinOsc.ar((n - 25.5).midicps);
+		sound = SinOsc.ar((n + 36.0).midicps);
 		clickdur = 0.02*sustain*decay;
 		sound = sound + (LPF.ar(WhiteNoise.ar(1), 1500*pitch1*Line.kr(1,1+accelerate,clickdur) ) * Line.ar(1, 0, clickdur));
 		OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env))
