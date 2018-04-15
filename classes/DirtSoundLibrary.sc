@@ -65,7 +65,8 @@ DirtSoundLibrary {
 	}
 
 	addMIDI { |name, device, event|
-		var midiEvent = (play: { (type: \tidalmidi, midiout: device).proto_(event.copy).play });
+		var midiEvent = DirtEventTypes.midiEvent;
+		if(event.notNil) { midiEvent.putAll(event) };
 		this.addSynth(name, midiEvent)
 	}
 
@@ -217,10 +218,10 @@ DirtSoundLibrary {
 		^if(allEvents.isNil) {
 			if(SynthDescLib.at(name).notNil) {
 				// use tidal's "n" as note, only for synths that have no event defined
-				(instrument: name, hash: name.identityHash, note: index)
+				(instrument: name, hash: name.identityHash)
 			} {
 				if(defaultEvent.notNil) {
-					(instrument: name, hash: name.identityHash, note: index).putAll(defaultEvent)
+					(instrument: name, hash: name.identityHash).putAll(defaultEvent)
 				}
 			}
 		} {
@@ -233,8 +234,9 @@ DirtSoundLibrary {
 		^(
 			buffer: buffer.bufnum,
 			instrument: this.instrumentForBuffer(buffer),
-			unitDuration: { buffer.duration * baseFreq / ~freq },
-			hash: buffer.identityHash
+			unitDuration: { buffer.duration * baseFreq / ~freq.value },
+			hash: buffer.identityHash,
+			note: 0
 		)
 	}
 
