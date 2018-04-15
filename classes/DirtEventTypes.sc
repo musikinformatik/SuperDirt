@@ -5,6 +5,7 @@ This class adds event types to the global event library. They can be played from
 */
 
 DirtEventTypes {
+	classvar <midiEvent;
 
 	*initClass {
 
@@ -30,54 +31,66 @@ DirtEventTypes {
 
 		// corrected event type, fixing a few things from the standard \midi event type
 
-		Event.addEventType(\tidalmidi, #{|server|
+		midiEvent = (
+			play: #{
 
-			var freqs, lag, sustain, strum;
-			var args, midiout, hasGate, midicmd, latency;
-			midicmd = ~midicmd;
+				var freq, lag, sustain, func;
+				var args, midiout, hasGate, midicmd, latency;
+				midicmd = ~midicmd;
 
-			if(midicmd.isNil) {
-				if(~ccn.notNil) { midicmd = \control; ~ctlNum = ~ccn };
-				if(~ccv.notNil) { midicmd = \control; ~control = ~ccv };
-				if(~progNum.notNil) { midicmd = \program };
-				if(~polyTouch.notNil) { midicmd = \polyTouch };
-				if(~midibend.notNil) { midicmd = \bend; ~val = ~midibend; };
-				if(~miditouch.notNil) { midicmd = \touch; ~val = ~miditouch; };
-				if(midicmd.isNil) { midicmd = \noteOn }; // if still nil
-			};
+				if(midicmd.isNil) {
+					if(~ccn.notNil) { midicmd = \control; ~ctlNum = ~ccn };
+					if(~ccv.notNil) { midicmd = \control; ~control = ~ccv };
+					if(~progNum.notNil) { midicmd = \program };
+					if(~polyTouch.notNil) { midicmd = \polyTouch };
+					if(~midibend.notNil) { midicmd = \bend; ~val = ~midibend; };
+					if(~miditouch.notNil) { midicmd = \touch; ~val = ~miditouch; };
+					if(midicmd.isNil) { midicmd = \noteOn }; // if still nil
+				};
 
-			freqs = ~freq.value;
 
-			~amp = ~amp.value;
-			~midinote = (freqs.cpsmidi).round(1).asInteger;
-			strum = ~strum;
-			lag = ~lag + (~latency ? 0);
-			sustain = ~sustain = ~sustain.value;
-			midiout = ~midiout.value;
-			~uid ?? { ~uid = midiout.uid };  // mainly for sysex cmd
-			hasGate = ~hasGate ? true; // TODO
+				freq = ~freq.value;
 
-			~ctlNum = ~ctlNum ? 0;
-			~chan = ~midiChan ? 0;
+				~amp = ~amp.value;
+				~midinote = (freq.cpsmidi).round(1).asInteger;
+				lag = ~lag + (~latency ? 0);
+				sustain = ~sustain = ~sustain.value;
+				midiout = ~midiout.value;
+				if(~uid.notNil and: { midiout.notNil }) {
+					~uid = midiout.uid    // mainly for sysex cmd
+				};
+				hasGate = ~hasGate ? true; // TODO
 
-			args = ~midiEventFunctions[midicmd].valueEnvir.asCollection;
+				~ctlNum = ~ctlNum ? 0;
+				~chan = ~midiChan ? 0;
 
-			latency = lag; // for now.
+				func = Event.default[\midiEventFunctions][midicmd];
+				args = func.valueEnvir.asCollection;
 
-			if(latency == 0.0) {
-				midiout.performList(midicmd, args)
-			} {
-				thisThread.clock.sched(latency, {
-					midiout.performList(midicmd, args);
-				})
-			};
-			if(hasGate and: { midicmd === \noteOn }) {
-				thisThread.clock.sched(sustain + latency, {
-					midiout.noteOff(*args)
-				});
-			};
+				latency = lag; // for now.
 
-		})
+				if(midiout.notNil) {
+
+					if(latency == 0.0) {
+						midiout.performList(midicmd, args)
+					} {
+						thisThread.clock.sched(latency, {
+							midiout.performList(midicmd, args);
+						})
+					};
+					if(hasGate and: { midicmd === \noteOn }) {
+						thisThread.clock.sched(sustain + latency, {
+							midiout.noteOff(*args)
+						});
+					}
+				} {
+					"midi device is nil, cmd: '%' args: %"
+					.format(midicmd, [func.argNames, args].flop.flat.join(" "))
+					.postln
+				}
+
+			}
+		)
 	}
 
 }
