@@ -65,7 +65,7 @@ DirtSoundLibrary {
 	}
 
 	addMIDI { |name, device, event|
-		var midiEvent = DirtEventTypes.midiEvent.put(\midiout, device);
+		var midiEvent = DirtEventTypes.midiEvent.copy.put(\device, device);
 		if(event.notNil) { midiEvent.putAll(event) };
 		this.addSynth(name, midiEvent)
 	}
