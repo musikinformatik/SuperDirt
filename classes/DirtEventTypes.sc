@@ -87,7 +87,9 @@ DirtEventTypes {
 					"midi device is nil, cmd: '%' args: %"
 					.format(midicmd, [func.argNames, args].flop.flat.join(" "))
 					.postln
-				}
+				};
+
+				true // always return something != nil to end processing in DirtEvent
 
 			}
 		)
