@@ -133,7 +133,7 @@ DirtSoundLibrary {
 
 
 	loadOnly { |names, path, appendToExisting = false|
-		path = path ?? { "../../Dirt-Samples/".resolveRelative };
+		path = path ?? { Quarks.quarkNameAsLocalPath("Dirt-Samples") +/+ "*" };
 		names.do { |name|
 			this.loadSoundFileFolder(path +/+ name, name, appendToExisting)
 		};
