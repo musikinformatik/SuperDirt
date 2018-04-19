@@ -39,7 +39,7 @@ CORE SYNTHDEFS FOR DIRT
 		// or:
 		//signal = distort(signal);
 
-		DirtPause.ar(signal, graceTime:4);
+		// DirtPause.ar(signal, graceTime:4);
 
 		signal = signal * EnvGen.kr(Env.asr, gate, doneAction:2);
 		Out.ar(outBus, signal)
