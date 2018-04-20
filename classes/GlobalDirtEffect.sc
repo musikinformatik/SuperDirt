@@ -49,10 +49,15 @@ GlobalDirtEffect {
 				state[key] = value;
 			}
 		};
-		if(someArgsNotNil) { synth.run };
+		if(someArgsNotNil) { this.resume };
 		if(argsChanged.notNil) {
 			synth.set(*argsChanged);
 		}
+	}
+
+	resume {
+		synth.run;
+		synth.set(\resumed, 1)
 	}
 
 	printOn { |stream|
