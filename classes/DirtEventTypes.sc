@@ -62,7 +62,7 @@ DirtEventTypes {
 				hasGate = ~hasGate ? true; // TODO
 
 				~ctlNum = ~ctlNum ? 0;
-				~chan = ~midiChan ? 0;
+				~chan = ~midichan ? 0;
 
 				func = Event.default[\midiEventFunctions][midicmd];
 				args = func.valueEnvir.asCollection;
