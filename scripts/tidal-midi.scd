@@ -21,29 +21,31 @@ MIDIClient.list; // to check, which are there, you can query them
 
 ~dirt.soundLibrary.addMIDI(\midi, ~midiOut);
 
+// You can then test it on the tidal side with this:
+
+Send some notes:
+```
+d1 $ note "c d e f" # s "midi"
+```
+Send them to the tenth midi channel (counting from 0)
+```
+d1 $ note "c d e f" # s "midi" # midichan 9
+```
+Send midi clock:
+```
+d1 $ midicmd "[start/4,midiClock*48]" # s "midi" 
+```
+
+Send control values
+```
+d1 $ ccn "28*16" # ccv 127 # s "midi" # midichan 9
+```
+
 
 // note: parameter names may change in the future!
 
-// in tidal, define the following parameters:
-
-    (midicmd, midicmd_p) = pS "midicmd" (Nothing)
-    (midichan, midichan_p) = pF "midichan" (Nothing)
-    (progNum, progNum_p) = pF "progNum" (Nothing)
-    (val, val_p) = pF "val" (Nothing)
-    (uid, uid_p) = pF "uid" (Nothing)
-    (array, array_p) = pF "array" (Nothing)
-    (frames, frames_p) = pF "frames" (Nothing)
-    (seconds, seconds_p) = pF "seconds" (Nothing)
-    (minutes, minutes_p) = pF "minutes" (Nothing)
-    (hours, hours_p) = pF "hours" (Nothing)
-    (frameRate, frameRate_p) = pF "frameRate" (Nothing)
-    (songPtr, songPtr_p) = pF "songPtr" (Nothing)
-    (ctlNum, ctlNum_p) = pF "ctlNum" (Nothing)
-    (control, control_p) = pF "control" (Nothing)
-
-
-// the following midicmds and their parameters are then supported
-// the usual note/freq and legato/sustain parameters are taken into account
+// In supercollider terms, the following midicmds and their parameters are supported
+// (the usual note/freq and legato/sustain parameters are taken into account)
 
 polyTouch: midichan, midinote, polyTouch
 program: midichan, progNum
@@ -58,3 +60,7 @@ touch: midichan, val
 noteOff: midichan, midinote, amp // sent automatically, after sustain.
 
 
+// Tidal defines the following parameters:
+```
+midicmd, midichan, progNum, val, uid, array, frames, seconds, minutes, hours, frameRate, songPtr, ctlNum, control, cc, ccn, ccv
+```
