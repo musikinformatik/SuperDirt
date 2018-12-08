@@ -18,7 +18,7 @@ SynthDef("waveloss" ++ ~dirt.numChannels, { |out, drop = 1|
       out: ~out
     ]
   )
-}, { true });
+}, { ~waveloss.notNil });
 
 // Squiz
 // "reminiscent of some weird mixture of filter, ring-modulator
@@ -38,5 +38,5 @@ SynthDef("squiz" ++ ~dirt.numChannels, { |out, pitchratio = 1|
       out: ~out
     ]
   )
-}, { true });
+}, { ~squiz.notNil });
 )
