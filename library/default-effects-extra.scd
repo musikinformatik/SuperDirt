@@ -39,7 +39,6 @@ SynthDef("squiz" ++ ~dirt.numChannels, { |out, pitchratio = 1|
     ]
   )
 }, { ~squiz.notNil });
-)
 
 // Frequency shifter
 // Total shift is sum of `fshift` (in Hz) and `fshiftnote` times the current note frequency.
@@ -121,3 +120,4 @@ SynthDef("dirt_distort" ++ ~dirt.numChannels, {|out, distort=0|
 	mod = SelectX.ar(distort, [signal, mod]);
 	ReplaceOut.ar(out, mod);
 }).add;
+)
