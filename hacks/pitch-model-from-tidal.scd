@@ -8,16 +8,16 @@ here is a brief example of how you can use the full supercollider pitch model fr
 // add these parameters to tidal:
 /*
 
-let (degree, degree_p) = pF "degree" (Nothing)
-    (ctranspose, ctranspose_p) = pF "ctranspose" (Nothing)
-    (mtranspose, mtranspose_p) = pF "mtranspose" (Nothing)
-    (gtranspose, gtranspose_p) = pF "gtranspose" (Nothing)
-    (harmonic, harmonic_p) = pF "harmonic" (Nothing)
-    (detune, detune_p) = pF "detune" (Nothing)
-    (scale, scale_p) = pS "scaleName" (Nothing)
-    (tuning, tuning_p) = pS "tuningName" (Nothing)
-    (stepsPerOctave, stepsPerOctave_p) = pI "stepsPerOctave" (Nothing)
-    (octaveRatio, octaveRatio_p) = pF "octaveRatio" (Nothing)
+let (degree, degree_p) = pF "degree"
+    (ctranspose, ctranspose_p) = pF "ctranspose"
+    (mtranspose, mtranspose_p) = pF "mtranspose"
+    (gtranspose, gtranspose_p) = pF "gtranspose"
+    (harmonic, harmonic_p) = pF "harmonic"
+    (detune, detune_p) = pF "detune"
+    (scale, scale_p) = pS "scaleName"
+    (tuning, tuning_p) = pS "tuningName"
+    (stepsPerOctave, stepsPerOctave_p) = pI "stepsPerOctave"
+    (octaveRatio, octaveRatio_p) = pF "octaveRatio"
 
 */
 
