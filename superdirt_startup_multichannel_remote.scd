@@ -1,6 +1,17 @@
 /*
 This is an example startup file. You can load it from your startup file
 (to be found in Platform.userAppSupportDir +/+ "startup.scd")
+
+
+
+This startup file you could use when you:
+a) want to use a multichannel system (in this case 16 channels)
+b) need to give access to remote instances of tidal/sclang for network music (maxLogins = 16)
+
+This is useful also when your multichannel sound device isn't class compliant and you want to play on linux machines. Then one host machine connected to the audio interface is enough, all others send messages to it.
+
+
+
 */
 
 
@@ -12,7 +23,7 @@ s.options.maxLogins = 4;
 s.options.numBuffers = 1024 * 256; // increase this if you need to load more samples
 s.options.memSize = 8192 * 16; // increase this if you get "alloc failed" messages
 s.options.maxNodes = 1024 * 32; // increase this if you are getting drop outs and the message "too many nodes"
-//s.options.numOutputBusChannels = 2; // set this to your hardware output channel size, if necessary
+
 s.options.numOutputBusChannels = 16; // set this to your hardware output channel size, if necessary
 s.options.numInputBusChannels = 2; // set this to your hardware output channel size, if necessary
 // boot the server and start SuperDirt
