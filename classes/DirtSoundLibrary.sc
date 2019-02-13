@@ -140,7 +140,7 @@ DirtSoundLibrary {
 		"\n... file reading complete\n\n".post;
 	}
 
-	loadSoundFiles { |paths, appendToExisting = false, namingFunction = (_.basename)|
+	loadSoundFiles { |paths, appendToExisting = false, namingFunction = (_.basename)| // paths are folderPaths
 		var folderPaths, memory;
 
 		paths = paths ?? { "../../Dirt-Samples/*".resolveRelative };
@@ -160,16 +160,29 @@ DirtSoundLibrary {
 	}
 
 	loadSoundFileFolder { |folderPath, name, appendToExisting = false|
-		var files, buf;
+		var files;
 
 		if(File.exists(folderPath).not) {
 			"\ncouldn't load '%' files, path doesn't exist: %.".format(name, folderPath).postln;
 			^this
 		};
-		files = (folderPath.standardizePath +/+ "*").pathMatch;
-		name = name.asSymbol;
 
-		files.do { |filepath|
+		files = pathMatch(folderPath.standardizePath +/+ "*"); // dependent on operating system
+
+		if(files.notEmpty) {
+			"% (%) ".postf(name, buffers[name].size);
+			this.loadSoundFilePaths(files, name, appendToExisting);
+		} {
+			"empty sample folder: %\n".postf(folderPath)
+		}
+
+	}
+
+	loadSoundFilePaths { |filePaths, name, appendToExisting = false|
+		var buf;
+
+		name = name.asSymbol;
+		filePaths.do { |filepath|
 			try {
 				buf = this.readSoundFile(filepath);
 				if(buf.notNil) {
@@ -179,11 +192,6 @@ DirtSoundLibrary {
 			}
 		};
 
-		if(files.notEmpty) {
-			"% (%) ".postf(name, buffers[name].size)
-		} {
-			"empty sample folder: %\n".postf(folderPath)
-		};
 	}
 
 	loadSoundFile { |path, name, appendToExisting = false|
