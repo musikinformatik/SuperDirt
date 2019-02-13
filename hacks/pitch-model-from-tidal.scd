@@ -8,16 +8,16 @@ here is a brief example of how you can use the full supercollider pitch model fr
 // add these parameters to tidal:
 /*
 
-let (degree, degree_p) = pF "degree" (Nothing)
-    (ctranspose, ctranspose_p) = pF "ctranspose" (Nothing)
-    (mtranspose, mtranspose_p) = pF "mtranspose" (Nothing)
-    (gtranspose, gtranspose_p) = pF "gtranspose" (Nothing)
-    (harmonic, harmonic_p) = pF "harmonic" (Nothing)
-    (detune, detune_p) = pF "detune" (Nothing)
-    (scale, scale_p) = pS "scaleName" (Nothing)
-    (tuning, tuning_p) = pS "tuningName" (Nothing)
-    (stepsPerOctave, stepsPerOctave_p) = pI "stepsPerOctave" (Nothing)
-    (octaveRatio, octaveRatio_p) = pF "octaveRatio" (Nothing)
+let degree = pF "degree"
+    ctranspose = pF "ctranspose"
+    mtranspose = pF "mtranspose"
+    gtranspose = pF "gtranspose"
+    harmonic = pF "harmonic"
+    etune = pF "detune"
+    scalename = pS "scaleName"
+    tuning = pS "tuningName"
+    stepsPerOctave = pI "stepsPerOctave"
+    octaveRatio = pF "octaveRatio"
 
 */
 
@@ -70,15 +70,15 @@ let (degree, degree_p) = pF "degree" (Nothing)
 
 /*
 
-d1 $ slow 2 $ s "gabor*8" # degree "0 1 2 3 4 5 6 7 8 9" # octave "4" # mtranspose "{0 1}/8" # scale "locrianMajor"
+d1 $ slow 2 $ s "gabor*8" # degree "0 1 2 3 4 5 6 7 8 9" # octave "4" # mtranspose "{0 1}/8" # scalename "locrianMajor"
 
-d1 $ slow 2 $ s "gabor*8" # degree "0 1 2 3 4 5 6 7" # scale "ritusen"
+d1 $ slow 2 $ s "gabor*8" # degree "0 1 2 3 4 5 6 7" # scalename "ritusen"
 
 -- tunings, very subtle differences
 
-d1 $ slow 2 $ s "gabor*8" # degree "0 1 2 3 4 5 6 7" # scale "ritusen" # tuning "young"
+d1 $ slow 2 $ s "gabor*8" # degree "0 1 2 3 4 5 6 7" # scalename "ritusen" # tuning "young"
 
-d1 $ slow 2 $ s "gabor*8" # degree "0 1 2 3 4 5 6 7" # scale "ritusen" # tuning "just"
+d1 $ slow 2 $ s "gabor*8" # degree "0 1 2 3 4 5 6 7" # scalename "ritusen" # tuning "just"
 
 */
 
