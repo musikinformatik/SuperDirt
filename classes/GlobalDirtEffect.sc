@@ -30,10 +30,10 @@ GlobalDirtEffect {
 
 	release { |releaseTime = 0.2|
 		if(synth.notNil) {
-			// surpress error, because we don't keep track of server state
 			synth.server.sendBundle(nil,
-				['/error', -1],
-				[15, synth.nodeID, \gate, -1.0 - releaseTime],
+				['/error', -1], // surpress error, because we don't keep track of server state
+				[12, synth.nodeID, 1], // /n_run: make sure it isn't paused
+				[15, synth.nodeID, \gate, -1.0 - releaseTime], // n_set: use gate to set release time
 				['/error', -2]
 			);
 		};
