@@ -14,6 +14,9 @@ DirtEventTypes {
 		Event.addEventType(\dirt, {
 			var keys, values;
 			var dirt = ~dirt ? SuperDirt.default;
+			if(dirt.isNil) {
+				Error("dirt event: no dirt instance found.\n\n// You could try:\nSuperDirt.default = ~dirt;").throw;
+			};
 			~delta = ~delta ?? { ~stretch.value * ~dur.value };
 			~latency = ~latency ?? { dirt.server.latency };
 			if(~n.isArray) {
