@@ -170,8 +170,9 @@ DirtSoundLibrary {
 		files = pathMatch(folderPath.standardizePath +/+ "*"); // dependent on operating system
 
 		if(files.notEmpty) {
-			"% (%) ".postf(name, buffers[name].size);
+			name = name.asSymbol;
 			this.loadSoundFilePaths(files, name, appendToExisting);
+			"% (%) ".postf(name, buffers[name].size);
 		} {
 			"empty sample folder: %\n".postf(folderPath)
 		}
@@ -181,7 +182,6 @@ DirtSoundLibrary {
 	loadSoundFilePaths { |filePaths, name, appendToExisting = false|
 		var buf;
 
-		name = name.asSymbol;
 		filePaths.do { |filepath|
 			try {
 				buf = this.readSoundFile(filepath);
