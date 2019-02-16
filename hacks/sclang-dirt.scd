@@ -25,15 +25,23 @@ Pdef(\x,
 
 (
 Pdef(\x,
-	Pbind(
-		\type, \dirt,
-		\s, Pwrand([\hh, \cr], [2, 1, 0.01].normalizeSum, inf),
-		\cut, Prand([0, 1, 2], inf),
-		\n, Pseq([Prand([1, Pseq([1, 0, 5], 1), Pseq([0, 0])], 1), 0, 0, 0, 0, 0, 0, 0, 0], inf),
-		\speed, Pseq([1, 1, 0.5, 1.2], inf),
-		\dur, 0.25 * Pseq([1/2, 1/3, 2/3], inf),
-		\room, Pseq([0, 0, 0.4], inf)
-	)
+	Ppar([
+		Pbind(
+			\type, \dirt,
+			\s, Pwrand([\hh, \cr, \ho], [2, 1, 1].normalizeSum, inf),
+			\cut, Prand([0, 1, 2], inf),
+			\n, Pseq([Prand([1, Pseq([1, 0, 5], 1), Pseq([0, 0])], 1), 0, 0, 0, 0, 0, 0, 0, 0], inf),
+			\speed, Pseq([1, 1, 0.5, 1.2], inf),
+			\dur, 0.25 * Pseq([1/2, 1/3, 2/3], inf),
+			\room, Pseq([0, 0, 0.4], inf)
+		),
+		Pbind(
+			\type, \dirt,
+			\s, \bd,
+			\dur, Pseq([0.5, 0.25, 0.25], inf),
+			\amp, Prand([0.5, 0], inf)
+		)
+	])
 ).play
 )
 
