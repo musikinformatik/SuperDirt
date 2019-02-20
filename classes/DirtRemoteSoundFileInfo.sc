@@ -1,7 +1,7 @@
 DirtRemoteSoundfileInfo {
 
 	var <library;
-	var sendResponder;
+	var responder;
 
 
 	*new { |library, port|
@@ -9,13 +9,13 @@ DirtRemoteSoundfileInfo {
 	}
 
 	start { |port (57120) |
-		sendResponder = OSCFunc({ |msg,time,addr|
+		responder = OSCFunc({ |msg,time,addr|
 			this.sendRemoteSoundFileInfoReply(addr, msg.drop(1))
 		}, "/dirt_soundfileinfo_request", recvPort: port).fix;
 	}
 
 	stop {
-		sendResponder.free;
+		responder.free;
 	}
 
 	sendRemoteSoundFileInfoReply { |netAddr|
