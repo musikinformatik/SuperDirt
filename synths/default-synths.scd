@@ -125,4 +125,17 @@ SynthDef(\cyclo, { |out, freq, sustain = 1, speed = 1, begin = 0, end = 1, pan, 
 }).add
 );
 
+// debug a few time related values
+(
+SynthDef(\debug, { |begin = -1, end = -1, delta = -1, sustain = -1, unitDuration = -1, cycle = -1|
+	cycle.poll(Impulse.kr(0), label: "cycle");
+	begin.poll(Impulse.kr(0), label: "begin");
+	end.poll(Impulse.kr(0), label: "end");
+	delta.poll(Impulse.kr(0), label: "delta");
+	sustain.poll(Impulse.kr(0), label: "sustain");
+	unitDuration.poll(Impulse.kr(0), label: "unitDuration");
+	DC.kr(0).poll(Impulse.kr(0), label: "\n\n");
+}).add
+);
+
 )

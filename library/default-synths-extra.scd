@@ -424,3 +424,101 @@ SynthDef(\superstatic, {|out, sustain=1, pan, freq |
 	OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env))
 }).add
 );
+
+
+// from synthdef.art
+// fragment: 2018-08-16
+// responds to accelerate (for pitch glide)
+//                    detune (in Hz, but even small values are quite noticable)
+//                    voice (changes harmonics)
+//                    speed (impulse trigger rate)
+(
+SynthDef(\supergrind, {|out, pan, freq, sustain, accelerate, detune=0, voice=0, speed=1|
+	var env, trig, loop;
+	freq = freq /2 * XLine.ar(1, exp(accelerate), sustain);
+	env = EnvGen.ar(Env.linen(0.1, 0.8, 0.1), timeScale:sustain, doneAction:2);
+	trig = Impulse.kr(speed * Duty.kr(1, 0, Dseq(0.25 ! 3 ++ [2], inf)));
+	loop = LocalIn.ar;
+	loop = loop + Impulse.ar(SinOsc.ar(1/4, 0, freq/2, (voice+1.0)*freq));
+	loop = Mix.ar(DelayC.ar(loop + trig, 1, 1/(2*freq+[detune, -1.0*detune])-ControlDur.ir))/2.0;
+	LocalOut.ar(LeakDC.ar(loop).tanh);
+	loop = loop + DelayC.ar(loop, 0.2, SinOsc.ar(1, 0, 1e-3, 0.1));
+	loop = GVerb.ar(sin(loop + (8*trig)*4)).sin + loop;
+	OffsetOut.ar(out, DirtPan.ar(0.3*loop, ~dirt.numChannels, pan, env));
+}).add;
+);
+
+// from synthdef.art
+// #nightofprimes
+// responds to accelerate (for pitch glide)
+//                    detune (fractional)
+//                    voice (some subtle shaping and reverb changing)
+//                    speed (impulse trigger rate)
+(
+SynthDef(\superprimes, {|out, pan, freq, sustain, accelerate, speed=1, detune=0, voice=0|
+	var env, sound, primes, trig, phase;
+	freq = freq * XLine.ar(1, exp(accelerate), sustain);
+	env = EnvGen.ar(Env.linen(0.1, 0.6, 0.3), timeScale:sustain, doneAction:2);
+	primes = [2, 3, 5, 7, 11, 13, 17, 19, 23];
+	trig = Impulse.ar(30.0/primes/sustain * speed);
+	phase = Phasor.kr(trig, 1.0/primes/ControlRate.ir);
+	sound = SinOsc.ar(freq * (1..9)*[1+(detune/12),1-(detune/12)] / 2.0, phase)
+    	* LPF.ar(Decay.ar(trig, (primes+3)*sustain/10), voice.linexp(0,2,30,18000));
+	sound = GVerb.ar(sound.softclip, 10*voice.linexp(0,5,1,0.01), 10).tanh;
+	OffsetOut.ar(out, DirtPan.ar(0.5*Splay.ar(sound.scramble), ~dirt.numChannels, pan, env));
+}).add;
+);
+
+// from synthdef.art
+// #wavemechanics
+// responds to accelerate (for pitch glide)
+//                    detune (for pitch randomization)
+//                    voice (to color/whiten the noise)
+//                    resonance (affects reverberation)
+(
+SynthDef(\superwavemechanics, {|out, pan, freq, sustain, accelerate, detune=0, voice=0, resonance=0|
+	var env, sound, i, r, d, bwr, sz;
+	freq = freq * XLine.ar(1, exp(accelerate), sustain);
+	env = EnvGen.ar(Env.sine(1.0), timeScale:sustain, doneAction:2);
+	i = (0..7).scramble;
+	r = [3,5,8,9]/8;
+	detune = min(detune, 1.5);
+	d = Rand(1.6*i - detune, 1.7*i + detune).round(0.25);
+	sound = Resonz.ar(WhiteNoise.ar(0.5), freq * r * d, 0.01 + voice.linexp(0,1,1e-3,1));
+	sound = HPF.ar(Limiter.ar(55 * GVerb.ar(sound, resonance.linexp(0,1,99,0.1),10) ), 30).sanitize;
+	OffsetOut.ar(out, DirtPan.ar(Splay.ar(sound), ~dirt.numChannels, pan, env));
+}).add;
+);
+
+// feedback PWM
+// can use "accelerate" "voice" and "detune" parameters
+// try `d1 $ s "supertron" # octave 3 # accelerate "0.2"`
+(
+SynthDef(\supertron, {|out, pan, freq, sustain, voice, detune, accelerate|
+	var sound, aenv, s1, s2;
+	aenv = EnvGen.ar(Env.linen(0.05, 0.85, 0.1, 1, 'lin'), timeScale:sustain, doneAction:2);
+	freq = freq * XLine.ar(1, exp(accelerate), sustain);
+	sound = LocalIn.ar(1);
+	sound = Mix.ar( Pulse.ar(freq+[1+detune,-1-detune], RLPF.ar(sound, freq/6.1, 1.5).range(0,1-(voice/1.5))) );
+	sound = LeakDC.ar(sound);
+	LocalOut.ar(sound);
+	OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, aenv))
+}).add;
+);
+
+// Vaguely Reese-like synth
+// can use "accelerate" "voice" and "detune" parameters
+(
+SynthDef(\superreese,  {|out, pan, freq, sustain, accelerate, detune=0, voice=0|
+	var sound;
+	var env = EnvGen.ar(Env.linen(0.05, 0.8, 0.15), timeScale:sustain, doneAction:2);
+	var q1 = voice.linlin(0,2, 3.0, 0.5);
+	var q2 = voice.linlin(0,2, 2.0, 7.0);
+	freq = freq * XLine.ar(1, exp(accelerate), sustain);
+	sound = Splay.ar( VarSaw.ar(freq*[-1*detune/100+0.99,detune/100+1.01], [0.7,0.5], [0.01,0.02]), 0.2, 1, levelComp:false );
+	sound = RLPF.ar(sound, freq*10, 1.0/q1);
+	sound = sound.clip2(1.0/5.0)* 5.0;
+	sound = 0.35*RLPF.ar(sound, freq*20, 1.0/q2);
+	OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
+}).add;
+);

@@ -1,4 +1,4 @@
-# SuperDirt 0.9
+# SuperDirt 1.0-dev
 SuperCollider implementation of the Dirt sampler for the Tidal programming language
 
 Alex McLean and Julian Rohrhuber
@@ -24,20 +24,7 @@ You can pass `port`, `outBusses`, `senderAddr` as arguments.
 
 ## Setup with options
 
-See `superdirt_startup.scd`for an example setup.
-
-## Setup from Tidal
-```
-(cps, getNow) <- bpsUtils
-(d1, t1) <- superDirtSetters getNow
-(d2, t2) <- superDirtSetters getNow
-```
-Now you can run a pattern, e.g.
-```
-d1 $ sound "[bd bd bd, sn cp sn cp]"
-
-d2 $ sound "[sn*2 imp bd*3]" |+| speed "1"
-```
+For an example startup file, see the file `superdirt_startup.scd`. you can `load(<path>)` this from the SuperCollider startup file.
 
 ## Automatic startup
 If you want SuperDirt to start automatically, you can load it from the startup file. To do this, open the sc startup file (```File>Open startup file```) and add: ```load("... path to your tidal startup file ...")```. This path you can get by dropping the file onto the text editor.

@@ -5,13 +5,15 @@
 (
 ~makeAlias = { | ...pairs |
 	pairs.pairsDo { |from, to|
-		var val = ~dirt.buffers[from];
+		var val = ~dirt.soundLibrary.buffers[from];
 
 		if(val.isNil) { warn("no such sample " ++ from ) } {
-			if(~dirt.buffers[to].notNil) {
+			if(~dirt.soundLibrary.buffers[to].notNil) {
 				warn("name already exists " ++ to )
 			} {
-				~dirt.buffers[to] = val;
+				val.do { |buf|
+					~dirt.soundLibrary.addBuffer(to, buf, true)
+				};
 				postln("linked" ++ to ++ " -> " ++ from);
 			}
 		}

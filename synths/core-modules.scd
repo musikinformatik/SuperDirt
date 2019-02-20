@@ -42,6 +42,7 @@ this may be refacored later.
 					bufnum: ~buffer,
 					sustain: ~sustain,
 					speed: ~speed,
+					freq: ~freq,
 					endSpeed: ~endSpeed,
 					begin: ~begin,
 					end: ~end,
@@ -51,10 +52,10 @@ this may be refacored later.
 				])
 			} {
 				if(~instrument.isNil) {
-					"instrument not found: %".format(~sound).postln
+					"module 'sound': instrument not found: %".format(~sound).postln
 				} {
 					// here, we just derive the arguments as necessary from the environment
-					dirtEvent.sendSynth(~instrument)
+					dirtEvent.sendSynth(~instrument, ~argNames)
 				}
 			}
 		}
@@ -73,9 +74,9 @@ they respond to the existence of a value for one of the tidal parameters
 			dirtEvent.sendSynth("dirt_vowel" ++ ~numChannels,
 				[
 					out: ~out,
-					vowelFreqs: vowel.freqs,
-					vowelAmps: vowel.amps,
-					vowelRqs: vowel.rqs,
+					vowelFreqs: [vowel.freqs],
+					vowelAmps: [vowel.amps],
+					vowelRqs: [vowel.rqs],
 					resonance: ~resonance,
 				]
 			)
@@ -148,6 +149,16 @@ they respond to the existence of a value for one of the tidal parameters
 
 }, { ~cutoff.notNil });
 
+~dirt.addModule('pshift',
+	{ |dirtEvent|
+		dirtEvent.sendSynth('dirt_pitch_shift' ++ ~numChannels,
+			[
+				psrate: ~psrate,
+				sustain: ~sustain,
+				out: ~out
+		])
+}, { ~psrate.notNil });
+
 ~dirt.addModule('envelope',
 	{ |dirtEvent|
 		dirtEvent.sendSynth('dirt_envelope' ++ ~dirt.numChannels,
@@ -159,7 +170,7 @@ they respond to the existence of a value for one of the tidal parameters
 		])
 }, { ~attack.notNil or: { ~release.notNil }});
 
-// Tremolo audio DSP effect declaration
+
 ~dirt.addModule('tremolo',
 	{ |dirtEvent|
 		dirtEvent.sendSynth('dirt_tremolo' ++ ~numChannels,
