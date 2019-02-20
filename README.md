@@ -23,8 +23,8 @@ Note: this also automatically installs the DirtSamples quark, which contains a l
 You can pass `port`, `outBusses`, `senderAddr` as arguments.
 
 ## Setup with options
-For an example startup file, see the file `superdirt_startup.scd`. you can `load(<path>)` this from the SuperCollider startup file.
 
+For an example startup file, see the file `superdirt_startup.scd`. you can `load(<path>)` this from the SuperCollider startup file.
 
 ## Automatic startup
 If you want SuperDirt to start automatically, you can load it from the startup file. To do this, open the sc startup file (```File>Open startup file```) and add: ```load("... path to your tidal startup file ...")```. This path you can get by dropping the file onto the text editor.
