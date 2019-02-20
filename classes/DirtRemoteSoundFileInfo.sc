@@ -14,6 +14,10 @@ DirtRemoteSoundfileInfo {
 		}, "/dirt_soundfileinfo_request", recvPort: port).fix;
 	}
 
+	stop {
+		sendResponder.free;
+	}
+
 	sendRemoteSoundFileInfoReply { |netAddr|
 		var info;
 		info = this.convertBuffersToInfo(library);
