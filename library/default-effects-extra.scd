@@ -247,8 +247,8 @@ SynthDef("spectral-binshift" ++ ~dirt.numChannels, { |out, binshift, sustain|
 	signal = In.ar(out, ~dirt.numChannels);
 	clean = signal;
 	chain = Array.fill(signal.size, {|i| FFT(LocalBuf(2048), signal[i])});
-	signal = IFFT(PV_BinShift(chain, stretch:binshift.range(0.01,4),
-	shift:binshift.range(0,10), interp:0));
+	signal = IFFT(PV_BinShift(chain, stretch: binshift.linlin(0.0,1.0,0.01,4.0),
+	shift:binshift.poll * 10, interp:1));
 	ReplaceOut.ar(out, signal)
 }).add;
 
@@ -335,7 +335,7 @@ SynthDef("spectral-enhance" ++ ~dirt.numChannels, { |out, enhance=0.5, sustain|
 			enhance.linlin(0.0,1.0, 1, 16),
 			enhance.linlin(0.0,1.0,1.0,5.0),
 			enhance.linlin(0.0,1.0,0.0,0.99))
-		).tanh;
+		).tanh; // .tanh is used as a crude limiter here beacause sometimes this ugen goes crazy
 	ReplaceOut.ar(out, signal)
 }).add;
 )
