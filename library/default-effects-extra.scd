@@ -370,4 +370,72 @@ SynthDef("spectral-lbrick" ++ ~dirt.numChannels, { |out, lbrick, sustain|
 
 }).add;
 
+/****************************
+    Conformer
+*****************************/
+
+~dirt.addModule('spectral-conformer', { |dirtEvent|
+	dirtEvent.sendSynth('spectral-conformer' ++ ~dirt.numChannels,
+		[
+			real: ~real,
+			imag: ~imag,
+			out: ~out
+		]
+	)
+}, { ~real.notNil or: ~imag.notNil}); // play synth only if at least one of the two was given
+
+SynthDef("spectral-conformer" ++ ~dirt.numChannels, { |out, real=0.5, imag=0.5, sustain|
+
+	var signal, chain, in, clean, teeth=256;
+
+	signal = In.ar(out, ~dirt.numChannels);
+
+    clean = signal;
+
+    chain = Array.fill(signal.size, {|i| FFT(LocalBuf(2048), signal[i])});
+
+    signal = IFFT(
+		PV_ConformalMap(chain, real.linlin(0.0,1.0,0.01,2.0), imag.linlin(0.00,1.0,0.01,10.0))
+	).tanh;
+
+	ReplaceOut.ar(out, signal)
+
+}).add;
+
+
+/****************************
+   Enhance
+*****************************/
+
+~dirt.addModule('spectral-enhance', { |dirtEvent|
+	dirtEvent.sendSynth('spectral-enhance' ++ ~dirt.numChannels,
+		[
+			enhance: ~enhance,
+			partials: ~partials,
+			out: ~out
+		]
+	)
+}, { ~enhance.notNil or: ~partials.notNil}); // play synth only if at least one of the two was given
+
+SynthDef("spectral-enhance" ++ ~dirt.numChannels, { |out, enhance=0.5, partials=0.5, sustain|
+
+	var signal, chain, in, clean, teeth=256;
+
+	signal = In.ar(out, ~dirt.numChannels);
+
+    clean = signal;
+
+    chain = Array.fill(signal.size, {|i| FFT(LocalBuf(2048), signal[i])});
+
+	signal = IFFT(
+		PV_SpectralEnhance(chain,
+			partials.linlin(0.0,1.0, 1, 16),
+			enhance.linlin(0.0,1.0,1.0,5.0),
+			enhance.linlin(0.0,1.0,0.0,0.99))
+		).tanh;
+
+	ReplaceOut.ar(out, signal)
+
+}).add;
+
 )
