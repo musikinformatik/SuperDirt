@@ -121,21 +121,13 @@ SynthDef("dirt_distort" ++ ~dirt.numChannels, {|out, distort=0|
 	ReplaceOut.ar(out, mod);
 }).add;
 
-/************************************
-
-		Spectral fx
-
-*************************************/
-
-/****************************
-        SPECTRAL DELAY
-*****************************/
-
+// Spectral delay
 ~dirt.addModule('spectral-delay', { |dirtEvent|
 	dirtEvent.sendSynth('spectral-delay' ++ ~dirt.numChannels,
 		// OPTIONAL
 		// passing this array of parameters could be left out,
-		// but it makes it clear what happens
+		// but it makes it clear what happens and it is also more
+		// effecient to explicitly specify the arguments
 		[
 			xsdelay: ~xsdelay,
 			tsdelay: ~tsdelay,
@@ -143,14 +135,13 @@ SynthDef("dirt_distort" ++ ~dirt.numChannels, {|out, distort=0|
 			out: ~out
 		]
 	)
-}, { ~tsdelay.notNil or: { ~xsdelay.notNil } }); // play synth only if at least one of the two was given
+}, { ~tsdelay.notNil or: { ~xsdelay.notNil } });
 
 SynthDef("spectral-delay" ++ ~dirt.numChannels, { |out, tsdelay, xsdelay = 1, sustain|
 
 	var signal, delayTime, delays, freqs, filtered;
 	var size = 16;
 	var maxDelayTime = 0.2;
-
 	signal = In.ar(out, ~dirt.numChannels);
 	delayTime = tsdelay * maxDelayTime;
 	filtered = (1..size).sum { |i|
@@ -161,13 +152,9 @@ SynthDef("spectral-delay" ++ ~dirt.numChannels, { |out, tsdelay, xsdelay = 1, su
 	};
 	signal = signal * 0.2 + (filtered * 4); // this controls wet/dry
 	ReplaceOut.ar(out, signal)
-
 }).add;
 
-/****************************
-        SPECTRAL FREEZ
-*****************************/
-
+// Spectral freeze
 ~dirt.addModule('spectral-freeze', { |dirtEvent|
 	dirtEvent.sendSynth('spectral-freeze' ++ ~dirt.numChannels,
 		[
@@ -176,27 +163,17 @@ SynthDef("spectral-delay" ++ ~dirt.numChannels, { |out, tsdelay, xsdelay = 1, su
 			out: ~out
 		]
 	)
-}, { ~freeze.notNil } ); // play synth only if at least one of the two was given
+}, { ~freeze.notNil } );
 
 SynthDef("spectral-freeze" ++ ~dirt.numChannels, { |out, freeze , sustain|
-
 	var signal, chain, in;
-
 	signal = In.ar(out, ~dirt.numChannels);
-
-    chain = Array.fill(signal.size, {|i| FFT(LocalBuf(2048), signal[i])});
-
-    signal = IFFT(PV_MagFreeze(chain, freeze));
-
+	chain = Array.fill(signal.size, {|i| FFT(LocalBuf(2048), signal[i])});
+	signal = IFFT(PV_Freeze(chain, freeze));
 	ReplaceOut.ar(out, signal)
-
 }).add;
 
-
-/****************************
-        SPECTRAL COMB
-*****************************/
-
+// Spectral comb
 ~dirt.addModule('spectral-comb', { |dirtEvent|
 	dirtEvent.sendSynth('spectral-comb' ++ ~dirt.numChannels,
 		[
@@ -205,26 +182,17 @@ SynthDef("spectral-freeze" ++ ~dirt.numChannels, { |out, freeze , sustain|
 			out: ~out
 		]
 	)
-}, { ~comb.notNil}); // play synth only if at least one of the two was given
+}, { ~comb.notNil });
 
 SynthDef("spectral-comb" ++ ~dirt.numChannels, { |out, comb, sustain|
-
 	var signal, chain, in, clean, teeth=256;
-
 	signal = In.ar(out, ~dirt.numChannels);
-
-    chain = Array.fill(signal.size, {|i| FFT(LocalBuf(2048), signal[i])});
-
-    signal = IFFT(PV_RectComb(chain, numTeeth: teeth*comb, width:1-comb));
-
+	chain = Array.fill(signal.size, {|i| FFT(LocalBuf(2048), signal[i])});
+	signal = IFFT(PV_RectComb(chain, numTeeth: teeth*comb, width:1-comb));
 	ReplaceOut.ar(out, signal)
-
 }).add;
 
-/****************************
-        SPECTRAL SMEAR
-*****************************/
-
+// Spectral smear
 ~dirt.addModule('spectral-smear', { |dirtEvent|
 	dirtEvent.sendSynth('spectral-smear' ++ ~dirt.numChannels,
 		[
@@ -233,26 +201,17 @@ SynthDef("spectral-comb" ++ ~dirt.numChannels, { |out, comb, sustain|
 			out: ~out
 		]
 	)
-}, { ~smear.notNil}); // play synth only if at least one of the two was given
+}, { ~smear.notNil });
 
 SynthDef("spectral-smear" ++ ~dirt.numChannels, { |out, smear, sustain|
-
 	var signal, chain, in;
-
 	signal = In.ar(out, ~dirt.numChannels);
-
-    chain = Array.fill(signal.size, {|i| FFT(LocalBuf(2048), signal[i])});
-
-    signal = IFFT(PV_MagSmear(chain, bins: smear*100));
-
+	chain = Array.fill(signal.size, {|i| FFT(LocalBuf(2048), signal[i])});
+	signal = IFFT(PV_MagSmear(chain, bins: smear.linexp(0.0,1.0,1,100)));
 	ReplaceOut.ar(out, signal)
-
 }).add;
 
-/****************************
-        SPECTRAL SCRAMBLE
-*****************************/
-
+// Spectral scramble
 ~dirt.addModule('spectral-scram', { |dirtEvent|
 	dirtEvent.sendSynth('spectral-scram' ++ ~dirt.numChannels,
 		[
@@ -261,28 +220,18 @@ SynthDef("spectral-smear" ++ ~dirt.numChannels, { |out, smear, sustain|
 			out: ~out
 		]
 	)
-}, { ~scram.notNil}); // play synth only if at least one of the two was given
+}, { ~scram.notNil });
 
 SynthDef("spectral-scram" ++ ~dirt.numChannels, { |out, scram, sustain|
-
 	var signal, chain, in, clean, teeth=256;
-
 	signal = In.ar(out, ~dirt.numChannels);
-
-    clean = signal;
-
-    chain = Array.fill(signal.size, {|i| FFT(LocalBuf(2048), signal[i])});
-
-    signal = IFFT(PV_BinScramble(chain, wipe: scram, width: scram));
-
+	clean = signal;
+	chain = Array.fill(signal.size, {|i| FFT(LocalBuf(2048), signal[i])});
+	signal = IFFT(PV_BinScramble(chain, wipe: scram, width: scram));
 	ReplaceOut.ar(out, signal)
-
 }).add;
 
-/****************************
-        SPECTRAL BINSHIFT
-*****************************/
-
+// Spectral binshift
 ~dirt.addModule('spectral-binshift', { |dirtEvent|
 	dirtEvent.sendSynth('spectral-binshift' ++ ~dirt.numChannels,
 		[
@@ -291,29 +240,19 @@ SynthDef("spectral-scram" ++ ~dirt.numChannels, { |out, scram, sustain|
 			out: ~out
 		]
 	)
-}, { ~binshift.notNil}); // play synth only if at least one of the two was given
+}, { ~binshift.notNil });
 
 SynthDef("spectral-binshift" ++ ~dirt.numChannels, { |out, binshift, sustain|
-
 	var signal, chain, in, clean, teeth=256;
-
 	signal = In.ar(out, ~dirt.numChannels);
-
-    clean = signal;
-
-    chain = Array.fill(signal.size, {|i| FFT(LocalBuf(2048), signal[i])});
-
-    signal = IFFT(PV_BinShift(chain, stretch:binshift.range(0.01,4),
-    shift:binshift.range(0,10), interp:0));
-
+	clean = signal;
+	chain = Array.fill(signal.size, {|i| FFT(LocalBuf(2048), signal[i])});
+	signal = IFFT(PV_BinShift(chain, stretch:binshift.range(0.01,4),
+	shift:binshift.range(0,10), interp:0));
 	ReplaceOut.ar(out, signal)
-
 }).add;
 
-/****************************
-SPECTRAL HIGH PASS FILTER
-*****************************/
-
+// Spectral high pass filter
 ~dirt.addModule('spectral-hbrick', { |dirtEvent|
 	dirtEvent.sendSynth('spectral-hbrick' ++ ~dirt.numChannels,
 		[
@@ -322,28 +261,18 @@ SPECTRAL HIGH PASS FILTER
 			out: ~out
 		]
 	)
-}, { ~hbrick.notNil}); // play synth only if at least one of the two was given
+}, { ~hbrick.notNil });
 
 SynthDef("spectral-hbrick" ++ ~dirt.numChannels, { |out, hbrick, sustain|
-
 	var signal, chain, in, clean, teeth=256;
-
 	signal = In.ar(out, ~dirt.numChannels);
-
-    clean = signal;
-
-    chain = Array.fill(signal.size, {|i| FFT(LocalBuf(2048), signal[i])});
-
-    signal = IFFT(PV_BrickWall(chain, wipe:hbrick));
-
+	clean = signal;
+	chain = Array.fill(signal.size, {|i| FFT(LocalBuf(2048), signal[i])});
+	signal = IFFT(PV_BrickWall(chain, wipe:hbrick*0.6)); // Signal almost disappears around 0.5 therefore it's scaled a bit
 	ReplaceOut.ar(out, signal)
-
 }).add;
 
-/****************************
-    SPECTRAL LOW PASS FILTER
-*****************************/
-
+// Spectral low pass filter
 ~dirt.addModule('spectral-lbrick', { |dirtEvent|
 	dirtEvent.sendSynth('spectral-lbrick' ++ ~dirt.numChannels,
 		[
@@ -352,28 +281,19 @@ SynthDef("spectral-hbrick" ++ ~dirt.numChannels, { |out, hbrick, sustain|
 			out: ~out
 		]
 	)
-}, { ~lbrick.notNil}); // play synth only if at least one of the two was given
+}, { ~lbrick.notNil });
 
 SynthDef("spectral-lbrick" ++ ~dirt.numChannels, { |out, lbrick, sustain|
-
 	var signal, chain, in, clean, teeth=256;
-
 	signal = In.ar(out, ~dirt.numChannels);
-
-    clean = signal;
-
-    chain = Array.fill(signal.size, {|i| FFT(LocalBuf(2048), signal[i])});
-
-    signal = IFFT(PV_BrickWall(chain, wipe:lbrick.range(0,-1)));
-
+	clean = signal;
+	chain = Array.fill(signal.size, {|i| FFT(LocalBuf(2048), signal[i])});
+	// lbrick parameter scaled to negative range to activate lopass filter (see ugen help file)
+	signal = IFFT(PV_BrickWall(chain, wipe:lbrick.linlin(0.0,1.0,0.0,(-1.0))));
 	ReplaceOut.ar(out, signal)
-
 }).add;
 
-/****************************
-    Conformer
-*****************************/
-
+// Conformer
 ~dirt.addModule('spectral-conformer', { |dirtEvent|
 	dirtEvent.sendSynth('spectral-conformer' ++ ~dirt.numChannels,
 		[
@@ -382,60 +302,40 @@ SynthDef("spectral-lbrick" ++ ~dirt.numChannels, { |out, lbrick, sustain|
 			out: ~out
 		]
 	)
-}, { ~real.notNil or: ~imag.notNil}); // play synth only if at least one of the two was given
+}, { ~real.notNil or: ~imag.notNil });
 
 SynthDef("spectral-conformer" ++ ~dirt.numChannels, { |out, real=0.5, imag=0.5, sustain|
-
 	var signal, chain, in, clean, teeth=256;
-
 	signal = In.ar(out, ~dirt.numChannels);
-
-    clean = signal;
-
-    chain = Array.fill(signal.size, {|i| FFT(LocalBuf(2048), signal[i])});
-
-    signal = IFFT(
+	clean = signal;
+	chain = Array.fill(signal.size, {|i| FFT(LocalBuf(2048), signal[i])});
+	signal = IFFT(
 		PV_ConformalMap(chain, real.linlin(0.0,1.0,0.01,2.0), imag.linlin(0.00,1.0,0.01,10.0))
 	).tanh;
-
 	ReplaceOut.ar(out, signal)
-
 }).add;
 
-
-/****************************
-   Enhance
-*****************************/
-
+// Enhance
 ~dirt.addModule('spectral-enhance', { |dirtEvent|
 	dirtEvent.sendSynth('spectral-enhance' ++ ~dirt.numChannels,
 		[
 			enhance: ~enhance,
-			partials: ~partials,
 			out: ~out
 		]
 	)
-}, { ~enhance.notNil or: ~partials.notNil}); // play synth only if at least one of the two was given
+}, { ~enhance.notNil });
 
-SynthDef("spectral-enhance" ++ ~dirt.numChannels, { |out, enhance=0.5, partials=0.5, sustain|
-
+SynthDef("spectral-enhance" ++ ~dirt.numChannels, { |out, enhance=0.5, sustain|
 	var signal, chain, in, clean, teeth=256;
-
 	signal = In.ar(out, ~dirt.numChannels);
-
-    clean = signal;
-
-    chain = Array.fill(signal.size, {|i| FFT(LocalBuf(2048), signal[i])});
-
+	clean = signal;
+	chain = Array.fill(signal.size, {|i| FFT(LocalBuf(2048), signal[i])});
 	signal = IFFT(
 		PV_SpectralEnhance(chain,
-			partials.linlin(0.0,1.0, 1, 16),
+			enhance.linlin(0.0,1.0, 1, 16),
 			enhance.linlin(0.0,1.0,1.0,5.0),
 			enhance.linlin(0.0,1.0,0.0,0.99))
 		).tanh;
-
 	ReplaceOut.ar(out, signal)
-
 }).add;
-
 )
