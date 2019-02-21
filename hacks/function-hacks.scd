@@ -5,25 +5,74 @@ This assumes you have stored dirt in a variable ~dirt, andyour first dirt bus in
 
 NOTE: The interface for this may change!
 
+
 */
 
 // d1 $ sound "tlalak bd*5 sn" |+| vowel "a e"
 
+
+// Note that you may want to first try
+// to simply use the addSynth(name, event) schema:
+
+~dirt.soundLibrary.addSynth(\test, (play: { "////////////// do whatever \\\\\\\\\\\\\\\\".postln }));
+
+// test it either with tidal
+// or from here:
+(type:\dirt, dirt: ~dirt, s: \test).play;
+
+
+/*
+
+But you can also divert more fundamentally.
+
+*/
+
+
+// simple example.
+// execute arbitrary code
+~dirt.orbits[0].defaultParentEvent[\diversion] = { "\n*** now just this happens. *** \n".postln; };
+
+// test it either with tidal
+// or from here:
+(type:\dirt, dirt: ~dirt).play;
+
+// you can pull out parameters:
+~dirt.orbits[0].defaultParentEvent[\diversion] = { "\n***".postln; ~s.postln };
+
+(type:\dirt, s:\cp, dirt: ~dirt).play;
+
+
+// but it is not very useful like this
+// you may prefer to divert only for specific sound values (values of # sound)
+
 (
 var diversions = ();  // make a dictionary of functions
 ~diversions = diversions; // make it available out of scope
+// use the "diversion" key as a hook for playing the synth
+// return nil (unless you want the default action to also happen)
+~d1.defaultParentEvent[\diversion] = { diversions[~s].value };
+)
+
+// now you can populate the dictionary with specific diversions.
+// say you want to divert the sound tlalak:
+
+(
 ~diversions[\tlalak] = {
 	"hello tlalak".postln;
 };
-// use the "diversion" key as a hook for playing the synth
-~d1.defaultParentEvent[\diversion] = { diversions[~sound].value };
-)
+~diversions[\patatl] = {
+	"hello potato 0oOoOOoOoO0".postln;
+}
+);
+
+(type:\dirt, s:\tlalak, dirt: ~dirt).play;
+(type:\dirt, s:\patatl, dirt: ~dirt).play;
 
 // execute arbitrary sc code
 // you can livecode this
 (
 ~diversions[\tlalak]  = {
-	Pfindur(~sustain,
+	Pfindur(~sustain ? 1,
 		Pbind(
 			\dur, 0.04,
 			\note, Pbrown(-15, 15 ! 5, 0.3, inf) + 16,
@@ -34,30 +83,14 @@ var diversions = ();  // make a dictionary of functions
 )
 
 
-// take it out again.
+(type:\dirt, s:\tlalak, dirt: ~dirt, out: 0, sustain: 2).play;
+
+
+
+// take them out again.
 ~diversions[\tlalak]  = nil;
+~diversions[\patatl]  = nil;
 
 
-/*
 
-forward midi
-(untested!)
-
-*/
-
-MIDIClient.init;
-
-(
-var midiOut = MIDIOut(0);
-var chan = 16;
-
-~diversions[\midi]  = {
-	var note = ~speed.ratiomidi + 60;
-	var vel = ~amp * 128;
-	midiOut.noteOn(chan, note, vel)
-	SystemClock.sched(~sustain, {
-		midiOut.noteOff(chan, note, vel);
-	}
-};
-)
 
