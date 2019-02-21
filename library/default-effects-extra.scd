@@ -248,7 +248,7 @@ SynthDef("spectral-binshift" ++ ~dirt.numChannels, { |out, binshift, sustain|
 	clean = signal;
 	chain = Array.fill(signal.size, {|i| FFT(LocalBuf(2048), signal[i])});
 	signal = IFFT(PV_BinShift(chain, stretch: binshift.linlin(0.0,1.0,0.01,4.0),
-	shift:binshift.poll * 10, interp:1));
+	shift:binshift * 10, interp:1));
 	ReplaceOut.ar(out, signal)
 }).add;
 
