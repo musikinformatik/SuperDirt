@@ -161,7 +161,7 @@ they respond to the existence of a value for one of the tidal parameters
 
 ~dirt.addModule('envelope',
 	{ |dirtEvent|
-		dirtEvent.sendSynth('dirt_envelope' ++ ~dirt.numChannels,
+		dirtEvent.sendSynth('dirt_envelope' ++ ~numChannels,
 			[
 				attack: ~attack,
 				hold: ~hold,
