@@ -10,11 +10,13 @@
 (
 Tdef(\control_tidal, {
 
-	(1..99).do { |x|
-		~addr.sendMsg("/ctrl", "hello", x);
+	inf.do { |x|
+		~addr.sendMsg("/ctrl", "hello", x % 8);
 		0.5.rand.wait
 	}
 
-})
+}).play
 )
 
+// in tidal
+d1 $ slow (0.125) $ sound "can" # n (cF 1 "hello")
