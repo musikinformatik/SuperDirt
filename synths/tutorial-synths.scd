@@ -57,7 +57,7 @@ SynthDef(\tutorial4, {|out, sustain=1, pan, accelerate, freq |
 // (there may be a built-in way to do this in the near future, for now treat this as an example of how to
 // add your own parameter)
 // we'll make a new "f" parameter instead of "n"
-// to do this, we first need to this in Tidal: let (f, f_p) = pF "f" (Just 440)
+// to do this, we first need to this in Tidal: let f = pF "f"
 // then "f" is usable as an argument to the synthdef, and in Tidal you can try
 // d1 $ s "tutorial5/2" # f "[550,555]"
 (
