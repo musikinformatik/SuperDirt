@@ -89,16 +89,15 @@ they respond to the existence of a value for one of the tidal parameters
 ~dirt.addModule('map_from',
 	{ |dirtEvent|
 		var busses = ~dirt.audioRoutingBusses;
-		var bus = busses.wrapAt(~from.asInteger);
+		var bus = if(~from.isNil) { busses.at(0) } { busses.wrapAt(~from.asInteger) };
 		~server.sendMsg(
 			"/n_mapan",
 			~synthGroup,
 			~toArg,
-			//bus.asMap
 			bus.index,
 			~dirt.numChannels
-		);
-}, { ~from.notNil and: { ~toArg.notNil } });
+		)
+}, { ~toArg.notNil });
 
 
 
@@ -226,12 +225,5 @@ they respond to the existence of a value for one of the tidal parameters
 				out: ~out
 		])
 }, { ~phaserrate.notNil });
-
-// must be last
-
-~dirt.addModule('silence',
-	{ |dirtEvent|
-		dirtEvent.sendSynth("dirt_silence" ++ ~numChannels, [out: ~out])
-}, { ~psst.notNil });
 
 );
