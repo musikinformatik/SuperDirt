@@ -12,6 +12,9 @@ If your SuperDirt instance is assigned to the variable ~dirt, you can livecode t
 
 (
 
+
+
+
 // modulated band limited impulse
 (
 SynthDef(\imp, { |out, sustain = 1, freq = 440, speed = 1, begin=0, end=1, pan, accelerate, offset|
@@ -71,6 +74,29 @@ SynthDef(\in, { |out, sustain = 1, speed = 1, begin = 0, end = 1, pan, accelerat
 	)
 }).add
 );
+
+// read input from nth routing bus
+// see also: effect "to"
+(
+SynthDef(\dirt_from, { |out, sustain = 1, in, pan|
+	var sound;
+	sound = InFeedback.ar(in, ~dirt.numChannels).poll;
+	Out.ar(out,
+		DirtPan.ar(sound, ~dirt.numChannels, pan)
+	)
+}).add;
+
+~dirt.soundLibrary.addSynth(\from,
+	(
+		instrument: \dirt_from,
+		in: {
+			~dirt.audioRoutingBusses.wrapAt(~from ? 0).index
+		}
+	)
+)
+);
+
+
 
 // pitch shifted live audio input
 (

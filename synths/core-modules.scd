@@ -67,6 +67,41 @@ these function as effects on the input of the synth or sample (see SynthDefs in 
 they respond to the existence of a value for one of the tidal parameters
 */
 
+
+~dirt.addModule('out_to',
+	{ |dirtEvent|
+		var busses = ~dirt.audioRoutingBusses;
+		var bus = busses.wrapAt(~to.asInteger);
+		dirtEvent.sendSynth("dirt_out" ++ ~numChannels,
+			[
+				to: bus.index,
+				out: ~out
+			]
+		)
+}, { ~to.notNil });
+
+
+
+// # from 3 # toArg "freq"
+// synth needs to have an audio rate control.
+// it would be nice to be able to map several arguments
+
+~dirt.addModule('map_from',
+	{ |dirtEvent|
+		var busses = ~dirt.audioRoutingBusses;
+		var bus = busses.wrapAt(~from.asInteger);
+		~server.sendMsg(
+			"/n_mapan",
+			~synthGroup,
+			~toArg,
+			//bus.asMap
+			bus.index,
+			~dirt.numChannels
+		);
+}, { ~from.notNil and: { ~toArg.notNil } });
+
+
+
 ~dirt.addModule('vowel',
 	{ |dirtEvent|
 		var vowel = ~dirt.vowels[~vowel];
@@ -191,5 +226,12 @@ they respond to the existence of a value for one of the tidal parameters
 				out: ~out
 		])
 }, { ~phaserrate.notNil });
+
+// must be last
+
+~dirt.addModule('silence',
+	{ |dirtEvent|
+		dirtEvent.sendSynth("dirt_silence" ++ ~numChannels, [out: ~out])
+}, { ~psst.notNil });
 
 );

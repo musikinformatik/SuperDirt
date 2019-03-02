@@ -72,6 +72,23 @@ live coding them requires that you have your SuperDirt instance in an environmen
 	}, [\ir, \ir, \ir, \ir, \ir, \ir]).add;
 
 
+	/*
+
+	Internal Signal Routing Synths
+
+	*/
+
+	SynthDef("dirt_out" ++ numChannels, { |out, to, sustain = 1, fadeInTime = 0.001, fadeTime = 0.001, amp = 1|
+		var signal = In.ar(out, numChannels);
+		var env = EnvGen.ar(Env([0, 1, 1, 0], [fadeInTime, sustain, fadeTime], \sin), levelScale: amp);
+		Out.ar(to, signal * env);
+	}, [\ir, \ir]).add;
+
+	SynthDef("dirt_silence" ++ numChannels, { |out|
+		ReplaceOut.ar(out, Silent.ar(numChannels))
+	}, [\ir, \ir]).add;
+
+
 
 	/*
 
@@ -79,6 +96,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 	These per-sample-effects are freed after Monitor envelope has ended
 
 	*/
+
 
 	SynthDef("dirt_vowel" ++ numChannels, { |out, resonance = 0.5, cutoff = 0|
 		var voweled, signal, vowelFreqs, vowelAmps, vowelRqs;
