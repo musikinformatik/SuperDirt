@@ -382,35 +382,32 @@ DEFAULT EFFECTS EXTRA
 	}, [\ir, \ir]).add;
 
 
-    // DJ filter, a low pass filter for the first half of the range, and a high pass for the rest.
-    ~dirt.addModule('dj-filter', { |dirtEvent|
-    	dirtEvent.sendSynth('dj-filter' ++ ~dirt.numChannels,
-	    	// OPTIONAL
-	    	// passing this array of parameters could be left out,
-	    	// but it makes it clear what happens
-	    	[
-	    		dj: ~dj,
-	    		out: ~out
-	    	]
-    	)
-    }, { ~dj.notNil});
+	// DJ filter, a low pass filter for the first half of the range, and a high pass for the rest.
+	~dirt.addModule('dj-filter', { |dirtEvent|
+		dirtEvent.sendSynth('dj-filter' ++ ~dirt.numChannels,
+		// OPTIONAL
+		// passing this array of parameters could be left out,
+		// but it makes it clear what happens
+		[
+			djf: ~djf,
+			out: ~out
+		]
+	)}, { ~djf.notNil});
 
-    SynthDef("dj-filter" ++ ~dirt.numChannels, { |out, dj|
-    	var signal;
-        var lpfCutoff = (dj*2) min: 1;
-        var hpfCutoff = ((dj-0.5) max: 0)*2;
-        var freqSpec = ControlSpec(20, 10000, 'exp', 0, 440, " Hz");
-    
-	    signal = In.ar(out, ~dirt.numChannels);
-    
-        signal = RHPF.ar(
-                    RLPF.ar(
-                        signal,
-                        freqSpec.map(lpfCutoff)
-                    ),
-                    freqSpec.map(hpfCutoff)
-                );
-	    ReplaceOut.ar(out, signal)
-    }).add;
+	SynthDef("dj-filter" ++ ~dirt.numChannels, { |out, djf|
+		var signal;
+		var lpfCutoffFreq = djf.linexp(0, 0.5, 20, 10000);
+		var hpfCutoffFreq = djf.linexp(0.5, 1, 20, 10000);
 
+		signal = In.ar(out, ~dirt.numChannels);
+
+		signal = RHPF.ar(
+			RLPF.ar(
+				signal,
+				lpfCutoffFreq
+			),
+			hpfCutoffFreq
+		);
+		ReplaceOut.ar(out, signal)
+	}).add;
 )
