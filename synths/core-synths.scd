@@ -84,12 +84,6 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		Out.ar(to, signal * env);
 	}, [\ir, \ir]).add;
 
-	SynthDef("dirt_silence" ++ numChannels, { |out|
-		ReplaceOut.ar(out, Silent.ar(numChannels))
-	}, [\ir, \ir]).add;
-
-
-
 	/*
 
 	Effect SynthDefs
