@@ -380,4 +380,34 @@ DEFAULT EFFECTS EXTRA
 			).tanh; // .tanh is used as a crude limiter here beacause sometimes this ugen goes crazy
 		ReplaceOut.ar(out, signal)
 	}, [\ir, \ir]).add;
+
+
+	// DJ filter, a low pass filter for the first half of the range, and a high pass for the rest.
+	~dirt.addModule('dj-filter', { |dirtEvent|
+		dirtEvent.sendSynth('dj-filter' ++ ~dirt.numChannels,
+		// OPTIONAL
+		// passing this array of parameters could be left out,
+		// but it makes it clear what happens
+		[
+			djf: ~djf,
+			out: ~out
+		]
+	)}, { ~djf.notNil});
+
+	SynthDef("dj-filter" ++ ~dirt.numChannels, { |out, djf|
+		var signal;
+		var lpfCutoffFreq = djf.linexp(0, 0.5, 20, 10000);
+		var hpfCutoffFreq = djf.linexp(0.5, 1, 20, 10000);
+
+		signal = In.ar(out, ~dirt.numChannels);
+
+		signal = RHPF.ar(
+			RLPF.ar(
+				signal,
+				lpfCutoffFreq
+			),
+			hpfCutoffFreq
+		);
+		ReplaceOut.ar(out, signal)
+	}).add;
 )
