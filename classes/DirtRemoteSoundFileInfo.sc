@@ -31,7 +31,7 @@ DirtRemoteSoundfileInfo {
 				var bufnum = event[\buffer];
 				if(bufnum.notNil) {
 					info = info.add(key);
-					info = info.add(event[\numFrames]);
+					info = info.add(event[\bufNumFrames]);
 					info = info.add(event[\bufNumChannels]);
 					info = info.add(bufnum);
 				};
@@ -43,9 +43,9 @@ DirtRemoteSoundfileInfo {
 	convertInfoToBuffers { |info|
 		var buffers = Array.new(512);
 		info.clump(4).do { |data|
-			var key, numFrames, bufNumChannels, bufnum, buf;
-			# key, numFrames, bufNumChannels, bufnum = data;
-			buf = Buffer(nil, numFrames, bufNumChannels, bufnum);
+			var key, bufNumFrames, bufNumChannels, bufnum, buf;
+			# key, bufNumFrames, bufNumChannels, bufnum = data;
+			buf = Buffer(nil, bufNumFrames, bufNumChannels, bufnum);
 			buffers = buffers.add(key.asSymbol);
 			buffers = buffers.add(buf);
 		};

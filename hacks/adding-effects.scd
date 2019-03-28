@@ -20,29 +20,13 @@ This assumes you have an instance of SuperDirt accessible via ~dirt
 // (1) in  Sound/Tidal/Params.hs
 // this adds two new  parameters "tsdelay" (float, delay time) and "xsdelay" (int, delay structure)
 
+// ... run this tidal code (or put it in your tidal boot script):
 /*
 
-tsdelay :: Pattern Double -> ParamPattern
-tsdelay = make' VF tsdelay_p
-tsdelay_p = F "tsdelay" Nothing
-
-xsdelay :: Pattern Int -> ParamPattern
-xsdelay = make' VI xsdelay_p
-xsdelay_p = I "xsdelay" Nothing
+let tsdelay = pF "tsdelay"
+    xsdelay = pI "xsdelay"
 
 */
-
-// ... or you can run this in the interpreter:
-/*
-
-let tsdelay = make' VF tsdelay_p
-    tsdelay_p = F "tsdelay" Nothing
-
-let xsdelay = make' VI xsdelay_p
-    xsdelay_p = I "xsdelay" Nothing
-*/
-
-
 
 // in SuperCollider
 
