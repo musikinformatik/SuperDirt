@@ -77,12 +77,12 @@ DirtEventTypes {
 					if(latency == 0.0) {
 						midiout.performList(midicmd, args)
 					} {
-						thisThread.clock.sched(latency, {
+						SystemClock.sched(latency, {
 							midiout.performList(midicmd, args);
 						})
 					};
 					if(hasGate and: { midicmd === \noteOn }) {
-						thisThread.clock.sched(sustain + latency, {
+						SystemClock.sched(sustain + latency, {
 							midiout.noteOff(*args)
 						});
 					}
