@@ -129,7 +129,7 @@ CORE SYNTHDEFS FOR DIRT
 	// thanks to Jost Muxfeld and James McCartney
 	// note that "size" is not room size, just the feed level into the room
 
-	SynthDef("dirt_reverb" ++ numChannels, { |dryBus, effectBus, gate = 1, room = 0, size = 0.1, dry = 0|
+	SynthDef("dirt_reverb" ++ numChannels, { |dryBus, effectBus, gate = 1, room = 0, size = 0.1, dry = 0, reverbPan = 0.5|
 		var in, snd, loop, depth;
 
 		in = In.ar(dryBus, numChannels).asArray.sum;
@@ -159,6 +159,7 @@ CORE SYNTHDEFS FOR DIRT
 
 		snd = snd * EnvGen.kr(Env.asr, gate, doneAction:2);
 
+    snd = Balance2.ar(snd[0], snd[1], (reverbPan * 2) - 1);
 		Out.ar(effectBus, snd);
 
 	}, [\ir, \ir]).add;
