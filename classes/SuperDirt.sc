@@ -15,9 +15,10 @@ SuperDirt {
 	var <soundLibrary, <vowels;
 	var <>orbits;
 	var <>modules;
+	var <>audioRoutingBusses;
 
 	var <port, <senderAddr, <replyAddr, netResponders;
-	var <>receiveAction, <>warnOutOfOrbit = true, <>maxLatency = 42;
+	var <>receiveAction, <>warnOutOfOrbit = true, <>maxLatency = 42, <>numRoutingBusses = 16;
 
 	classvar <>default, <>maxSampleNumChannels = 2, <>postBadValues = false;
 
@@ -30,6 +31,7 @@ SuperDirt {
 		modules = [];
 		this.loadSynthDefs;
 		this.initVowels(\counterTenor);
+		this.initRoutingBusses;
 	}
 
 
@@ -50,6 +52,10 @@ SuperDirt {
 		new = outBusses.asArray.collect { |bus, i| DirtOrbit(this, bus, i + i0) };
 		orbits = orbits ++ new;
 		^new.unbubble
+	}
+
+	initRoutingBusses {
+		audioRoutingBusses = { Bus.audio(server, numChannels) }.dup(numRoutingBusses)
 	}
 
 	set { |...pairs|

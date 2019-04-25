@@ -242,7 +242,7 @@ DirtSoundLibrary {
 		^(
 			buffer: buffer.bufnum,
 			instrument: this.instrumentForBuffer(buffer),
-			numFrames: buffer.numFrames,
+			bufNumFrames: buffer.numFrames,
 			bufNumChannels: buffer.numChannels,
 			unitDuration: { buffer.duration * baseFreq / ~freq.value },
 			hash: buffer.identityHash,
