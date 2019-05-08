@@ -51,10 +51,10 @@
 
 // waveguide mesh, hexagonal drum-like membrane
 (
-	SynthDef(\superhex,{|out, speed=1, sustain=1, pan, freq, accelerate |
+	SynthDef(\superhex,{|out, rate=1, sustain=1, pan, freq, accelerate |
 		var env = EnvGen.ar(Env.linen(0.02, 0.96, 0.02, 1,-3), timeScale:sustain, doneAction:2);
 		var tension = 0.05*freq/400 * Line.kr(1,accelerate+1, sustain);
-		var loss = 1.0 - (0.01 * speed / freq);
+		var loss = 1.0 - (0.01 * rate / freq);
 		var sound = MembraneHexagon.ar(Decay.ar(Impulse.ar(0,0,1), 0.01), tension, loss);
 		OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env))
 	}).add
@@ -79,15 +79,15 @@
 
 
 // A vaguely 808-ish kick drum
-// "n" controls the chirp frequency, "sustain" the overall timescale, "speed" the filter sweep speed,
+// "n" controls the chirp frequency, "sustain" the overall timescale, "rate" the filter sweep speed,
 // and "voice" the sinewave feedback
 (
-	SynthDef(\super808, {|out, speed=1, sustain=1, pan, voice=0, n |
+	SynthDef(\super808, {|out, rate=1, sustain=1, pan, voice=0, n |
 		var env, sound, freq;
 		n = ((n>0)*n) + ((n<1)*3);
 		freq = (n*10).midicps;
 		env = EnvGen.ar(Env.linen(0.01, 0, 1, 1, -3), timeScale:sustain, doneAction:2);
-		sound = LPF.ar(SinOscFB.ar(XLine.ar(freq.expexp(10, 2000, 1000, 8000), freq, 0.025/speed), voice), 9000);
+		sound = LPF.ar(SinOscFB.ar(XLine.ar(freq.expexp(10, 2000, 1000, 8000), freq, 0.025/rate), voice), 9000);
 		OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env))
 	}).add
 );
@@ -127,15 +127,15 @@
 
 // Hand clap using Rumble-San's implementation as a starting point
 // http://blog.rumblesan.com/post/53271713909/drum-sounds-in-supercollider-part-2
-// "delay" controls the echo delay, "speed" will affect the decay time, "n" changes how spread is calculated
+// "delay" controls the echo delay, "rate" will affect the decay time, "n" changes how spread is calculated
 // "pitch1" will scale the bandpass frequency, and "sustain" the overall timescale
 (
-	SynthDef(\superclap, {|out, speed=1, sustain=1, pan, n, delay=1, pitch1=1 |
+	SynthDef(\superclap, {|out, rate=1, sustain=1, pan, n, delay=1, pitch1=1 |
 		var env, sound;
 		var spr = 0.005 * delay;
 		env = EnvGen.ar(Env.linen(0.01, 0, 0.6, 1, -3), timeScale:sustain, doneAction:2);
 		sound = BPF.ar(LPF.ar(WhiteNoise.ar(1), 7500*pitch1), 1500*pitch1);
-		sound = Mix.arFill(4, {arg i; sound * 0.5 * EnvGen.ar(Env.new([0,0,1,0],[spr*(i**(n.clip(0,5)+1)),0,0.04/speed]))});
+		sound = Mix.arFill(4, {arg i; sound * 0.5 * EnvGen.ar(Env.new([0,0,1,0],[spr*(i**(n.clip(0,5)+1)),0,0.04/rate]))});
 		OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env))
 	}).add
 );
@@ -161,7 +161,7 @@
 // accelerate(0) - pitch glide
 // semitone(12) - how far off in pitch the secondary oscillator is (need not be integer)
 // pitch1(1) - filter frequency scaling multiplier, the frequency itself follows the pitch set by "n"
-// speed(1)- LFO rate
+// rate(1)- LFO rate
 // lfo(1) - how much the LFO affects the filter frequency
 // resonance(0.2) - filter resonance
 // voice(0.5) - depends on the individual synth
@@ -169,7 +169,7 @@
 // a moog-inspired square-wave synth; variable-width pulses with filter frequency modulated by an LFO
 // "voice" controls the pulse width (exactly zero or one will make no sound)
 (
-	SynthDef(\supersquare, {|out, speed=1, decay=0, sustain=1, pan, accelerate, freq,
+	SynthDef(\supersquare, {|out, rate=1, decay=0, sustain=1, pan, accelerate, freq,
 		voice=0.5, semitone=12, resonance=0.2, lfo=1, pitch1=1|
 		var env = EnvGen.ar(Env.pairs([[0,0],[0.05,1],[0.2,1-decay],[0.95,1-decay],[1,0]], -3), timeScale:sustain, doneAction:2);
 		var basefreq = freq* Line.kr(1, 1+accelerate, sustain);
@@ -179,7 +179,7 @@
 		var sound = (0.7 * Pulse.ar(basefreq, voice)) + (0.3 * Pulse.ar(basefreq2, voice));
 		sound = MoogFF.ar(
 			sound,
-			SinOsc.ar(basefreq/64*speed, 0).range(lfof1,lfof2),
+			SinOsc.ar(basefreq/64*rate, 0).range(lfof1,lfof2),
 			resonance*4);
 		sound = sound.tanh * 2;
 		OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
@@ -190,7 +190,7 @@
 // a moog-inspired sawtooth synth; slightly detuned saws with triangle harmonics, filter frequency modulated by LFO
 // "voice" controls a relative phase and detune amount
 (
-	SynthDef(\supersaw, {|out, speed=1, decay=0, sustain=1, pan, accelerate, freq,
+	SynthDef(\supersaw, {|out, rate=1, decay=0, sustain=1, pan, accelerate, freq,
 		voice=0.5, semitone=12, resonance=0.2, lfo=1, pitch1=1|
 		var env = EnvGen.ar(Env.pairs([[0,0],[0.05,1],[0.2,1-decay],[0.95,1-decay],[1,0]], -3), timeScale:sustain, doneAction:2);
 		var basefreq = freq * Line.kr(1, 1+accelerate, sustain);
@@ -199,7 +199,7 @@
 		var lfof2 = min(lfof1 * (lfo + 1), 22000);
 		var sound = MoogFF.ar(
 			(0.5 * Mix.arFill(3, {|i|  SawDPW.ar(basefreq * ((i-1)*voice/50+1), 0)})) + (0.5 * LFTri.ar(basefreq2, voice)),
-			LFTri.ar(basefreq/64*speed, 0.5).range(lfof1,lfof2),
+			LFTri.ar(basefreq/64*rate, 0.5).range(lfof1,lfof2),
 			resonance*4);
 		sound = sound.tanh*2;
 		OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
@@ -210,17 +210,17 @@
 // a moog-inspired PWM synth; pulses multiplied by phase-shifted pulses, double filtering with an envelope on the second
 // "voice" controls the phase shift rate
 (
-	SynthDef(\superpwm, {|out, speed=1, decay=0, sustain=1, pan, accelerate, freq,
+	SynthDef(\superpwm, {|out, rate=1, decay=0, sustain=1, pan, accelerate, freq,
 		voice=0.5, semitone=12, resonance=0.2, lfo=1, pitch1=1|
 		var env = EnvGen.ar(Env.pairs([[0,0],[0.05,1],[0.2,1-decay],[0.95,1-decay],[1,0]], -3), timeScale:sustain, doneAction:2);
-		var env2 = EnvGen.ar(Env.pairs([[0,0.1],[0.1,1],[0.4,0.5],[0.9,0.2],[1,0.2]], -3), timeScale:sustain/speed);
+		var env2 = EnvGen.ar(Env.pairs([[0,0.1],[0.1,1],[0.4,0.5],[0.9,0.2],[1,0.2]], -3), timeScale:sustain/rate);
 		var basefreq = freq * Line.kr(1, 1+accelerate, sustain);
 		var basefreq2 = basefreq / (2**(semitone/12));
 		var lfof1 = min(basefreq*10*pitch1, 22000);
 		var lfof2 = min(lfof1 * (lfo + 1), 22000);
 		var sound = 0.7 * PulseDPW.ar(basefreq) * DelayC.ar(PulseDPW.ar(basefreq), 0.2, Line.kr(0,voice,sustain)/basefreq);
 		sound = 0.3 * PulseDPW.ar(basefreq2) * DelayC.ar(PulseDPW.ar(basefreq2), 0.2, Line.kr(0.1,0.1+voice,sustain)/basefreq) + sound;
-		sound = MoogFF.ar(sound, SinOsc.ar(basefreq/32*speed, 0).range(lfof1,lfof2), resonance*4);
+		sound = MoogFF.ar(sound, SinOsc.ar(basefreq/32*rate, 0).range(lfof1,lfof2), resonance*4);
 		sound = MoogFF.ar(sound, min(env2*lfof2*1.1, 22000), 3);
 		sound = sound.tanh*5;
 		OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
@@ -230,7 +230,7 @@
 
 // "voice" scales the comparator frequencies, higher values will sound "breathier"
 (
-	SynthDef(\supercomparator, {|out, speed=1, decay=0, sustain=1, pan, accelerate, freq,
+	SynthDef(\supercomparator, {|out, rate=1, decay=0, sustain=1, pan, accelerate, freq,
 		voice=0.5, resonance=0.5, lfo=1, pitch1=1|
 		var env = EnvGen.ar(Env.pairs([[0,0],[0.05,1],[0.2,1-decay],[0.95,1-decay],[1,0]], -3), timeScale:sustain, doneAction:2);
 		var basefreq = freq * Line.kr(1, 1+accelerate, sustain);
@@ -240,7 +240,7 @@
 		sound = Splay.arFill(16, {|i| sound > LFTri.ar(freqlist[i])}, 1);
 		sound = MoogFF.ar(
 			sound,
-			pitch1 * 4 * basefreq + SinOsc.ar(basefreq/64*speed, 0, lfo*basefreq/2) + LFNoise2.ar(1,lfo*basefreq),
+			pitch1 * 4 * basefreq + SinOsc.ar(basefreq/64*rate, 0, lfo*basefreq/2) + LFNoise2.ar(1,lfo*basefreq),
 			LFNoise2.ar(0,0.1,4*resonance));
 		OffsetOut.ar(out, DirtPan.ar(0.5*sound, ~dirt.numChannels, pan, env));
 	}).add
@@ -248,15 +248,15 @@
 
 
 // uses the Atari ST emulation UGen with 3 oscillators
-// "slide" is for a linear frequency glide that will repeat "speed" times (can be fractional or negative)
+// "slide" is for a linear frequency glide that will repeat "rate" times (can be fractional or negative)
 // "accelerate" is for an overall glide,
 // "pitch2" and "pitch3" control the ratio of harmonics
 // "voice" causes variations in the levels of the 3 oscillators
 (
-	SynthDef(\superchip, {|out, sustain=1, pan, freq, speed=1, slide=0, pitch2=2, pitch3=3, accelerate, voice=0|
+	SynthDef(\superchip, {|out, sustain=1, pan, freq, rate=1, slide=0, pitch2=2, pitch3=3, accelerate, voice=0|
 		var env, basefreq, sound, va, vb, vc;
 		env = EnvGen.ar(Env.linen(0.01, 0.98, 0.01,1,-1), timeScale:sustain, doneAction:2);
-		basefreq = freq + wrap2(slide * 100 * Line.kr(-1,1+(2*speed-2),sustain), slide * 100);
+		basefreq = freq + wrap2(slide * 100 * Line.kr(-1,1+(2*rate-2),sustain), slide * 100);
 		basefreq = basefreq * Line.kr(1, accelerate+1, sustain);
 		va = (voice < 0.5) * 15;
 		vb = ((2*voice) % 1 < 0.5) * 15;
@@ -271,16 +271,16 @@
 
 // digital noise in several flavors with a bandpass filter
 // "voice" at 0 is a digital noise for which "n" controls rate, at 1 is Brown+White noise for which "n" controls knee frequency
-// "accelerate" causes glide in n, "speed" will cause it to repeat
+// "accelerate" causes glide in n, "rate" will cause it to repeat
 // "pitch1" scales the bandpass frequency (which tracks "n")
 // "slide" works like accelerate on the bandpass
 // "resonance" is the filter resonance
 (
-	SynthDef(\supernoise, {|out, sustain=1, pan, freq, accelerate, slide=0, pitch1=1, speed=1, resonance=0, voice=0|
+	SynthDef(\supernoise, {|out, sustain=1, pan, freq, accelerate, slide=0, pitch1=1, rate=1, resonance=0, voice=0|
 		var env, basefreq, sound, ffreq, acc;
 		env = EnvGen.ar(Env.linen(0.01, 0.98, 0.01,1,-1), timeScale:sustain, doneAction:2);
 		acc = accelerate * freq * 4;
-		basefreq = freq * 8 + wrap2(acc* Line.kr(-1,1+(2*speed-2), sustain), acc);
+		basefreq = freq * 8 + wrap2(acc* Line.kr(-1,1+(2*rate-2), sustain), acc);
 		ffreq = basefreq*5*pitch1* Line.kr(1,1+slide, sustain);
 		ffreq = clip(ffreq, 60,20000);
 		sound = XFade2.ar( LFDNoise0.ar(basefreq.min(22000), 0.5),
@@ -431,13 +431,13 @@ SynthDef(\superstatic, {|out, sustain=1, pan, freq |
 // responds to accelerate (for pitch glide)
 //                    detune (in Hz, but even small values are quite noticable)
 //                    voice (changes harmonics)
-//                    speed (impulse trigger rate)
+//                    rate  (impulse trigger rate)
 (
-SynthDef(\supergrind, {|out, pan, freq, sustain, accelerate, detune=0, voice=0, speed=1|
+SynthDef(\supergrind, {|out, pan, freq, sustain, accelerate, detune=0, voice=0, rate=1|
 	var env, trig, loop;
 	freq = freq /2 * XLine.ar(1, exp(accelerate), sustain);
 	env = EnvGen.ar(Env.linen(0.1, 0.8, 0.1), timeScale:sustain, doneAction:2);
-	trig = Impulse.kr(speed * Duty.kr(1, 0, Dseq(0.25 ! 3 ++ [2], inf)));
+	trig = Impulse.kr(rate * Duty.kr(1, 0, Dseq(0.25 ! 3 ++ [2], inf)));
 	loop = LocalIn.ar;
 	loop = loop + Impulse.ar(SinOsc.ar(1/4, 0, freq/2, (voice+1.0)*freq));
 	loop = Mix.ar(DelayC.ar(loop + trig, 1, 1/(2*freq+[detune, -1.0*detune])-ControlDur.ir))/2.0;
@@ -453,14 +453,14 @@ SynthDef(\supergrind, {|out, pan, freq, sustain, accelerate, detune=0, voice=0, 
 // responds to accelerate (for pitch glide)
 //                    detune (fractional)
 //                    voice (some subtle shaping and reverb changing)
-//                    speed (impulse trigger rate)
+//                    rate  (impulse trigger rate)
 (
-SynthDef(\superprimes, {|out, pan, freq, sustain, accelerate, speed=1, detune=0, voice=0|
+SynthDef(\superprimes, {|out, pan, freq, sustain, accelerate, rate=1, detune=0, voice=0|
 	var env, sound, primes, trig, phase;
 	freq = freq * XLine.ar(1, exp(accelerate), sustain);
 	env = EnvGen.ar(Env.linen(0.1, 0.6, 0.3), timeScale:sustain, doneAction:2);
 	primes = [2, 3, 5, 7, 11, 13, 17, 19, 23];
-	trig = Impulse.ar(30.0/primes/sustain * speed);
+	trig = Impulse.ar(30.0/primes/sustain * rate);
 	phase = Phasor.kr(trig, 1.0/primes/ControlRate.ir);
 	sound = SinOsc.ar(freq * (1..9)*[1+(detune/12),1-(detune/12)] / 2.0, phase)
     	* LPF.ar(Decay.ar(trig, (primes+3)*sustain/10), voice.linexp(0,2,30,18000));
