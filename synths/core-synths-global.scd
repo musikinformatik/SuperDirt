@@ -182,10 +182,16 @@ CORE SYNTHDEFS FOR DIRT
 		sound2 = HPF.ar(in, 800);
 		sound1 = in - sound2;
 		sound1 = leslie * (1.0 - throb) * sound1;
-		sound1 = Balance2.ar(sound1[0], sound1[1], bal1);
-		sound2 = DelayC.ar(sound2, 1, distance / 343);
-		sound2 = leslie * (1.0 - distance) * sound2;
-		sound2 = Balance2.ar(sound2[0], sound2[1], bal2);
+
+		if (numChannels > 1, {			
+			 sound1 = Balance2.ar(sound1[0], sound1[1], bal1);
+			 sound2 = DelayC.ar(sound2, 1, distance / 343);
+			 sound2 = leslie * (1.0 - distance) * sound2;
+			 sound2 = Balance2.ar(sound2[0], sound2[1], bal2);
+			 } , {
+			 sound2 = DelayC.ar(sound2, 1, distance / 343);
+			 sound2 = leslie * (1.0 - distance) * sound2;
+			 });
 
 		snd = 1.2 * (sound1 + sound2);
 
