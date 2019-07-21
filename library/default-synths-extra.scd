@@ -465,7 +465,8 @@ SynthDef(\superprimes, {|out, pan, freq, sustain, accelerate, speed=1, detune=0,
 	sound = SinOsc.ar(freq * (1..9)*[1+(detune/12),1-(detune/12)] / 2.0, phase)
     	* LPF.ar(Decay.ar(trig, (primes+3)*sustain/10), voice.linexp(0,2,30,18000));
 	sound = GVerb.ar(sound.softclip, 10*voice.linexp(0,5,1,0.01), 10).tanh;
-	OffsetOut.ar(out, DirtPan.ar(0.5*Splay.ar(sound.scramble.flat), ~dirt.numChannels, pan, env));
+	sound = SplayAz.ar(9, sound.flat, center:LFNoise2.kr(sustain).range(0,8));
+	OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
 }).add;
 );
 
@@ -480,13 +481,13 @@ SynthDef(\superwavemechanics, {|out, pan, freq, sustain, accelerate, detune=0, v
 	var env, sound, i, r, d, bwr, sz;
 	freq = freq * XLine.ar(1, exp(accelerate), sustain);
 	env = EnvGen.ar(Env.sine(1.0), timeScale:sustain, doneAction:2);
-	i = (0..7).scramble;
+	i = Array.fill(8, {TIRand.kr(0, 3, Impulse.kr(8))});
 	r = [3,5,8,9]/8;
 	detune = min(detune, 1.5);
 	d = Rand(1.6*i - detune, 1.7*i + detune).round(0.25);
 	sound = Resonz.ar(WhiteNoise.ar(0.5), freq * r * d, 0.01 + voice.linexp(0,1,1e-3,1));
 	sound = HPF.ar(Limiter.ar(55 * GVerb.ar(sound, resonance.linexp(0,1,99,0.1),10) ), 30).sanitize;
-	OffsetOut.ar(out, DirtPan.ar(Splay.ar(sound.flat), ~dirt.numChannels, pan, env));
+	OffsetOut.ar(out, DirtPan.ar(sound.flat, ~dirt.numChannels, pan, env));
 }).add;
 );
 
