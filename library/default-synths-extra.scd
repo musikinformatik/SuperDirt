@@ -481,10 +481,10 @@ SynthDef(\superwavemechanics, {|out, pan, freq, sustain, accelerate, detune=0, v
 	var env, sound, i, r, d, bwr, sz;
 	freq = freq * XLine.ar(1, exp(accelerate), sustain);
 	env = EnvGen.ar(Env.sine(1.0), timeScale:sustain, doneAction:2);
-	i = Array.fill(8, {TIRand.kr(0, 3, Impulse.kr(sustain/8))});
+	i = TIRand.kr(0, 3, Impulse.kr(sustain/8).dup(8));
 	r = [3,5,8,9]/8;
 	detune = min(detune, 1.5);
-	d = TRand.ar(1.6*i - detune, 1.7*i + detune, Impulse.ar(0)).round(0.25);
+	d = Rand(1.6*i - detune, 1.7*i + detune).round(0.25);
 	sound = Resonz.ar(WhiteNoise.ar(0.5), freq * r * d, 0.01 + voice.linexp(0,1,1e-3,1));
 	sound = HPF.ar(Limiter.ar(55 * GVerb.ar(sound, resonance.linexp(0,1,99,0.1),10) ), 30).sanitize;
 	OffsetOut.ar(out, DirtPan.ar(sound.flat, ~dirt.numChannels, pan, env));
