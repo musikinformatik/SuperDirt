@@ -75,7 +75,7 @@ CORE SYNTHDEFS FOR DIRT
 
 	if(\SwitchDelay.asClass.notNil) {
 
-		SynthDef("dirt_delay" ++ numChannels, { |dryBus, effectBus, gate = 1, delaytime, delayfeedback, delaySend = 1, delayAmp = 1, lock = 0, cps = 1|
+		SynthDef("dirt_delay" ++ numChannels, { |dryBus, effectBus, gate = 1, delaytime, delayfeedback, delaySend = 1, delayAmp = 1, lock = 0, cps|
 			var signal;
 			var input = In.ar(dryBus, numChannels);
 			var maxDelayTime = 4;
@@ -104,7 +104,7 @@ CORE SYNTHDEFS FOR DIRT
 		"\n\n ---- SC3-Plugins not found. This is not a problem."
 		"Note that we are using a comb delay, which may not sound the same as SwitchDelay from the plugins".postln;
 
-		SynthDef("dirt_delay" ++ numChannels, { |dryBus, effectBus, gate = 1, delaytime, delayfeedback, delayAmp = 1, lock = 0, cps = 1|
+		SynthDef("dirt_delay" ++ numChannels, { |dryBus, effectBus, gate = 1, delaytime, delayfeedback, delayAmp = 1, lock = 0, cps|
 			var signal = In.ar(dryBus, numChannels);
 			var maxDelayTime = 4;
 			var decayTime;
