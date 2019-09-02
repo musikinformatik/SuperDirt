@@ -183,23 +183,23 @@ CORE SYNTHDEFS FOR DIRT
 		sound1 = in - sound2;
 		sound1 = leslie * (1.0 - throb) * sound1;
 
-		if (numChannels > 1, {			
-			 sound1 = Balance2.ar(sound1[0], sound1[1], bal1);
-			 sound2 = DelayC.ar(sound2, 1, distance / 343);
-			 sound2 = leslie * (1.0 - distance) * sound2;
-			 sound2 = Balance2.ar(sound2[0], sound2[1], bal2);
-			 } , {
-			 sound2 = DelayC.ar(sound2, 1, distance / 343);
-			 sound2 = leslie * (1.0 - distance) * sound2;
-			 });
-
+		if (numChannels > 1, {
+		sound1 = Balance2.ar(sound1[0], sound1[1], bal1);
+		sound2 = DelayC.ar(sound2, 1, distance / 343);
+		sound2 = leslie * (1.0 - distance) * sound2;
+		sound2 = Balance2.ar(sound2[0], sound2[1], bal2);
+		} , {
+			sound2 = DelayC.ar(sound2, 1, distance / 343);
+			sound2 = leslie * (1.0 - distance) * sound2;
+		});
+		
 		snd = 1.2 * (sound1 + sound2);
 
 		DirtPause.ar(snd, graceTime:4);
 		snd = snd * EnvGen.kr(Env.asr, gate, doneAction:2);
 
 		case(
-			{ numChannels == 1 }, { snd = snd.sum },
+			{ numChannels == 1 }, { snd = snd },
 			{ numChannels > 2 }, {
 				snd = [
 					// wild interpretation
