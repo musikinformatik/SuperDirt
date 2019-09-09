@@ -5,7 +5,7 @@
 	// two output channels, increase if you want to pan across more channels
 	// start listening on port 57120, create two orbits each sending audio to channel 0
 
-	*start { |numChannels = 2, server, numOrbits = 2, port = 57120, senderAddr, path|
+	*start { |numChannels = 2, server, numOrbits = 12, port = 57120, senderAddr, path|
 		~dirt.free;
 		server = server ? Server.default;
 		server.options.numBuffers = 1024 * 256;
