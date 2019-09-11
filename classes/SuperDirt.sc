@@ -225,7 +225,7 @@ SuperDirt {
 				index = event[\orbit] ? 0;
 
 				if(warnOutOfOrbit and: { index >= orbits.size } or: { index < 0 }) {
-						"SuperDirt: event falls out of existining orbits, index (%)".format(index).warn
+						"SuperDirt: event falls out of existing orbits, index (%)".format(index).warn
 				};
 
 				DirtEvent(orbits @@ index, modules, event).play
