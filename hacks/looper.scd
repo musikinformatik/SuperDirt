@@ -38,16 +38,17 @@ var functions = ();  // make a dictionary of functions
 var recSynth, recBufs, counter = 0, recording = false;
 var whichOrbit = ~dirt.orbits[0];
 var maxTime = 24; // allow a maximum of four seconds, adjust to your needs
-var lat = s.latency + 0.032; // finetune
+var lat = s.latency + 0.02; // finetune
 var numBuffers = 8; // number of buffers
 var bufnamePrefix = "fooloop"; // soundname prefix
+var soundIn = Array.with(0);
 
 ~recBufs.do(_.free); // free them if they are left over (this is why we keep it in the environment variable)
-~recBufs = recBufs = { Buffer.alloc(~dirt.server, ~dirt.server.sampleRate * maxTime, ~dirt.numChannels) } ! numBuffers;
+~recBufs = recBufs = { Buffer.alloc(~dirt.server, ~dirt.server.sampleRate * maxTime, soundIn.size) } ! numBuffers;
 
 // recorder writes audio from SoundIn to a bufnum
 SynthDef(\fooRecord, { |bufnum|
-	var in = SoundIn.ar([0,1]);
+	var in = SoundIn.ar(soundIn) * EnvGen.ar(Env.linen(0.003, 23, 0.003, 1, \sine), doneAction: 0);
 	RecordBuf.ar(in, bufnum, loop:0, doneAction:2);
 }).add;
 
@@ -76,13 +77,13 @@ functions[\fooloopAdd] = {
 functions[\fooloopReset] = {
 	"reset".postln;
 	~recBufs.do(_.free);
-	~recBufs = recBufs = { Buffer.alloc(~dirt.server, ~dirt.server.sampleRate * maxTime, ~dirt.numChannels) } ! numBuffers;
+	~recBufs = recBufs = { Buffer.alloc(~dirt.server, ~dirt.server.sampleRate * maxTime, soundIn.size) } ! numBuffers;
 	for(0,numBuffers-1, { arg i; ~dirt.soundLibrary.addBuffer(bufnamePrefix++i, (recBufs @@ i), false )});
 	counter = 0;
 	recording = false;
 };
 // use the "diversion" key as a hook for playing the synth
-~dirt.orbits[0].defaultParentEvent[\diversion] = {
+~dirt.orbits[0,0,0,0,0,0,0,0].defaultParentEvent[\diversion] = {
 	var div = functions[~s];
 	if(div.notNil) { div.value; 1.0 }
 };
