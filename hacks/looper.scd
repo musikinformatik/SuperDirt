@@ -56,9 +56,9 @@ SynthDef(\fooRecord, { |bufnum|
 functions[\fooloopRec] = {
 	if(recording) { functions[\fooloopAdd].value };
 	counter = counter + 1;
-	if(counter == numBuffers, {counter = 0});
+	if(counter > recBufs.lastIndex, {counter = 0});
 	~server.makeBundle(lat, {
-		recSynth = Synth(\fooRecord, [bufnum: (recBufs @@ counter)], ~server);
+		recSynth = Synth(\fooRecord, [bufnum: (recBufs @ counter)], ~server);
 		recording = true;
 	})
 };
@@ -82,9 +82,8 @@ functions[\fooloopReset] = {
 	counter = 0;
 	recording = false;
 };
-// use the "diversion" key as a hook for playing the synth
-~dirt.orbits[0,0,0,0,0,0,0,0].defaultParentEvent[\diversion] = {
-	var div = functions[~s];
-	if(div.notNil) { div.value; 1.0 }
-};
+
+// add these functions to the dirt soundLibrary
+functions.keysValuesDo{ arg key, func ; ~dirt.soundLibrary.addSynth( key, (play: func)) };
+
 )
