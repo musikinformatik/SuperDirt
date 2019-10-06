@@ -78,12 +78,12 @@ functions[\fooloopReset] = {
     "reset".postln;
     ~recBufs.do(_.free);
     ~recBufs = recBufs = { Buffer.alloc(~dirt.server, ~dirt.server.sampleRate * maxTime, soundIn.size) } ! numBuffers;
-    for(0,numBuffers-1, { arg i; ~dirt.soundLibrary.addBuffer(bufnamePrefix++i, (recBufs @@ i), false )});
+    for(0,numBuffers-1, { |i| ; ~dirt.soundLibrary.addBuffer(bufnamePrefix++i, (recBufs @@ i), false )});
     counter = 0;
     recording = false;
 };
 
 // add these functions to the dirt soundLibrary
-functions.keysValuesDo{ arg key, func ; ~dirt.soundLibrary.addSynth( key, (play: func)) };
+functions.keysValuesDo{ |key, func| ; ~dirt.soundLibrary.addSynth( key, (play: func)) };
 
 )
