@@ -16,16 +16,14 @@ live coding them requires that you have your SuperDirt instance in an environmen
 {
 	var numChannels = ~dirt.numChannels;
 
-
-
 	// write variants for different sample buffer sizes
 	(1..SuperDirt.maxSampleNumChannels).do { |sampleNumChannels|
 
 		var name = format("dirt_sample_%_%", sampleNumChannels, numChannels);
 
-		SynthDef(name, { |out, bufnum, sustain = 1, begin = 0, end = 1, speed = 1, endSpeed = 1, freq = 440, pan = 0|
+		SynthDef(name, { |out, bufnum, sustain = 1, begin = 0, end = 1, speed = 1, endSpeed = 1, freq = 440, pan = 0, stretch = 1|
 
-			var sound, rate, phase, sawrate, numFrames;
+			var sound, rate, phase, sawrate, numFrames, j0, j1, m0, m1, w0, w1, stretchStep, winsize;
 
 			// playback speed
 			rate = Line.kr(speed, endSpeed, sustain) * (freq / 60.midicps);
@@ -35,21 +33,41 @@ live coding them requires that you have your SuperDirt instance in an environmen
 			//phase =  Sweep.ar(1, rate * BufSampleRate.ir(bufnum)) + (BufFrames.ir(bufnum) * begin);
 
 			numFrames = BufFrames.ir(bufnum);
-			sawrate = rate * BufSampleRate.ir(bufnum) / (absdif(begin, end) * numFrames);
-			phase = (speed.sign * LFSaw.ar(sawrate, 1)).range(begin,end) * numFrames;
+			winsize = numFrames * stretch / 29;
+			winsize = winsize * (winsize >= 1000) + ((winsize < 1000) * 1000 * stretch);
+			stretchStep = winsize / stretch;
+			sawrate = rate * BufSampleRate.ir(bufnum) / (absdif(begin, end) * stretch * numFrames);
+			phase = (speed.sign * LFSaw.ar(sawrate, 1)).range(begin,end) * numFrames * stretch;
+			j1 = (phase.div(stretchStep)) * (stretchStep / stretch - stretchStep) + phase;
+			j0 = (phase.div(stretchStep) - 1.0) * (stretchStep / stretch - stretchStep) + phase;
+			m1 = phase - (phase.div(stretchStep) * stretchStep);
+			m1 = m1 / winsize;
+			m0 = phase - (phase.div(stretchStep) - 1.0 * stretchStep);
+			m0 = m0 / winsize;
+			w1 = 0.5 - (0.5 * cos(m1.clip(0.0, 1.0) * 2.0 * pi));
+			w0 = 0.5 - (0.5 * cos(m0.clip(0.0, 1.0) * 2.0 * pi));
+			w1 = exp(-0.5 * (m1 - 0.5/0.1)**2);
+			w0 = exp(-0.5 * (m0 - 0.5/0.1)**2);
 
-			sound = BufRd.ar(
+			sound = (w0 * BufRd.ar(
 				numChannels: sampleNumChannels,
 				bufnum: bufnum,
-				phase: phase,
+				phase: j0,
 				loop: 0,
 				interpolation: 4 // cubic interpolation
-			);
+			)) + (w1 * BufRd.ar(
+				numChannels: sampleNumChannels,
+				bufnum: bufnum,
+				phase: j1,
+				loop: 0,
+				interpolation: 4 // cubic interpolation
+			));
+			sound = sound / (w0 + w1);
 
 			sound = DirtPan.ar(sound, numChannels, pan);
 
 			Out.ar(out, sound)
-		}, [\ir, \ir, \ir, \ir, \ir, \ir, \ir, \ir]).add;
+		}, [\ir, \ir, \ir, \ir, \ir, \ir, \ir, \ir, \ir, \ir]).add;
 	};
 
 	/*
