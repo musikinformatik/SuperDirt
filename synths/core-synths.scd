@@ -33,8 +33,8 @@ live coding them requires that you have your SuperDirt instance in an environmen
 			//phase =  Sweep.ar(1, rate * BufSampleRate.ir(bufnum)) + (BufFrames.ir(bufnum) * begin);
 
 			numFrames = BufFrames.ir(bufnum);
-			winsize = numFrames * stretch / 29;
-			winsize = winsize * (winsize >= 1000) + ((winsize < 1000) * 1000 * stretch);
+			winsize = numFrames * stretch / 29.0;
+			winsize = winsize.clip(1000.0*stretch, 4410.0);
 			stretchStep = winsize / stretch;
 			sawrate = rate * BufSampleRate.ir(bufnum) / (absdif(begin, end) * stretch * numFrames);
 			phase = (speed.sign * LFSaw.ar(sawrate, 1)).range(begin,end) * numFrames * stretch;
