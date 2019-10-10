@@ -102,7 +102,7 @@ DirtEvent {
 			if(~legato.notNil) {
 				~delta * ~legato.value
 			} {
-				unitDuration = (unitDuration ? ~delta) * (~stretch ? 1);
+				unitDuration = (unitDuration ? ~delta) * (~timescale ? 1);
 				loop !? { unitDuration = unitDuration * loop.abs };
 			}
 		};

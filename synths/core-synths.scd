@@ -21,9 +21,9 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 		var name = format("dirt_sample_%_%", sampleNumChannels, numChannels);
 
-		SynthDef(name, { |out, bufnum, sustain = 1, begin = 0, end = 1, speed = 1, endSpeed = 1, freq = 440, pan = 0, stretch = 1|
+		SynthDef(name, { |out, bufnum, sustain = 1, begin = 0, end = 1, speed = 1, endSpeed = 1, freq = 440, pan = 0, timescale = 1|
 
-			var sound, rate, phase, sawrate, numFrames, j0, j1, m0, m1, w0, w1, stretchStep, winsize;
+			var sound, rate, phase, sawrate, numFrames, index, windowIndex, window, timescaleStep, windowSize;
 
 			// playback speed
 			rate = Line.kr(speed, endSpeed, sustain) * (freq / 60.midicps);
@@ -33,36 +33,23 @@ live coding them requires that you have your SuperDirt instance in an environmen
 			//phase =  Sweep.ar(1, rate * BufSampleRate.ir(bufnum)) + (BufFrames.ir(bufnum) * begin);
 
 			numFrames = BufFrames.ir(bufnum);
-			winsize = numFrames * stretch / 29.0;
-			winsize = winsize.clip(1000.0*stretch, 4410.0);
-			stretchStep = winsize / stretch;
-			sawrate = rate * BufSampleRate.ir(bufnum) / (absdif(begin, end) * stretch * numFrames);
-			phase = (speed.sign * LFSaw.ar(sawrate, 1)).range(begin,end) * numFrames * stretch;
-			j1 = (phase.div(stretchStep)) * (stretchStep / stretch - stretchStep) + phase;
-			j0 = (phase.div(stretchStep) - 1.0) * (stretchStep / stretch - stretchStep) + phase;
-			m1 = phase - (phase.div(stretchStep) * stretchStep);
-			m1 = m1 / winsize;
-			m0 = phase - (phase.div(stretchStep) - 1.0 * stretchStep);
-			m0 = m0 / winsize;
-			w1 = 0.5 - (0.5 * cos(m1.clip(0.0, 1.0) * 2.0 * pi));
-			w0 = 0.5 - (0.5 * cos(m0.clip(0.0, 1.0) * 2.0 * pi));
-			w1 = exp(-0.5 * (m1 - 0.5/0.1)**2);
-			w0 = exp(-0.5 * (m0 - 0.5/0.1)**2);
+			windowSize = numFrames * timescale / 29.0;
+			windowSize = windowSize.clip(1000.0*timescale, 4410.0);
+			timescaleStep = windowSize / timescale;
+			sawrate = rate * BufSampleRate.ir(bufnum) / (absdif(begin, end) * timescale * numFrames);
+			phase = (speed.sign * LFSaw.ar(sawrate, 1)).range(begin,end) * numFrames * timescale;
+			index = (phase.div(timescaleStep) - [1.0, 0.0]) * (timescaleStep / timescale - timescaleStep) + phase;
+			windowIndex = phase - (phase.div(timescaleStep) - [1.0, 0.0] * timescaleStep);
+			window = exp(-0.5 * (windowIndex/windowSize - 0.5/0.1)**2);
 
-			sound = (w0 * BufRd.ar(
+			sound = window * BufRd.ar(
 				numChannels: sampleNumChannels,
 				bufnum: bufnum,
-				phase: j0,
+				phase: index,
 				loop: 0,
 				interpolation: 4 // cubic interpolation
-			)) + (w1 * BufRd.ar(
-				numChannels: sampleNumChannels,
-				bufnum: bufnum,
-				phase: j1,
-				loop: 0,
-				interpolation: 4 // cubic interpolation
-			));
-			sound = sound / (w0 + w1);
+			).flop;
+			sound = sound / window.sum;
 
 			sound = DirtPan.ar(sound, numChannels, pan);
 

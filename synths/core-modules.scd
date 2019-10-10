@@ -48,7 +48,7 @@ this may be refacored later.
 					end: ~end,
 					loop: ~loop,
 					pan: ~pan,
-					stretch: ~stretch,
+					timescale: ~timescale,
 					out: ~out
 				])
 			} {
