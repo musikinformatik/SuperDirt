@@ -28,8 +28,9 @@ d1 $ silence
 -- play recorded loop 3 (bufnamePrefix++counter)
 d5 $ sound "fooloop3" # gain "0.7"
 
--- reset buffers.
-once $ sound "fooloopReset"
+-- reset buffers. But do only one time (d1 $ silence),
+-- since d1 $ once $ sound "fooloopReset" does not work at my installation (1.4.3)
+d1 $ sound "fooloopReset"
 
 */
 (
