@@ -234,7 +234,7 @@ DEFAULT EFFECTS EXTRA
 	SynthDef("spectral-comb" ++ ~dirt.numChannels, { |out, comb|
 		var signal, chain, in, clean, teeth = 256;
 		signal = In.ar(out, ~dirt.numChannels);
-		chain = Array.fill(signal.size, { |i| FFT(LocalBuf(2048), signal[i])});
+		chain = signal.asArray.collect { |x| FFT(LocalBuf(2048), x) };
 		signal = IFFT(PV_RectComb(chain, numTeeth: teeth * comb, width: 1-comb));
 		ReplaceOut.ar(out, signal)
 	}, [\ir, \ir]).add;
@@ -252,7 +252,7 @@ DEFAULT EFFECTS EXTRA
 	SynthDef("spectral-smear" ++ ~dirt.numChannels, { |out, smear|
 		var signal, chain, in;
 		signal = In.ar(out, ~dirt.numChannels);
-		chain = Array.fill(signal.size, { |i| FFT(LocalBuf(2048), signal[i])});
+		chain = signal.asArray.collect { |x| FFT(LocalBuf(2048), x) };
 		signal = IFFT(PV_MagSmear(chain, bins: smear.linexp(0.0,1.0,1,64)));
 		ReplaceOut.ar(out, signal)
 	}, [\ir, \ir]).add;
@@ -271,7 +271,7 @@ DEFAULT EFFECTS EXTRA
 		var signal, chain, in, clean, teeth = 256;
 		signal = In.ar(out, ~dirt.numChannels);
 		clean = signal;
-		chain = Array.fill(signal.size, { |i| FFT(LocalBuf(2048), signal[i])});
+		chain = signal.asArray.collect { |x| FFT(LocalBuf(2048), x) };
 		signal = IFFT(PV_BinScramble(chain, wipe: scram, width: scram));
 		ReplaceOut.ar(out, signal)
 	}, [\ir, \ir]).add;
@@ -290,7 +290,7 @@ DEFAULT EFFECTS EXTRA
 		var signal, chain, in, clean, teeth = 256;
 		signal = In.ar(out, ~dirt.numChannels);
 		clean = signal;
-		chain = Array.fill(signal.size, { |i| FFT(LocalBuf(2048), signal[i])});
+		chain = signal.asArray.collect { |x| FFT(LocalBuf(2048), x) };
 		signal = IFFT(PV_BinShift(chain, stretch: binshift.linlin(0.0,1.0,0.01,4.0),
 		shift: binshift * 10, interp: 1));
 		ReplaceOut.ar(out, signal)
@@ -310,7 +310,7 @@ DEFAULT EFFECTS EXTRA
 		var signal, chain, in, clean, teeth = 256;
 		signal = In.ar(out, ~dirt.numChannels);
 		clean = signal;
-		chain = Array.fill(signal.size, { |i| FFT(LocalBuf(2048), signal[i])});
+		chain = signal.asArray.collect { |x| FFT(LocalBuf(2048), x) };
 		signal = IFFT(PV_BrickWall(chain, wipe: hbrick * 0.6)); // Signal almost disappears around 0.5 therefore it's scaled a bit
 		ReplaceOut.ar(out, signal)
 	}, [\ir, \ir]).add;
@@ -329,7 +329,7 @@ DEFAULT EFFECTS EXTRA
 		var signal, chain, in, clean, teeth = 256;
 		signal = In.ar(out, ~dirt.numChannels);
 		clean = signal;
-		chain = Array.fill(signal.size, { |i| FFT(LocalBuf(2048), signal[i])});
+		chain = signal.asArray.collect { |x| FFT(LocalBuf(2048), x) };
 		// lbrick parameter scaled to negative range to activate lopass filter (see ugen help file)
 		signal = IFFT(PV_BrickWall(chain, wipe: lbrick.linlin(0.0,1.0,0.0,(-1.0))));
 		ReplaceOut.ar(out, signal)
@@ -350,7 +350,7 @@ DEFAULT EFFECTS EXTRA
 		var signal, chain, in, clean, teeth = 256;
 		signal = In.ar(out, ~dirt.numChannels);
 		clean = signal;
-		chain = Array.fill(signal.size, { |i| FFT(LocalBuf(2048), signal[i])});
+		chain = signal.asArray.collect { |x| FFT(LocalBuf(2048), x) };
 		signal = IFFT(
 				PV_ConformalMap(chain, real.linlin(0.0,1.0,0.01,2.0), imag.linlin(0.00,1.0,0.01,10.0))
 			).tanh;
@@ -371,7 +371,7 @@ DEFAULT EFFECTS EXTRA
 		var signal, chain, in, clean, teeth = 256;
 		signal = In.ar(out, ~dirt.numChannels);
 		clean = signal;
-		chain = Array.fill(signal.size, { |i| FFT(LocalBuf(2048), signal[i])});
+		chain = signal.asArray.collect { |x| FFT(LocalBuf(2048), x) };
 		signal = IFFT(
 			PV_SpectralEnhance(chain,
 				enhance.linlin(0.0,1.0,1,16),
