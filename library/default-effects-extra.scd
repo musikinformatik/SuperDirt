@@ -216,7 +216,7 @@ DEFAULT EFFECTS EXTRA
 	SynthDef("spectral-freeze" ++ ~dirt.numChannels, { |out, freeze|
 		var signal, chain, in;
 		signal = In.ar(out, ~dirt.numChannels);
-		chain = Array.fill(signal.size, { |i| FFT(LocalBuf(2048), signal[i])});
+		chain = signal.asArray.collect { |i| FFT(LocalBuf(2048), signal[i]) };
 		signal = IFFT(PV_Freeze(chain, freeze));
 		ReplaceOut.ar(out, signal)
 	}, [\ir, \ir]).add;
