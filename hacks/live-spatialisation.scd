@@ -19,7 +19,7 @@ s.scope(12);
 
 */
 
-Ndef(\dirty).playN([0, 6, 8], [1, 0.5, 0.7], [0, 1, 0]);
+Ndef(\dirty).playN([0, 6, 8], [1, 0.5, 0.7], [0, 1, 0]); // outs, amps, ins
 
 /* change them on the fly
 
@@ -29,7 +29,7 @@ Ndef(\dirty).playN([0, 6, 8], [1, 0.5, 0.7], [0, 1, 0]);
 
 */
 
-Ndef(\dirty).playN([0, 7, 3], [0.6, 0.5, 0.7], [0, 1, 1]);
+Ndef(\dirty).playN([0, 7, 3], [0.6, 0.5, 0.7], [0, 1, 1]); 
 
 
 // you can specify a fadeTime to crossfade different settings
