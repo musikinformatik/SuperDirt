@@ -242,6 +242,7 @@ DirtSoundLibrary {
 		^(
 			buffer: buffer.bufnum,
 			instrument: this.instrumentForBuffer(buffer),
+			stretchInstrument: this.stretchInstrumentForBuffer(buffer),
 			bufNumFrames: buffer.numFrames,
 			bufNumChannels: buffer.numChannels,
 			unitDuration: { buffer.duration * baseFreq / ~freq.value },
@@ -252,6 +253,10 @@ DirtSoundLibrary {
 
 	instrumentForBuffer { |buffer|
 		^format("dirt_sample_%_%", buffer.numChannels, this.numChannels).asSymbol
+	}
+
+	stretchInstrumentForBuffer { |buffer|
+		^format("dirt_stretchsample_%_%", buffer.numChannels, this.numChannels).asSymbol
 	}
 
 	openFolder { |name, index = 0|
@@ -273,7 +278,8 @@ DirtSoundLibrary {
 		numChannels = n;
 		bufferEvents = bufferEvents.collect { |list|
 			list.do { |event|
-				event[\instrument] = this.instrumentForBuffer(event[\buffer])
+				event[\instrument] = this.instrumentForBuffer(event[\buffer]);
+				event[\stretchInstrument] = this.stretchInstrumentForBuffer(event[\buffer]);
 			}
 		}
 	}
