@@ -64,6 +64,7 @@ SuperDirt {
 
 	free {
 		soundLibrary.free;
+		audioRoutingBusses.do(_.free);
 		this.stop;
 	}
 
