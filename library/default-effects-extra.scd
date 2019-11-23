@@ -213,10 +213,11 @@ DEFAULT EFFECTS EXTRA
 		)
 	}, { ~freeze.notNil } );
 
+
 	SynthDef("spectral-freeze" ++ ~dirt.numChannels, { |out, freeze|
 		var signal, chain, in;
 		signal = In.ar(out, ~dirt.numChannels);
-		chain = signal.asArray.collect { |i| FFT(LocalBuf(2048), signal[i]) };
+		chain = signal.asArray.collect { |x| FFT(LocalBuf(2048), x) };
 		signal = IFFT(PV_Freeze(chain, freeze));
 		ReplaceOut.ar(out, signal)
 	}, [\ir, \ir]).add;
@@ -306,6 +307,7 @@ DEFAULT EFFECTS EXTRA
 		)
 	}, { ~hbrick.notNil });
 
+
 	SynthDef("spectral-hbrick" ++ ~dirt.numChannels, { |out, hbrick|
 		var signal, chain, in, clean, teeth = 256;
 		signal = In.ar(out, ~dirt.numChannels);
@@ -380,6 +382,7 @@ DEFAULT EFFECTS EXTRA
 			).tanh; // .tanh is used as a crude limiter here beacause sometimes this ugen goes crazy
 		ReplaceOut.ar(out, signal)
 	}, [\ir, \ir]).add;
+
 
 
 	// DJ filter, a low pass filter for the first half of the range, and a high pass for the rest.
