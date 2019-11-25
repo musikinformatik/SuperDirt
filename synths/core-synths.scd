@@ -68,13 +68,13 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 			numFrames = BufFrames.ir(bufnum);
 			windowSize = numFrames * timescale / 29.0;
-			windowSize = windowSize.clip(1000.0*timescale, 4410.0);
+			windowSize = windowSize.clip(1000*timescale, 4410);
 			timescaleStep = windowSize / timescale;
 			sawrate = rate * BufSampleRate.ir(bufnum) / (absdif(begin, end) * timescale * numFrames);
 			phase = (speed.sign * LFSaw.ar(sawrate, 1)).range(begin,end) * numFrames * timescale;
 			index = (phase.div(timescaleStep) - [1.0, 0.0]) * (timescaleStep / timescale - timescaleStep) + phase;
 			windowIndex = phase - (phase.div(timescaleStep) - [1.0, 0.0] * timescaleStep);
-			window = exp(-0.5 * (windowIndex/windowSize - 0.5/0.1)**2);
+			window = exp(-50 * squared(windowIndex/windowSize - 0.5));
 
 			sound = window * BufRd.ar(
 				numChannels: sampleNumChannels,

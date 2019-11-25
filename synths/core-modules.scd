@@ -63,7 +63,6 @@ this may be refacored later.
 						end: ~end,
 						loop: ~loop,
 						pan: ~pan,
-						timescale: ~timescale,
 						out: ~out
 					])
 				}
