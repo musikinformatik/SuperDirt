@@ -532,8 +532,8 @@ SynthDef(\superreese,  {|out, pan, freq, sustain, accelerate, detune=0, voice=0|
 // providing an endless number of possible combinations (algorithms).
 //
 // responds to
-//   lfofreq (frequency modulation speed)
-//   lfodepth (frequency modulation amplitude)
+//   lfofreq (pitch modulation frequency)
+//   lfodepth (pitch modulation amplitude)
 //
 // Each operator responds to
 //   amp (audible amplitude)
