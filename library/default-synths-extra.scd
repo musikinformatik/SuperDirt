@@ -523,3 +523,81 @@ SynthDef(\superreese,  {|out, pan, freq, sustain, accelerate, detune=0, voice=0|
 	OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
 }).add;
 );
+
+
+// 6-op FM synth (DX7-like)
+//
+// Works a bit different from the original DX7.  Instead of algorithms, you set the amount
+// of modulation every operator receives from other operators and itself (feedback), virtually
+// providing an endless number of possible combinations (algorithms).
+//
+// responds to
+//   lfofreq (frequency modulation speed)
+//   lfodepth (frequency modulation amplitude)
+//
+// Each operator responds to
+//   amp (audible amplitude)
+//   ratio (frequency ratio)
+//   detune (in Hz)
+//   eglevel[1-4] (4 envelope generator levels)
+//   egrate[1-4] (4 envelope generator rates)
+//
+// The syntax for operator arguments is <argumentName + opIndex>[modulatorIndex | egIndex]
+//
+// For example:
+// amp1 1      (op1 as carrier with full amplitude)
+// ratio2 2.3  (op2 frequency ratio)
+// mod11 0.5   (op1 feedback)
+// mod12 0.78  (op1 modulation amount by op2)
+// detune1 0.2 (op1 detune)
+// eglevel12   (op1 EG level2)
+// egrate11    (op1 EG rate1) -- higher values go FASTER!
+(
+SynthDef(\superfm, {
+	var sustain = \sustain.kr(1);
+	var lfofreq = \lfofreq.kr(1);
+	var lfodepth = \lfodepth.kr(0);
+	var freq = \freq.kr(440) * (1 + (LFTri.kr(lfofreq) * lfodepth));
+	var out = \out.kr(0);
+	var pan = \pan.kr(0);
+	// overall envelope
+	var env = EnvGen.ar(Env.linen(0.01, 0.98, 0.01, 1,-3), timeScale:sustain, doneAction:2);
+	// operator output levels
+	var amps = Array.fill(6, { |i| (\amp++(i+1)).asSymbol.kr(1)});
+	// operator frequency ratios
+	var ratios = Array.fill(6, {|i| (\ratio++(i+1)).asSymbol.kr(1)});
+	// operator frequency detuners
+	var detunes = Array.fill(6, {|i| (\detune++(i+1)).asSymbol.kr(rand2(0.1))});
+	// operator envelopes
+	var envs = Array.fill(6, { |i|
+		EnvGen.kr(
+			Env.new(
+				[0]++Array.fill(3, { |n| (\eglevel++(i+1)++(n+1)).asSymbol.kr(1) })++[0],
+				[
+					// Supercollider envelopes use seconds for the durations of segments.
+					// So higher values mean transitions are slower.
+					// DX7s envelopes use rates, which is the inverse of time, 1/time.
+					// Higher values in DX7 mean transitions are faster.
+					max(0.1 / ((\egrate++(i+1)++1).asSymbol).kr(10), 0.001),
+					max(0.1 / ((\egrate++(i+1)++2).asSymbol).kr(0.3), 0.001),
+					max(0.1 / ((\egrate++(i+1)++3).asSymbol).kr(0.1), 0.001),
+					max(0.1 / ((\egrate++(i+1)++4).asSymbol).kr(0.1), 0.001),
+				]
+			),
+			timeScale:sustain,
+			// doneAction:2
+		);
+	});
+	var ctls = Array.fill(6, { |i| [freq * ratios[i] + detunes[i], 0, envs[i]]});
+	// modulation matrix
+	var mods = Array.fill(6, { |i|
+		Array.fill(6, { |n| (\mod++(i+1)++(n+1)).asSymbol.kr(0)});
+	});
+
+	var sound = FM7.ar(ctls, mods) * amps;
+	// FM7 outputs 6 channels.  Splay.ar() maps them to stereo.
+	// sound = Splay.ar(sound);
+	sound = Mix.ar(sound);
+	OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
+}).add;
+)
