@@ -44,6 +44,13 @@ DirtEventTypes {
 				if(midicmd.isNil) {
 					if(~ccn.notNil) { midicmd = \control; ~ctlNum = ~ccn };
 					if(~ccv.notNil) { midicmd = \control; ~control = ~ccv };
+					if(~nrpn.notNil) {
+						midicmd = \control;
+						~nrpnLSB = ~nrpn % 128;
+                        ~nrpnMSB = (~nrpn - ~nrpnLSB) / 128;
+						~valLSB = ~val % 128;
+                        ~valMSB = (~val - ~valLSB) / 128;
+					};
 					if(~progNum.notNil) { midicmd = \program };
 					if(~polyTouch.notNil) { midicmd = \polyTouch };
 					if(~midibend.notNil) { midicmd = \bend; ~val = ~midibend; };
@@ -73,13 +80,33 @@ DirtEventTypes {
 				latency = lag; // for now.
 
 				if(midiout.notNil) {
-
 					if(latency == 0.0) {
-						midiout.performList(midicmd, args)
-					} {
-						thisThread.clock.sched(latency, {
-							midiout.performList(midicmd, args);
-						})
+						if (~nrpn.notNil) {
+							midiout.control(~chan, 99, ~nrpnMSB);
+							midiout.control(~chan, 98, ~nrpnLSB);
+							midiout.control(~chan, 6,  ~valMSB);
+							midiout.control(~chan, 38, ~valLSB)
+						}
+					    {
+							midiout.performList(midicmd, args)
+						}
+					}
+					{
+						if (~nrpn.notNil) {
+							thisThread.clock.sched(latency, {
+								midiout.control(0,99,0);
+								midiout.control(~chan, 99, ~nrpnMSB);
+								midiout.control(~chan, 98, ~nrpnLSB);
+								midiout.control(~chan, 6,  ~valMSB);
+								midiout.control(~chan, 38, ~valLSB)
+							});
+						}
+						{
+							thisThread.clock.sched(latency, {
+						    {
+								midiout.performList(midicmd, args);
+							}})
+						}
 					};
 					if(hasGate and: { midicmd === \noteOn }) {
 						thisThread.clock.sched(sustain + latency, {
