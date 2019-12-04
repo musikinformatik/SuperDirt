@@ -595,9 +595,7 @@ SynthDef(\superfm, {
 	});
 
 	var sound = FM7.ar(ctls, mods) * amps;
-	// FM7 outputs 6 channels.  Splay.ar() maps them to stereo.
-	// sound = Splay.ar(sound);
-	sound = Mix.ar(sound);
+	sound = Mix.ar(sound) * (-10.dbamp);
 	OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
 }).add;
 )
