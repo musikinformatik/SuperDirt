@@ -598,15 +598,17 @@ SynthDef(\superfm, {
 		[ // user-defined
 			ratios,	detunes, amps, eglevels, egrates, mods,
 		],
-		[ // destiny
-			Array.fill(6, {[0.25, 0.5, 1, 2, 3, 4, 5, 6, 7, 11, 13, 15].wchoose([1,2,8,4,3,2,1,1,1,0.5,0.5, 0.5].normalizeSum)}), // ratios
-			Array.fill(6, {rand2(7)}), // detunes
-			Array.rand(6, 0.0, 1.0), // amps
-			Array.fill2D(6, 4, {1.0.rand}), // EG levels
-			Array.fill2D(6, 4, {1.0.rand}), // EG rates
-			Array.fill2D(6, 6, {1.0.rand * 0.25.coin.asInt}), // mods
-		],
-	]);
+	]++Array.fill(5, { [
+		Array.fill(6, { // ratios
+			[0.25, 0.5, 1, 2, 3, 4, 5, 6, 7, 11, 13, 15].wchoose(
+				[1, 2, 8, 4, 3, 0.5, 0.5, 0.5, 0.5, 0.25, 0.25, 0.25].normalizeSum)}),
+		Array.fill(6, {rand2(7)}), // detunes
+		Array.rand(6, 0.0, 1.0), // amps
+		Array.fill2D(6, 4, {1.0.rand}), // EG levels
+		Array.fill2D(6, 4, {1.0.rand}), // EG rates
+		Array.fill2D(6, 6, {|r,c| 1.0.rand * 0.25.coin.asInt * if(r == c, feedback, 1)}), // mods
+	]})
+	);
 
 	var envs = Array.fill(6, { |i|
 		EnvGen.kr(
