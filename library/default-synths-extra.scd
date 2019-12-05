@@ -625,7 +625,7 @@ SynthDef(\superfm, {
 	});
 
 	var sound = FM7.ar(ctls, presets[5]) * amps;
-	sound = Mix.ar(sound) * (-10.dbamp);
+	sound = Mix.ar(sound) * (-15.dbamp);
 	OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
 }).add;
 )
