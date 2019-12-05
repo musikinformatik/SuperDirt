@@ -552,49 +552,168 @@ SynthDef(\superreese,  {|out, pan, freq, sustain, accelerate, detune=0, voice=0|
 // detune1 0.2 (op1 detune)
 // eglevel12   (op1 EG level2)
 // egrate11    (op1 EG rate1) -- higher values go FASTER!
+
 (
 SynthDef(\superfm, {
 	var sustain = \sustain.kr(1);
 	var lfofreq = \lfofreq.kr(1);
 	var lfodepth = \lfodepth.kr(0);
-	var freq = \freq.kr(440) * (1 + (LFTri.kr(lfofreq) * lfodepth));
+	var freq = \freq.kr(440);
+	var tremolo = 1 + (LFTri.kr(lfofreq) * lfodepth);
 	var out = \out.kr(0);
 	var pan = \pan.kr(0);
+	var voice = \voice.kr(0);
 	// overall envelope
-	var env = EnvGen.ar(Env.linen(0.01, 0.98, 0.01, 1,-3), timeScale:sustain, doneAction:2);
+	var env = EnvGen.ar(Env.linen(0.01, 0.98, 0.01, 1, -3), timeScale:sustain, doneAction:2);
 	// operator output levels
 	var amps = Array.fill(6, { |i| (\amp++(i+1)).asSymbol.kr(1)});
 	// operator frequency ratios
 	var ratios = Array.fill(6, {|i| (\ratio++(i+1)).asSymbol.kr(1)});
 	// operator frequency detuners
 	var detunes = Array.fill(6, {|i| (\detune++(i+1)).asSymbol.kr(rand2(0.1))});
+	// feedback -- for presets only
+	var feedback = \feedback.kr(0.5);
+	// key velocity
+	var keyvelocity = \gain.kr(1);
+	// var keyvelocities = Array.fill(6, {|i| (\keyvelocity++(i+1)).asSymbol.kr(0.5)});
 	// operator envelopes
+	var eglevels = Array.fill(6, {|i|
+		Array.fill(4, { |n| (\eglevel++(i+1)++(n+1)).asSymbol.kr(1) })
+	});
+	var egrates = Array.fill(6, {|i| [
+		// Supercollider envelopes use seconds for the durations of segments.
+		// So higher values mean transitions are slower.
+		// DX7s envelopes use rates, which is the inverse of time, 1/time.
+		// Higher values in DX7 mean transitions are faster.
+		max(0.1 / ((\egrate++(i+1)++1).asSymbol).kr(10), 0.001),
+		max(0.1 / ((\egrate++(i+1)++2).asSymbol).kr(0.3), 0.001),
+		max(0.1 / ((\egrate++(i+1)++3).asSymbol).kr(0.1), 0.001),
+		max(0.1 / ((\egrate++(i+1)++4).asSymbol).kr(0.1), 0.001),
+	]});
+	// modulation matrix
+	var mods = Array.fill(6, { |i|
+		Array.fill(6, { |n| (\mod++(i+1)++(n+1)).asSymbol.kr(0)});
+	});
+	var presets = SelectX.kr(voice, [
+		[ // user-defined
+			ratios,	detunes, amps, eglevels, egrates, mods,
+		],
+		[ // wurlitzer
+			[0.5, 2, 1, 0.5, 0.5, 0.5], // ratios
+			[2, 2, 0, -7, 0, 0], // detunes
+			[1, 0.75, 0.8, 0.6, 1, 0.8], // amps
+			// eg levels
+			[
+				[1, 1, 1, 1],
+				[1, 1, 1, 1],
+				[1, 1, 1, 1],
+				[1, 1, 1, 1],
+				[1, 1, 1, 1],
+				[1, 1, 1, 1],
+			],
+			[// eg rates
+				[1, 0.3, 1, 0.6],
+				[1, 0.3, 1, 0.6],
+				[1, 0.2, 1, 0.6],
+				[1, 0.0, 0, 0.6],
+				[1, 0.2, 1, 0.6],
+				[1, 0.0, 1, 0.6],
+			],
+			[//mods
+				[0, 1, 0, 0, 0, 0],
+				[0 , 0, 0, 0, 0, 0],
+				[0 , 0, 0, 1, 0, 0],
+				[0 , 0, 0, 0, 0, 0],
+				[0 , 0, 0, 0, 0, 1],
+				[0 , 0, 0, 0, 0, feedback],
+			],
+		],
+		[ // square bass
+			[0.5, 1,01, 0.5, 2, 0.5, 1.53] / 4, // ratios (and 2 octaves down)
+			[0, 0, 0, 0, 1, 0], // detunes
+			[1, 0.8, 1, 0.75, 1, 0.75], // amps
+			[// eg levels
+				[1, 0, 0, 0],
+				[1, 0, 0, 0],
+				[1, 0, 0, 0],
+				[1, 0, 0, 0],
+				[1, 0, 0, 0],
+				[1, 0, 0, 0],
+			],
+			[// eg rates
+				[1, 0.3, 1, 0.6],
+				[1, 0.6, 1, 0.0],
+				[1, 0.3, 1, 0.6],
+				[1, 0.6, 1, 0.0],
+				[1, 0.3, 1, 0.6],
+				[1, 0.6, 1, 0.0],
+			],
+			[//mods
+				[0, 1, 0, 0, 0, 0],
+				[0 , 0, 0, 0, 0, 0],
+				[0 , 0, 0, 1, 0, 0],
+				[0 , 0, 0, 0, 0, 0],
+				[0 , 0, 0, 0, 0, 1],
+				[0 , 0, 0, 0, 0, feedback],
+			],
+		],
+		[ // pads
+			[1, 1.01, 1.01, 1.02, 1.02, 1.01], // ratios
+			[0, 0, 0, 0, 1, 0], // detunes
+			[1, 0.75, 1, 0.75, 1, 0.75], // amps
+			[// eg levels
+				[1, 1, 1, 1],
+				[1, 1, 1, 1],
+				[1, 1, 1, 1],
+				[1, 1, 1, 1],
+				[1, 1, 1, 1],
+				[1, 1, 1, 1],
+			],
+			[// eg rates
+				[0.35, 1, 1, 0.3],
+				[0.35, 1, 1, 0.3],
+				[0.35, 1, 1, 0.3],
+				[0.35, 1, 1, 0.3],
+				[0.35, 1, 1, 0.3],
+				[0.35, 1, 1, 0.3],
+			],
+			[//mods
+				[0, 1, 0, 0, 0, 0],
+				[0 , 0, 0, 0, 0, 0],
+				[0 , 0, 0, 1, 0, 0],
+				[0 , 0, 0, 0, 0, 0],
+				[0 , 0, 0, 0, 0, 1],
+				[0 , 0, 0, 0, 0, feedback],
+			],
+		],
+		[ // destiny
+			Array.fill(6, {[0.25, 0.5, 1, 2, 3, 4, 5, 6, 7, 11, 13, 15].wchoose([1,2,8,4,3,2,1,1,1,0.5,0.5, 0.5].normalizeSum)}), // ratios
+			Array.fill(6, {rand2(7)}), // detunes
+			Array.rand(6, 0.0, 1.0), // amps
+			Array.fill2D(6, 4, {1.0.rand}), // EG levels
+			Array.fill2D(6, 4, {1.0.rand}), // EG rates
+			Array.fill2D(6, 6, {1.0.rand * 0.25.coin.asInt}), // mods
+		],
+	]);
+
 	var envs = Array.fill(6, { |i|
 		EnvGen.kr(
 			Env.new(
-				[0]++Array.fill(3, { |n| (\eglevel++(i+1)++(n+1)).asSymbol.kr(1) })++[0],
-				[
-					// Supercollider envelopes use seconds for the durations of segments.
-					// So higher values mean transitions are slower.
-					// DX7s envelopes use rates, which is the inverse of time, 1/time.
-					// Higher values in DX7 mean transitions are faster.
-					max(0.1 / ((\egrate++(i+1)++1).asSymbol).kr(10), 0.001),
-					max(0.1 / ((\egrate++(i+1)++2).asSymbol).kr(0.3), 0.001),
-					max(0.1 / ((\egrate++(i+1)++3).asSymbol).kr(0.1), 0.001),
-					max(0.1 / ((\egrate++(i+1)++4).asSymbol).kr(0.1), 0.001),
-				]
+				[0]++Array.fill(4, { |n| presets[3][i][n] }), // EG levels
+				Array.fill(4, { |n| presets[4][i][n] }) // EG rates
 			),
 			timeScale:sustain,
 			// doneAction:2
 		);
 	});
-	var ctls = Array.fill(6, { |i| [freq * ratios[i] + detunes[i], 0, envs[i]]});
-	// modulation matrix
-	var mods = Array.fill(6, { |i|
-		Array.fill(6, { |n| (\mod++(i+1)++(n+1)).asSymbol.kr(0)});
+	// var ctls = Array.fill(6, { |i|
+	// 	[freq * tremolo * ratios[i] + detunes[i], 0, envs[i] /* * keyvelocities[i]*/]
+	// });
+	var ctls = Array.fill(6, { |i|
+		[freq * tremolo * presets[0][i] + presets[1][i], 0, envs[i]]
 	});
 
-	var sound = FM7.ar(ctls, mods) * amps;
+	var sound = FM7.ar(ctls, presets[5]) * amps;
 	sound = Mix.ar(sound) * (-10.dbamp);
 	OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
 }).add;
