@@ -572,10 +572,7 @@ SynthDef(\superfm, {
 	// operator frequency detuners
 	var detunes = Array.fill(6, {|i| (\detune++(i+1)).asSymbol.kr(rand2(0.1))});
 	// feedback -- for presets only
-	var feedback = \feedback.kr(0.5);
-	// key velocity
-	var keyvelocity = \gain.kr(1);
-	// var keyvelocities = Array.fill(6, {|i| (\keyvelocity++(i+1)).asSymbol.kr(0.5)});
+	var feedback = \feedback.kr(0.0);
 	// operator envelopes
 	var eglevels = Array.fill(6, {|i|
 		Array.fill(4, { |n| (\eglevel++(i+1)++(n+1)).asSymbol.kr(1) })
@@ -591,8 +588,8 @@ SynthDef(\superfm, {
 		max(0.1 / ((\egrate++(i+1)++4).asSymbol).kr(0.1), 0.001),
 	]});
 	// modulation matrix
-	var mods = Array.fill(6, { |i|
-		Array.fill(6, { |n| (\mod++(i+1)++(n+1)).asSymbol.kr(0)});
+	var mods = Array.fill2D(6, 6, { |r, c|
+		(\mod++(r+1)++(c+1)).asSymbol.kr(0) * if(r == c, feedback, 1)
 	});
 	var presets = SelectX.kr(voice, [
 		[ // user-defined
