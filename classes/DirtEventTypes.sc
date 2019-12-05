@@ -38,18 +38,18 @@ DirtEventTypes {
 			play: #{
 
 				var freq, lag, sustain, func;
-				var args, midiout, hasGate, midicmd, latency;
+				var args, midiout, hasGate, midicmd, latency, chan;
+				var nrpnMSB, nrpnLSB, valMSB, valLSB;
 				midicmd = ~midicmd;
-
 				if(midicmd.isNil) {
 					if(~ccn.notNil) { midicmd = \control; ~ctlNum = ~ccn };
 					if(~ccv.notNil) { midicmd = \control; ~control = ~ccv };
 					if(~nrpn.notNil) {
 						midicmd = \control;
-						~nrpnLSB = ~nrpn % 128;
-                        ~nrpnMSB = (~nrpn - ~nrpnLSB) / 128;
-						~valLSB = ~val % 128;
-                        ~valMSB = (~val - ~valLSB) / 128;
+						nrpnLSB = ~nrpn % 128;
+                        nrpnMSB = (~nrpn - nrpnLSB) / 128;
+						valLSB  = ~val % 128;
+                        valMSB  = (~val - valLSB) / 128;
 					};
 					if(~progNum.notNil) { midicmd = \program };
 					if(~polyTouch.notNil) { midicmd = \polyTouch };
@@ -60,7 +60,6 @@ DirtEventTypes {
 
 
 				freq = ~freq.value;
-
 				~amp = ~amp.value;
 				~midinote = (freq.cpsmidi).round(1).asInteger;
 				lag = ~lag + (~latency ? 0);
@@ -72,7 +71,7 @@ DirtEventTypes {
 				hasGate = ~hasGate ? true; // TODO
 
 				~ctlNum = ~ctlNum ? 0;
-				~chan = ~midichan ? 0;
+				chan = ~midichan ? 0;
 
 				func = Event.default[\midiEventFunctions][midicmd];
 				args = func.valueEnvir.asCollection;
@@ -81,24 +80,23 @@ DirtEventTypes {
 
 				if(midiout.notNil) {
 					if(latency == 0.0) {
-						if (~nrpn.notNil) {
-							midiout.control(~chan, 99, ~nrpnMSB);
-							midiout.control(~chan, 98, ~nrpnLSB);
-							midiout.control(~chan, 6,  ~valMSB);
-							midiout.control(~chan, 38, ~valLSB)
+						if (nrpnMSB.notNil) {
+							midiout.control(chan, 99, nrpnMSB);
+							midiout.control(chan, 98, nrpnLSB);
+							midiout.control(chan, 6,  valMSB);
+							midiout.control(chan, 38, valLSB)
 						}
 					    {
 							midiout.performList(midicmd, args)
 						}
 					}
 					{
-						if (~nrpn.notNil) {
+						if (nrpnMSB.notNil) {
 							thisThread.clock.sched(latency, {
-								midiout.control(0,99,0);
-								midiout.control(~chan, 99, ~nrpnMSB);
-								midiout.control(~chan, 98, ~nrpnLSB);
-								midiout.control(~chan, 6,  ~valMSB);
-								midiout.control(~chan, 38, ~valLSB)
+								midiout.control(chan, 99, nrpnMSB);
+								midiout.control(chan, 98, nrpnLSB);
+								midiout.control(chan, 6,  valMSB);
+								midiout.control(chan, 38, valLSB)
 							});
 						}
 						{
