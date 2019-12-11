@@ -34,22 +34,35 @@ DirtEventTypes {
 
 		// corrected event type, fixing a few things from the standard \midi event type
 
-		midiEvent = (
+
+	midiEvent = (
 			play: #{
 
 				var freq, lag, sustain, func;
-				var args, midiout, hasGate, midicmd, latency, chan;
-				var nrpnMSB, nrpnLSB, valMSB, valLSB;
+				var args, midiout, hasGate, midicmd, latency;
+				var sendNRPN;
+
 				midicmd = ~midicmd;
+				midiout = ~midiout.value;
+
 				if(midicmd.isNil) {
 					if(~ccn.notNil) { midicmd = \control; ~ctlNum = ~ccn };
 					if(~ccv.notNil) { midicmd = \control; ~control = ~ccv };
 					if(~nrpn.notNil) {
+						var chan, nrpnMSB, nrpnLSB, valMSB, valLSB;
+						~val = ~val ? 0;
+						chan = ~midichan ? 0;
 						midicmd = \control;
 						nrpnLSB = ~nrpn % 128;
                         nrpnMSB = (~nrpn - nrpnLSB) / 128;
 						valLSB  = ~val % 128;
                         valMSB  = (~val - valLSB) / 128;
+						sendNRPN = {
+							midiout.control(chan, 99, nrpnMSB);
+							midiout.control(chan, 98, nrpnLSB);
+							midiout.control(chan, 6,  valMSB);
+							midiout.control(chan, 38, valLSB)
+						};
 					};
 					if(~progNum.notNil) { midicmd = \program };
 					if(~polyTouch.notNil) { midicmd = \polyTouch };
@@ -60,18 +73,18 @@ DirtEventTypes {
 
 
 				freq = ~freq.value;
+
 				~amp = ~amp.value;
 				~midinote = (freq.cpsmidi).round(1).asInteger;
 				lag = ~lag + (~latency ? 0);
 				sustain = ~sustain = ~sustain.value;
-				midiout = ~midiout.value;
 				if(~uid.notNil and: { midiout.notNil }) {
 					~uid = midiout.uid    // mainly for sysex cmd
 				};
 				hasGate = ~hasGate ? true; // TODO
 
 				~ctlNum = ~ctlNum ? 0;
-				chan = ~midichan ? 0;
+				~chan = ~midichan ? 0;
 
 				func = Event.default[\midiEventFunctions][midicmd];
 				args = func.valueEnvir.asCollection;
@@ -79,32 +92,21 @@ DirtEventTypes {
 				latency = lag; // for now.
 
 				if(midiout.notNil) {
+
 					if(latency == 0.0) {
-						if (nrpnMSB.notNil) {
-							midiout.control(chan, 99, nrpnMSB);
-							midiout.control(chan, 98, nrpnLSB);
-							midiout.control(chan, 6,  valMSB);
-							midiout.control(chan, 38, valLSB)
-						}
-					    {
+						if (sendNRPN.notNil) {
+							sendNRPN.value
+						} {
 							midiout.performList(midicmd, args)
 						}
-					}
-					{
-						if (nrpnMSB.notNil) {
-							thisThread.clock.sched(latency, {
-								midiout.control(chan, 99, nrpnMSB);
-								midiout.control(chan, 98, nrpnLSB);
-								midiout.control(chan, 6,  valMSB);
-								midiout.control(chan, 38, valLSB)
-							});
-						}
-						{
-							thisThread.clock.sched(latency, {
-						    {
+					} {
+						thisThread.clock.sched(latency, {
+							if (sendNRPN.notNil) {
+								sendNRPN.value;
+							} {
 								midiout.performList(midicmd, args);
-							}})
-						}
+							}
+						});
 					};
 					if(hasGate and: { midicmd === \noteOn }) {
 						thisThread.clock.sched(sustain + latency, {
@@ -116,11 +118,9 @@ DirtEventTypes {
 					.format(midicmd, [func.argNames, args].flop.flat.join(" "))
 					.postln
 				};
-
 				true // always return something != nil to end processing in DirtEvent
-
 			}
 		)
 	}
-
 }
+
