@@ -54,9 +54,9 @@ DirtEventTypes {
 						chan = ~midichan ? 0;
 						midicmd = \control;
 						nrpnLSB = ~nrpn % 128;
-                        nrpnMSB = (~nrpn - nrpnLSB) / 128;
+						nrpnMSB = (~nrpn - nrpnLSB) / 128;
 						valLSB  = ~val % 128;
-                        valMSB  = (~val - valLSB) / 128;
+						valMSB  = (~val - valLSB) / 128;
 						sendNRPN = {
 							midiout.control(chan, 99, nrpnMSB);
 							midiout.control(chan, 98, nrpnLSB);
