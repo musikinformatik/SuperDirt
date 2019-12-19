@@ -174,7 +174,7 @@ CORE SYNTHDEFS FOR DIRT
 		in = In.ar(dryBus, numChannels);
 		ReplaceOut.ar(dryBus, in * (1 - leslie));
 
-		if(numChannels > 2) { in = in.clump(2).sum };
+		in = if(numChannels > 2) { in.clump(2).sum } { in.dup };
 		distance = SinOsc.ar(Lag.kr(lrate,10), 0).range(0, lsize);
 		throb = SinOsc.ar(Lag.kr(lrate*0.8, 20), 0).range(0,lsize*1.3);
 		bal1 = SinOsc.kr(Lag.kr(lrate*0.8, 4), pi/2).range(-0.2,0.2);
