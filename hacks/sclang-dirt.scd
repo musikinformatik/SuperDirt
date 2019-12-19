@@ -8,7 +8,7 @@ SuperDirt.default = ~dirt;
 )
 
 
-
+// some hihats
 (
 Pdef(\x,
 	Pbind(
@@ -20,6 +20,24 @@ Pdef(\x,
 		\room, Pseq([0, 0, 0.4], inf)
 	)
 ).play
+)
+
+// take any, not five
+(
+var names = ~dirt.soundLibrary.bufferEvents.keys;
+var clumps = names.asArray.scramble.curdle(0.1);
+Pdef(\x,
+	Pbind(
+		\type, \dirt,
+		\s, Pn(Plazy { var n = clumps.choose; Pfuncn({ n.choose }, 64) }),
+		\n, Pwhite(0, 20, inf),
+		\speed, Pbrown(1, 1.2, 0.01),
+		\legato, 2,
+		\dur, 0.125 / 4 * Pseq([1, 1/2, 1, 2, 2, 1/2], inf),
+		\room, Pseq([0, 0, 0.4], inf)
+	)
+);
+Ppar([Pdef(\x), Pdef(\x)]).play
 )
 
 
