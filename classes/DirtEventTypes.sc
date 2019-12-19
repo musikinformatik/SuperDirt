@@ -41,7 +41,7 @@ DirtEventTypes {
 				var freq, lag, sustain;
 				var args, midiout, hasGate, midicmd, latency, chan;
 				var sendNRPN, schedmidi, schedmidicmd;
-				var hasNote;
+				var hasNote = ~n != \none;
 
 				midiout = ~midiout.value;
 
@@ -53,7 +53,6 @@ DirtEventTypes {
 				midicmd = ~midicmd;
 				~chan = ~midichan ? 0;
 				chan = ~chan;
-				hasNote = (not (~midinote.isNil && ~freq.isNil && ~n.isNil && ~octave.isNil));
 
 				lag = ~lag + (~latency ? 0);
 				latency = lag; // for now.
