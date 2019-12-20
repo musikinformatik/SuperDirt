@@ -36,6 +36,7 @@ DirtEventTypes {
 
 
 	midiEvent = (
+			midiOutNotFoundError: DirtPartTimeError(2, "midi device is nil."),
 			play: #{
 
 				var freq, lag, sustain;
@@ -46,10 +47,8 @@ DirtEventTypes {
 				midiout = ~midiout.value;
 
 				if(midiout.isNil) {
-					"midi device is nil.".postln;
-					^true
+					~midiOutNotFoundError.throw;
 				};
-
 				midicmd = ~midicmd;
 				~chan = ~midichan ? 0;
 				chan = ~chan;
