@@ -31,13 +31,16 @@ Pdef(\x,
 		\type, \dirt,
 		\s, Pn(Plazy { var n = clumps.choose; Pfuncn({ n.choose }, 64) }),
 		\n, Pwhite(0, 20, inf),
-		\speed, Pbrown(1, 1.2, 0.01),
 		\legato, 2,
 		\dur, 0.125 / 4 * Pseq([1, 1/2, 1, 2, 2, 1/2], inf),
 		\room, Pseq([0, 0, 0.4], inf)
 	)
 );
-Ppar([Pdef(\x), Pdef(\x)]).play
+Pdef(\y,
+	Pset(\speed, Pbrown(0, 1, 0.01).linexp(0, 1, 1, 4),
+		Ppar([Pdef(\x), Pdef(\x)])
+	)
+).play
 )
 
 
