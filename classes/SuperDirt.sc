@@ -281,7 +281,7 @@ SuperDirt {
 
 	*predefinedSynthParameters {
 		// not complete, but avoids obvious collisions
-		^#[\pan, \amp, \out, \i_out, \sustain, \gate, \accelerate, \gain, \unit, \cut, \octave, \offset, \attack];
+		^#[\pan, \amp, \out, \i_out, \sustain, \gate, \accelerate, \gain, \overgain, \unit, \cut, \octave, \offset, \attack];
 	}
 
 
