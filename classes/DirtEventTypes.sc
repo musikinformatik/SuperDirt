@@ -42,7 +42,7 @@ DirtEventTypes {
 				var freq, lag, sustain;
 				var args, midiout, hasGate, midicmd, latency, chan;
 				var sendNRPN, schedmidi, schedmidicmd, donecmd;
-				var hasNote = ~n != \none;
+				var hasNote = ~n != \none, midiCommandPending = true;
 
 				midiout = ~midiout.value;
 
@@ -61,8 +61,8 @@ DirtEventTypes {
 					{|f| thisThread.clock.sched(latency, f)}
 				};
 				donecmd = { |cmd|
-					if (midicmd.notNil and: { midicmd === cmd }) {
-						midicmd = nil
+					if (midiCommandPending) {
+						midiCommandPending = (midicmd !== cmd)
 					}
 				};
 				schedmidicmd = { |cmd|
@@ -123,7 +123,7 @@ DirtEventTypes {
 					}
 				};
 
-				if(midicmd.notNil) { schedmidicmd.value(midicmd) };
+				if(midiCommandPending) { schedmidicmd.value(midicmd) };
 
 				true // always return something != nil to end processing in DirtEvent
 			}
