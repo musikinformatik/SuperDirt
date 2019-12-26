@@ -41,7 +41,7 @@ DirtEventTypes {
 
 				var freq, lag, sustain;
 				var args, midiout, hasGate, midicmd, latency, chan;
-				var sendNRPN, schedmidi, schedmidicmd;
+				var sendNRPN, schedmidi, schedmidicmd, donecmd;
 				var hasNote = ~n != \none;
 
 				midiout = ~midiout.value;
@@ -60,14 +60,17 @@ DirtEventTypes {
 				} {
 					{|f| thisThread.clock.sched(latency, f)}
 				};
+				donecmd = { |cmd|
+					if (midicmd.notNil and: { midicmd === cmd }) {
+						midicmd = nil
+					}
+				};
 				schedmidicmd = { |cmd|
 					var func;
 					func = Event.default[\midiEventFunctions][cmd];
 					args = func.valueEnvir.asCollection;
 					schedmidi.value { midiout.performList(cmd, args) };
-					if (midicmd.notNil && midicmd === cmd) {
-						midicmd = nil
-					};
+					donecmd.value(cmd);
 				};
 
 				// guess MIDI events from parameters
@@ -92,9 +95,9 @@ DirtEventTypes {
 					});
 				};
 
-				if(~progNum.notNil)   { var num = ~progNum;   schedmidi.value({ midiout.program(chan, num) })};
-				if(~midibend.notNil)  { var val = ~midibend;  schedmidi.value({ midiout.bend(chan, val)    })};
-				if(~miditouch.notNil) { var val = ~miditouch; schedmidi.value({ midiout.touch(chan, val)   })};
+				if(~progNum.notNil)   { var num = ~progNum;   donecmd.value(\program); schedmidi.value({ midiout.program(chan, num) })};
+				if(~midibend.notNil)  { var val = ~midibend;  donecmd.value(\bend);    schedmidi.value({ midiout.bend(chan, val)    })};
+				if(~miditouch.notNil) { var val = ~miditouch; donecmd.value(\touch);   schedmidi.value({ midiout.touch(chan, val)   })};
 
 				if (hasNote) {
 					freq = ~freq.value;
