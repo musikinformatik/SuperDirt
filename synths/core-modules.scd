@@ -124,7 +124,6 @@ they respond to the existence of a value for one of the tidal parameters
 		dirtEvent.sendSynth("dirt_shape" ++ ~numChannels,
 			[
 				shape: ~shape,
-				overshape: ~overshape,
 				out: ~out
 		])
 
