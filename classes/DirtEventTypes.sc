@@ -43,6 +43,8 @@ DirtEventTypes {
 				var args, midiout, hasGate, midicmd, latency, chan;
 				var sendNRPN, schedmidi, schedmidicmd, donecmd;
 				var hasNote = ~n != \none, midiCommandPending = true;
+				var nrpnMSB, nrpnLSB, valMSB, valLSB;
+				var ctlNum, control, num, val, note;
 
 				midiout = ~midiout.value;
 
@@ -76,13 +78,12 @@ DirtEventTypes {
 
 				// guess MIDI events from parameters
 				if(~ccn.notNil and: {~ccv.notNil }) {
-					var ctlNum = ~ccn; // TODO - also check for ~ctlNum ?
-					var control = ~ccv;
+					ctlNum = ~ccn; // TODO - also check for ~ctlNum ?
+					control = ~ccv;
 					schedmidi.value({ midiout.control(chan, ctlNum, control) });
 				};
 
 				if(~nrpn.notNil) {
-					var nrpnMSB, nrpnLSB, valMSB, valLSB;
 					~val = ~val ? 0;
 					nrpnLSB = ~nrpn % 128;
 					nrpnMSB = (~nrpn - nrpnLSB) / 128;
@@ -96,17 +97,17 @@ DirtEventTypes {
 					});
 				};
 
-				if(~progNum.notNil)   { var num = ~progNum;   donecmd.value(\program); schedmidi.value({ midiout.program(chan, num) })};
-				if(~midibend.notNil)  { var val = ~midibend;  donecmd.value(\bend);    schedmidi.value({ midiout.bend(chan, val)    })};
-				if(~miditouch.notNil) { var val = ~miditouch; donecmd.value(\touch);   schedmidi.value({ midiout.touch(chan, val)   })};
+				if(~progNum.notNil)   { num = ~progNum;   donecmd.value(\program); schedmidi.value({ midiout.program(chan, num) })};
+				if(~midibend.notNil)  { val = ~midibend;  donecmd.value(\bend);    schedmidi.value({ midiout.bend(chan, val)    })};
+				if(~miditouch.notNil) { val = ~miditouch; donecmd.value(\touch);   schedmidi.value({ midiout.touch(chan, val)   })};
 
 				if (hasNote) {
 					freq = ~freq.value;
 					~midinote = (freq.cpsmidi).round(1).asInteger;
 					// Assume aftertouch means no noteOn, for now..
 					if(~polyTouch.notNil) {
-						var val = ~polyTouch;
-						var note = ~midinote;
+						val = ~polyTouch;
+						note = ~midinote;
 						schedmidi.value({ midiout.polyTouch(chan, note, val) })
 					} {
 						~amp = ~amp.value;
