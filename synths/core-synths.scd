@@ -124,14 +124,14 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 	SynthDef("dirt_hpf" ++ numChannels, { |out, hcutoff = 440, hresonance = 0|
 		var signal = In.ar(out, numChannels);
-		signal = RHPF.ar(signal, hcutoff.abs.clip(20,80e3), hresonance.linexp(0, 1, 1, 0.001));
+		signal = RHPF.ar(signal, hcutoff.abs.clip(20, SampleRate.ir / 2), hresonance.linexp(0, 1, 1, 0.001));
 		ReplaceOut.ar(out, signal)
 	}, [\ir, \ir, \ir]).add;
 
 	SynthDef("dirt_bpf" ++ numChannels, { |out, bandqf = 440, bandq = 10|
 		var signal = In.ar(out, numChannels);
 		bandq = max(1, bandq);  // limit quality, avoid division by zero
-		bandqf = bandqf.clip(20,80e3); // limit extremes
+		bandqf = bandqf.clip(20, SampleRate.ir / 2); // limit extremes
 		signal = BPF.ar(signal, bandqf, 1/bandq) * max(bandq, 1.0);
 		ReplaceOut.ar(out, signal)
 	}, [\ir, \ir, \ir]).add;
@@ -148,7 +148,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 	SynthDef("dirt_lpf" ++ numChannels, { |out, cutoff = 440, resonance = 0|
 		var signal = In.ar(out, numChannels);
-		signal = RLPF.ar(signal, cutoff.abs.clip(20,80e3), resonance.linexp(0, 1, 1, 0.001));
+		signal = RLPF.ar(signal, cutoff.abs.clip(20, SampleRate.ir / 2), resonance.linexp(0, 1, 1, 0.001));
 		ReplaceOut.ar(out, signal)
 	}, [\ir, \ir, \ir]).add;
 
