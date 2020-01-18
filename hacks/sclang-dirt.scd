@@ -29,15 +29,20 @@ var clumps = names.asArray.scramble.curdle(0.1);
 Pdef(\x,
 	Pbind(
 		\type, \dirt,
-		\s, Pn(Plazy { var n = clumps.choose; Pfuncn({ n.choose }, 64) }),
+		\s, Pn(Plazy {
+			var n = clumps.choose;
+			postln(join(n, " ") ++ "\n");
+			Pfuncn({ n.choose }, 2 ** rrand(6, 9))
+		}),
 		\n, Pwhite(0, 20, inf),
 		\speed, Pbrown(1, 1.2, 0.01),
+		\amp, Pwhite().linexp(0, 1, 0.001, 0.3),
 		\legato, 2,
-		\dur, 0.125 / 4 * Pseq([1, 1/2, 1, 2, 2, 1/2], inf),
-		\room, Pseq([0, 0, 0.4], inf)
+		\dur, 1 / 32 * Pshuf([1, 1/2, 1, 2, 2, 1/2], inf),
+		\room, Pwrand([0, 0.8], [0.9, 0.1], inf),
 	)
 );
-Ppar([Pdef(\x), Pdef(\x)]).play
+Pdef(\y, Ppar([Pdef(\x), Pdef(\x)])).play
 )
 
 
