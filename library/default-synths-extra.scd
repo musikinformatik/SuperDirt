@@ -523,3 +523,145 @@ SynthDef(\superreese,  {|out, pan, freq, sustain, accelerate, detune=0, voice=0|
 	OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
 }).add;
 );
+
+(
+// DrumSynths SC Example - SOS Drums by Renick Bell, renick@gmail.com
+// recipes from Gordon Reid in his Sound on Sound articles
+// SOSkick — http:www.soundonsound.com/sos/jan02/articles/synthsecrets0102.asp
+// increase pitch1 and voice for interesting electronic percussion
+// Adapted to SuperDirt by Aleksandr Yakunichev, hi@ya.codes
+//
+// midinote – controls the root note of the kick
+// pitch1 - controls modulation frequency in Hz (min: 0, max: SampleRate.ir / 2)
+// voice - controls modulation input phase in radians (min: 0, max: your sanity)
+// pitch2 - controls WhiteNoise amplitude (min: 0, max: 1)
+// speed - controls WhiteNoise sweep (min: 0, max: 1)
+SynthDef(\soskick, {
+  arg out, pan, freq = 65, pitch1 = 0, speed = 0.3, voice = 1, sustain = 1, pitch2 = 0.00;
+  var beater, source, env;
+
+  env = Env.perc(0.005, sustain).ar(Done.freeSelf);
+
+  source = Line.ar(freq * 2, freq, 0.02);
+  source = PMOsc.ar(source, pitch1, voice);
+  source = LPF.ar(source, 1000);
+
+  beater = WhiteNoise.ar(pitch2.clip);
+  beater = HPF.ar(beater, 500);
+  beater = LPF.ar(beater, XLine.ar(6000, 500, speed.clip * 0.1));
+  beater = beater * Env.perc.ar;
+
+  OffsetOut.ar(out, DirtPan.ar((source + beater) * 3.dbamp, ~dirt.numChannels, pan, env));
+},
+metadata: (
+  credit: "Renick Bell",
+  category: \drums,
+  tags: [\pitched, \bass, \sos]
+)).add;
+);
+
+(
+// Retrieved from http://sccode.org/1-5aD
+// DrumSynths SC Example - SOS Drums by Renick Bell, renick@gmail.com
+// Recipes from Gordon Reid in his Sound on Sound articles
+// SOShats — http:www.soundonsound.com/sos/Jun02/articles/synthsecrets0602.asp
+// Modified by Bruno Ruviaro and Josh Mitchell 8/19
+// Adapted to SuperDirt by Aleksandr Yakunichev, hi@ya.codes
+//
+// resonance – bandpass filter resonance value (min: 0, max: 1)
+// pitch1 - oscillator modulation in radians (min: 0, max: SampleRate.ir / 2)
+SynthDef(\soshats, {
+  arg out = 0, pan = 0, freq = 220, pitch1 = 238.5, resonance = 1, sustain = 0.5;
+  var source, envelope, bpf, hpf;
+
+  source = Mix(PMOsc.ar(Pulse.ar(freq), freq * [1.34, 2.405, 3.09, 1.309], pitch1 * [1, 0.22, 0.014, 0.0038]));
+
+  bpf = BPF.ar(
+    source,
+    XLine.kr(15000, 9000, sustain),
+    Clip.ir(resonance, 0, 1),
+    Env.perc(0.005, sustain, curve: -4).ar
+  );
+
+  hpf = HPF.ar(
+    source,
+    XLine.kr(9000, 12000, sustain),
+    Env.perc(0.005, sustain, curve: -4).ar
+  );
+
+  envelope = Env.perc(0.005, sustain).ar(Done.freeSelf);
+
+  OffsetOut.ar(out, DirtPan.ar((bpf + hpf) * (-5).dbamp, ~dirt.numChannels, pan, envelope));
+},
+metadata: (
+  credit: "Renick Bell",
+  category: \drums,
+  tags: [\pitched, \hihats, \sos]
+)).add;
+);
+
+(
+// Retrieved from http:sccode.org/1-5aD
+// DrumSynths SC Example - SOS Drums by Renick Bell, renick_at_gmail.com
+// recipes from Gordon Reid in his Sound on Sound articles
+// SOStom — http:www.soundonsound.com/sos/Mar02/articles/synthsecrets0302.asp
+// Modified by Bruno Ruviaro and Josh Mitchell 8/19.
+// Adapted to SuperDirt by Aleksandr Yakunichev, hi@ya.codes
+//
+// voice - controls modulation input phase in radians (min: 0, max: your sanity)
+SynthDef(\sostoms, {
+  arg out, pan, sustain = 0.5, freq = 261.626, voice = 0.5;
+  var envelope, source;
+
+  source = PMOsc.ar(Saw.ar(freq * 0.9), freq * 0.85, voice, mul: 6.dbamp);
+  source = source + SinOsc.ar([freq, freq * 0.8]);
+  source = Mix.ar(source);
+  source = LeakDC.ar(source + Crackle.ar(2)) * (-3).dbamp;
+
+  envelope = Env.perc(0.005, sustain, (-4).dbamp, -6).ar(Done.freeSelf);
+
+  OffsetOut.ar(out, DirtPan.ar(source, ~dirt.numChannels, pan, envelope));
+},
+metadata: (
+  credit: "Renick Bell",
+  category: \drums,
+  tags: [\pitched, \tom, \sos]
+)).add;
+);
+
+(
+// Retrieved from http:sccode.org/1-5aD
+// DrumSynths SC Example — SOS Drums by Renick Bell, renick_at_gmail.com
+// recipes from Gordon Reid in his Sound on Sound articles
+// SOSsnare — http:www.soundonsound.com/sos/Mar02/articles/synthsecrets0302.asp
+// Latch.ar(WhiteNoise.ar(0.1), Impulse.ar(nyquist * 2)) is added aliasing for effect
+// Modified by Bruno Ruviaro and Josh Mitchell 8/19.
+// Adapted to SuperDirt by Aleksandr Yakunichev, hi@ya.codes
+//
+// voice - controls modulation input phase in radians (min: 0, max: your sanity)
+// semitone - modulation frequency in semitones of fundamental
+// pitch1 - resonance filter frequency (Hz)
+// resonance - resonance of bandpass and resonz filters (min: 0, max: 1)
+SynthDef(\sossnare, {
+  arg out, pan, freq = 405, voice = 0.385, semitone = 0.452, pitch1 = 2000, resonance = 0.1, sustain = 0.5;
+  var source, noise, envelope;
+
+  source = PMOsc.ar(Saw.ar(freq * 0.85), freq * semitone, voice);
+
+  noise = Latch.ar(WhiteNoise.ar(0.1), Impulse.ar(1700 * 2));
+  noise = BRF.ar(noise, 4 * pitch1, resonance, 0.5);
+  noise = BRF.ar(noise, 2.5 * pitch1, resonance, 0.5);
+  noise = BRF.ar(noise, 1.8 * pitch1, resonance, 0.5);
+  noise = BRF.ar(noise, pitch1, resonance, Env.perc(0.005, sustain, -4).ar);
+  noise = Resonz.ar(noise, pitch1, 1, 40);
+
+  envelope = Env.perc(0.005, sustain, 0.5, -4).ar(Done.freeSelf);
+
+  OffsetOut.ar(out, DirtPan.ar((source + noise) * 4.dbamp, ~dirt.numChannels, pan, envelope));
+},
+metadata: (
+  credit: "Renick Bell",
+  category: \drums,
+  tags: [\pitched, \snare, \sos]
+)).add;
+);
