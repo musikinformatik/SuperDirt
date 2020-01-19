@@ -531,12 +531,13 @@ SynthDef(\superreese,  {|out, pan, freq, sustain, accelerate, detune=0, voice=0|
 // of modulation every operator receives from other operators and itself (feedback), virtually
 // providing an endless number of possible combinations (algorithms).
 //
-// responds to
-//   lfofreq (pitch modulation frequency)
-//   lfodepth (pitch modulation amplitude)
+// Responds to
+//   voice (preset number: [0] is user-defined; [1-5] are randomly generated presets).
+//   lfofreq (overall pitch modulation frequency)
+//   lfodepth (overall pitch modulation amplitude)
 //
 // Each operator responds to
-//   amp (audible amplitude)
+//   amp (operator volume - becomes carrier)
 //   ratio (frequency ratio)
 //   detune (in Hz)
 //   eglevel[1-4] (4 envelope generator levels)
@@ -545,13 +546,13 @@ SynthDef(\superreese,  {|out, pan, freq, sustain, accelerate, detune=0, voice=0|
 // The syntax for operator arguments is <argumentName + opIndex>[modulatorIndex | egIndex]
 //
 // For example:
-// amp1 1      (op1 as carrier with full amplitude)
+// amp1 1      (op1 as carrier with full volume)
 // ratio2 2.3  (op2 frequency ratio)
 // mod11 0.5   (op1 feedback)
 // mod12 0.78  (op1 modulation amount by op2)
 // detune1 0.2 (op1 detune)
-// eglevel12   (op1 EG level2)
-// egrate11    (op1 EG rate1) -- higher values go FASTER!
+// eglevel12 0.1  (op1 EG level2)
+// egrate11 0.01  (op1 EG rate1) -- WARNING: higher values go FASTER!
 
 (
 SynthDef(\superfm, {
@@ -595,31 +596,39 @@ SynthDef(\superfm, {
 		[ // user-defined
 			ratios,	detunes, amps, eglevels, egrates, mods,
 		],
-	]++Array.fill(5, { [ // randomly generated
-		Array.fill(6, { // ratios
+	] ++
+	// randomly generated presets
+	Array.fill(5, { [
+		// ratios
+		Array.fill(6, {
 			[0.25, 0.5, 1, 2, 3, 4, 5, 6, 7, 11.rand + 1, 13.rand + 1, 15.rand + 1].wchoose(
-				[1, 2, 8, 4, 3, 0.5, 0.5, 0.5, 0.5, 0.25, 0.25, 0.25].normalizeSum)}),
-		Array.fill(6, {rand2(7)}), // detunes
-		Array.fill(6, {1.0.rand * 0.5.coin.asInt}), // amps
-		Array.fill2D(6, 4, {1.0.rand}), // EG levels
-		Array.fill2D(6, 4, {1.0.rand}), // EG rates
-		Array.fill2D(6, 6, {|r,c| 1.0.rand * 0.25.coin.asInt * if(r == c, feedback, 1)}), // mods
+				[1, 2, 8, 4, 3, 0.5, 0.5, 0.5, 0.5, 0.25, 0.25, 0.25].normalizeSum)
+		}),
+		// detunes
+		Array.fill(6, {rand2(7)}),
+		// amps
+		Array.fill(6, {1.0.rand * 0.5.coin.asInt}),
+		// EG levels
+		Array.fill2D(6, 4, {1.0.rand}),
+		// EG rates
+		Array.fill2D(6, 4, {1.0.rand}),
+		// mods
+		Array.fill2D(6, 6, {|r,c| 1.0.rand * 0.25.coin.asInt * if(r == c, feedback, 1)}),
 	]})
 	);
 
 	var envs = Array.fill(6, { |i|
 		EnvGen.kr(
 			Env.new(
-				[0]++Array.fill(4, { |n| presets[3][i][n] }), // EG levels
-				Array.fill(4, { |n| presets[4][i][n] }) // EG rates
+				// EG levels
+				[0]++Array.fill(4, { |n| presets[3][i][n] }),
+				// EG rates
+				Array.fill(4, { |n| presets[4][i][n] })
 			),
 			timeScale:sustain,
-			// doneAction:2
 		);
 	});
-	// var ctls = Array.fill(6, { |i|
-	// 	[freq * tremolo * ratios[i] + detunes[i], 0, envs[i] /* * keyvelocities[i]*/]
-	// });
+
 	var ctls = Array.fill(6, { |i|
 		[freq * tremolo * presets[0][i] + presets[1][i], 0, envs[i]]
 	});
