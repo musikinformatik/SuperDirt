@@ -553,7 +553,6 @@ SynthDef(\superreese,  {|out, pan, freq, sustain, accelerate, detune=0, voice=0|
 // detune1 0.2 (op1 detune)
 // eglevel12 0.1  (op1 EG level2)
 // egrate11 0.01  (op1 EG rate1) -- WARNING: higher values go FASTER!
-
 (
 SynthDef(\superfm, {
 	var sustain = \sustain.kr(1);
