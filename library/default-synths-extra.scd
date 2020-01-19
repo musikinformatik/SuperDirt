@@ -582,10 +582,10 @@ SynthDef(\superfm, {
 		// So higher values mean transitions are slower.
 		// DX7s envelopes use rates, which is the inverse of time, 1/time.
 		// Higher values in DX7 mean transitions are faster.
-		max(0.1 / ((\egrate++(i+1)++1).asSymbol).kr(10), 0.001),
-		max(0.1 / ((\egrate++(i+1)++2).asSymbol).kr(0.3), 0.001),
-		max(0.1 / ((\egrate++(i+1)++3).asSymbol).kr(0.1), 0.001),
-		max(0.1 / ((\egrate++(i+1)++4).asSymbol).kr(0.1), 0.001),
+		max(0.1 / ((\egrate++(i+1)++1).asSymbol).ir(10), 0.001),
+		max(0.1 / ((\egrate++(i+1)++2).asSymbol).ir(0.3), 0.001),
+		max(0.1 / ((\egrate++(i+1)++3).asSymbol).ir(0.1), 0.001),
+		max(0.1 / ((\egrate++(i+1)++4).asSymbol).ir(0.1), 0.001),
 	]});
 	// modulation matrix
 	var mods = Array.fill2D(6, 6, { |r, c|
