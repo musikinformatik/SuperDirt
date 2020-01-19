@@ -182,9 +182,10 @@ DirtOrbit {
 			~speed = 1.0;
 			~pan = 0.5;
 			~gain = 1.0;
+			~overgain = 0.0;
 			~cut = 0.0;
 			~unit = \r;
-			~n = 0; // sample number or note
+			~n = \none; // sample number or note
 			~octave = 5;
 			~midinote = #{ ~note ? ~n + (~octave * 12) };
 			~freq = #{ ~midinote.value.midicps };
