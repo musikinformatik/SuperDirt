@@ -635,7 +635,7 @@ SynthDef(\superfm, {
 	sound = Mix.ar(sound) * (-15.dbamp);
 	OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
 }).add;
-)
+);
 
 (
 // DrumSynths SC Example - SOS Drums by Renick Bell, renick@gmail.com
