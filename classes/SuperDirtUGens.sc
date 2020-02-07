@@ -28,21 +28,27 @@ DirtPan {
 		// signals is an array of arbitrary size
 		defaultPanningFunction = #{ | signals, numChannels, pan, mul |
 			var channels, inNumChannels;
-			if(numChannels > 2) {
-				DirtSplayAz.ar(
-					numChannels,
-					signals,
-					\span.ir(1),
-					pan,
-					mul,
-					\splay.ir(1),
-					\panwidth.ir(2),
-					\orientation.ir(0)
-				)
-			} {
-				//DirtSplay2.ar(signals, \span.ir(1), pan, mul)
-				DirtPanBalance2.ar(signals, \span.ir(1), pan, mul)
-			}
+			// NOTE: later on, we should move these special cases to one single UGen
+			switch(numChannels,
+				1, {
+					signals.sum * mul
+				},
+				2, {
+					DirtPanBalance2.ar(signals, \span.ir(1), pan, mul)
+				},
+				{
+					DirtSplayAz.ar(
+						numChannels,
+						signals,
+						\span.ir(1),
+						pan,
+						mul,
+						\splay.ir(1),
+						\panwidth.ir(2),
+						\orientation.ir(0)
+					)
+				}
+			)
 		}
 	}
 
