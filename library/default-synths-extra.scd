@@ -603,15 +603,15 @@ SynthDef(\superfm, {
 				[1, 2, 8, 4, 3, 0.5, 0.5, 0.5, 0.5, 0.25, 0.25, 0.25].normalizeSum)
 		}),
 		// detunes
-		Array.fill(6, {rand2(7)}),
+		Array.fill(6, { rand2(7) }),
 		// amps
-		Array.fill(6, {1.0.rand * 0.5.coin.asInt}),
+		Array.fill(6, { 1.0.rand * 0.5.coin.asInteger }),
 		// EG levels
 		Array.fill2D(6, 4, {1.0.rand}),
 		// EG rates
 		Array.fill2D(6, 4, {1.0.rand}),
 		// mods
-		Array.fill2D(6, 6, {|r,c| 1.0.rand * 0.25.coin.asInt * if(r == c, feedback, 1)}),
+		Array.fill2D(6, 6, {|r,c| 1.0.rand * 0.25.coin.asInteger * if(r == c, feedback, 1)}),
 	]})
 	);
 
