@@ -19,7 +19,6 @@ s.waitForBoot {
 	// for example: ~dirt.loadSoundFiles("/Users/myUserName/Dirt/samples/*");
 	// s.sync; // optionally: wait for samples to be read
 	~dirt.start(57120, 0 ! 12);   // start listening on port 57120, create two busses each sending audio to channel 0
-
 	// optional, needed for convenient access from sclang:
 	(
 		~d1 = ~dirt.orbits[0]; ~d2 = ~dirt.orbits[1]; ~d3 = ~dirt.orbits[2];
@@ -28,6 +27,8 @@ s.waitForBoot {
 		~d10 = ~dirt.orbits[9]; ~d11 = ~dirt.orbits[10]; ~d12 = ~dirt.orbits[11];
 	);
 };
-
 s.latency = 0.3; // increase this if you get "late" messages
+~testI = InterfaceEvent("exArg");
+FreqScopeWindow().new;
 );
+

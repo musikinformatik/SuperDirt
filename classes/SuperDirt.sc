@@ -6,7 +6,6 @@ This object handles OSC communication and local effects.
 These are relative to a server and a number of output channels
 It keeps a number of dirt orbits (see below).
 
-
 */
 
 SuperDirt {
@@ -224,13 +223,20 @@ SuperDirt {
 				event.putPairs(msg[1..]);
 				receiveAction.value(event);
 				index = event[\orbit] ? 0;
+				// event.postln;
+
+				//send shit to the InterfaceEvent class
 
 				if(warnOutOfOrbit and: { index >= orbits.size } or: { index < 0 }) {
 						"SuperDirt: event falls out of existing orbits, index (%)".format(index).warn
 				};
 
-				DirtEvent(orbits @@ index, modules, event).play
-
+				event.postln;
+				if(event[\scMessage] != nil) // if you send something with the param scMessage,
+											 // the event will not play
+					{InterfaceEvent(event).debug}
+					//else
+					{DirtEvent(orbits @@ index, modules, event).play};
 			}, '/play2', senderAddr, recvPort: port).fix
 		);
 
@@ -286,4 +292,3 @@ SuperDirt {
 
 
 }
-

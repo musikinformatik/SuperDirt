@@ -6,10 +6,9 @@ DirtModules encapsulate two functions:
 
 */
 
-
 DirtModule {
 	var <name, <func, <test;
-
+	
 	*new { |name, func, test|
 		^super.newCopyArgs(name, func, test ? true)
 	}
