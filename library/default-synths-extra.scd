@@ -523,3 +523,258 @@ SynthDef(\superreese,  {|out, pan, freq, sustain, accelerate, detune=0, voice=0|
 	OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
 }).add;
 );
+
+// 6-op FM synth (DX7-like)
+//
+// Works a bit different from the original DX7.  Instead of algorithms, you set the amount
+// of modulation every operator receives from other operators and itself (feedback), virtually
+// providing an endless number of possible combinations (algorithms).
+//
+// Responds to
+//   voice (preset number: [0] is user-defined; [1-5] are randomly generated presets).
+//   lfofreq (overall pitch modulation frequency)
+//   lfodepth (overall pitch modulation amplitude)
+//
+// Each operator responds to
+//   amp (operator volume - becomes carrier)
+//   ratio (frequency ratio)
+//   detune (in Hz)
+//   eglevel[1-4] (4 envelope generator levels)
+//   egrate[1-4] (4 envelope generator rates)
+//
+// The syntax for operator arguments is <argumentName + opIndex>[modulatorIndex | egIndex]
+//
+// For example:
+// amp1 1      (op1 as carrier with full volume)
+// ratio2 2.3  (op2 frequency ratio)
+// mod11 0.5   (op1 feedback)
+// mod12 0.78  (op1 modulation amount by op2)
+// detune1 0.2 (op1 detune)
+// eglevel12 0.1  (op1 EG level2)
+// egrate11 0.01  (op1 EG rate1) -- WARNING: higher values go FASTER!
+(
+SynthDef(\superfm, {
+	var sustain = \sustain.kr(1);
+	var lfofreq = \lfofreq.kr(1);
+	var lfodepth = \lfodepth.kr(0);
+	var freq = \freq.kr(440);
+	var tremolo = 1 + (LFTri.kr(lfofreq) * lfodepth);
+	var out = \out.kr(0);
+	var pan = \pan.kr(0);
+	var voice = \voice.kr(0);
+	// overall envelope
+	var env = EnvGen.ar(Env.linen(0.01, 0.98, 0.01, 1, -3), timeScale:sustain, doneAction:2);
+	// operator output levels
+	var amps = Array.fill(6, { |i| (\amp++(i+1)).asSymbol.kr(1)});
+	// operator frequency ratios
+	var ratios = Array.fill(6, {|i| (\ratio++(i+1)).asSymbol.kr(1)});
+	// operator frequency detuners
+	var detunes = Array.fill(6, {|i| (\detune++(i+1)).asSymbol.kr(rand2(0.1))});
+	// feedback -- for presets only
+	var feedback = \feedback.kr(0.0);
+	// operator envelopes
+	var eglevels = Array.fill(6, {|i|
+		Array.fill(4, { |n| (\eglevel++(i+1)++(n+1)).asSymbol.kr(1) })
+	});
+	var egrates = Array.fill(6, {|i| [
+		// Supercollider envelopes use seconds for the durations of segments.
+		// So higher values mean transitions are slower.
+		// DX7s envelopes use rates, which is the inverse of time, 1/time.
+		// Higher values in DX7 mean transitions are faster.
+		max(0.1 / ((\egrate++(i+1)++1).asSymbol).ir(10), 0.001),
+		max(0.1 / ((\egrate++(i+1)++2).asSymbol).ir(0.3), 0.001),
+		max(0.1 / ((\egrate++(i+1)++3).asSymbol).ir(0.1), 0.001),
+		max(0.1 / ((\egrate++(i+1)++4).asSymbol).ir(0.1), 0.001),
+	]});
+	// modulation matrix
+	var mods = Array.fill2D(6, 6, { |r, c|
+		(\mod++(r+1)++(c+1)).asSymbol.kr(0) * if(r == c, feedback, 1)
+	});
+	var presets = SelectX.kr(voice, [
+		[ // user-defined
+			ratios,	detunes, amps, eglevels, egrates, mods,
+		],
+	] ++
+	// randomly generated presets
+	Array.fill(5, { [
+		// ratios
+		Array.fill(6, {
+			[0.25, 0.5, 1, 2, 3, 4, 5, 6, 7, 11.rand + 1, 13.rand + 1, 15.rand + 1].wchoose(
+				[1, 2, 8, 4, 3, 0.5, 0.5, 0.5, 0.5, 0.25, 0.25, 0.25].normalizeSum)
+		}),
+		// detunes
+		Array.fill(6, { rand2(7) }),
+		// amps
+		Array.fill(6, { 1.0.rand * 0.5.coin.asInteger }),
+		// EG levels
+		Array.fill2D(6, 4, {1.0.rand}),
+		// EG rates
+		Array.fill2D(6, 4, {1.0.rand}),
+		// mods
+		Array.fill2D(6, 6, {|r,c| 1.0.rand * 0.25.coin.asInteger * if(r == c, feedback, 1)}),
+	]})
+	);
+
+	var envs = Array.fill(6, { |i|
+		EnvGen.kr(
+			Env.new(
+				// EG levels
+				[0]++Array.fill(4, { |n| presets[3][i][n] }),
+				// EG rates
+				Array.fill(4, { |n| presets[4][i][n] })
+			),
+			timeScale:sustain,
+		);
+	});
+
+	var ctls = Array.fill(6, { |i|
+		[freq * tremolo * presets[0][i] + presets[1][i], 0, envs[i]]
+	});
+
+	var sound = FM7.ar(ctls, presets[5]) * amps;
+	sound = Mix.ar(sound) * (-15.dbamp);
+	OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
+}).add;
+);
+
+(
+// DrumSynths SC Example - SOS Drums by Renick Bell, renick@gmail.com
+// recipes from Gordon Reid in his Sound on Sound articles
+// SOSkick — http:www.soundonsound.com/sos/jan02/articles/synthsecrets0102.asp
+// increase pitch1 and voice for interesting electronic percussion
+// Adapted to SuperDirt by Aleksandr Yakunichev, hi@ya.codes
+//
+// midinote – controls the root note of the kick
+// pitch1 - controls modulation frequency in Hz (min: 0, max: SampleRate.ir / 2)
+// voice - controls modulation input phase in radians (min: 0, max: your sanity)
+// pitch2 - controls WhiteNoise amplitude (min: 0, max: 1)
+// speed - controls WhiteNoise sweep (min: 0, max: 1)
+SynthDef(\soskick, {
+  arg out, pan, freq = 65, pitch1 = 0, speed = 0.3, voice = 1, sustain = 1, pitch2 = 0.00;
+  var beater, source, env;
+
+  env = Env.perc(0.005, sustain).ar(Done.freeSelf);
+
+  source = Line.ar(freq * 2, freq, 0.02);
+  source = PMOsc.ar(source, pitch1, voice);
+  source = LPF.ar(source, 1000);
+
+  beater = WhiteNoise.ar(pitch2.clip);
+  beater = HPF.ar(beater, 500);
+  beater = LPF.ar(beater, XLine.ar(6000, 500, speed.clip * 0.1));
+  beater = beater * Env.perc.ar;
+
+  OffsetOut.ar(out, DirtPan.ar((source + beater) * 3.dbamp, ~dirt.numChannels, pan, env));
+},
+metadata: (
+  credit: "Renick Bell",
+  category: \drums,
+  tags: [\pitched, \bass, \sos]
+)).add;
+);
+
+(
+// Retrieved from http://sccode.org/1-5aD
+// DrumSynths SC Example - SOS Drums by Renick Bell, renick@gmail.com
+// Recipes from Gordon Reid in his Sound on Sound articles
+// SOShats — http:www.soundonsound.com/sos/Jun02/articles/synthsecrets0602.asp
+// Modified by Bruno Ruviaro and Josh Mitchell 8/19
+// Adapted to SuperDirt by Aleksandr Yakunichev, hi@ya.codes
+//
+// resonance – bandpass filter resonance value (min: 0, max: 1)
+// pitch1 - oscillator modulation in radians (min: 0, max: SampleRate.ir / 2)
+SynthDef(\soshats, {
+  arg out = 0, pan = 0, freq = 220, pitch1 = 238.5, resonance = 1, sustain = 0.5;
+  var source, envelope, bpf, hpf;
+
+  source = Mix(PMOsc.ar(Pulse.ar(freq), freq * [1.34, 2.405, 3.09, 1.309], pitch1 * [1, 0.22, 0.014, 0.0038]));
+
+  bpf = BPF.ar(
+    source,
+    XLine.kr(15000, 9000, sustain),
+    Clip.ir(resonance, 0, 1),
+    Env.perc(0.005, sustain, curve: -4).ar
+  );
+
+  hpf = HPF.ar(
+    source,
+    XLine.kr(9000, 12000, sustain),
+    Env.perc(0.005, sustain, curve: -4).ar
+  );
+
+  envelope = Env.perc(0.005, sustain).ar(Done.freeSelf);
+
+  OffsetOut.ar(out, DirtPan.ar((bpf + hpf) * (-5).dbamp, ~dirt.numChannels, pan, envelope));
+},
+metadata: (
+  credit: "Renick Bell",
+  category: \drums,
+  tags: [\pitched, \hihats, \sos]
+)).add;
+);
+
+(
+// Retrieved from http:sccode.org/1-5aD
+// DrumSynths SC Example - SOS Drums by Renick Bell, renick_at_gmail.com
+// recipes from Gordon Reid in his Sound on Sound articles
+// SOStom — http:www.soundonsound.com/sos/Mar02/articles/synthsecrets0302.asp
+// Modified by Bruno Ruviaro and Josh Mitchell 8/19.
+// Adapted to SuperDirt by Aleksandr Yakunichev, hi@ya.codes
+//
+// voice - controls modulation input phase in radians (min: 0, max: your sanity)
+SynthDef(\sostoms, {
+  arg out, pan, sustain = 0.5, freq = 261.626, voice = 0.5;
+  var envelope, source;
+
+  source = PMOsc.ar(Saw.ar(freq * 0.9), freq * 0.85, voice, mul: 6.dbamp);
+  source = source + SinOsc.ar([freq, freq * 0.8]);
+  source = Mix.ar(source);
+  source = LeakDC.ar(source + Crackle.ar(2)) * (-3).dbamp;
+
+  envelope = Env.perc(0.005, sustain, (-4).dbamp, -6).ar(Done.freeSelf);
+
+  OffsetOut.ar(out, DirtPan.ar(source, ~dirt.numChannels, pan, envelope));
+},
+metadata: (
+  credit: "Renick Bell",
+  category: \drums,
+  tags: [\pitched, \tom, \sos]
+)).add;
+);
+
+(
+// Retrieved from http:sccode.org/1-5aD
+// DrumSynths SC Example — SOS Drums by Renick Bell, renick_at_gmail.com
+// recipes from Gordon Reid in his Sound on Sound articles
+// SOSsnare — http:www.soundonsound.com/sos/Mar02/articles/synthsecrets0302.asp
+// Latch.ar(WhiteNoise.ar(0.1), Impulse.ar(nyquist * 2)) is added aliasing for effect
+// Modified by Bruno Ruviaro and Josh Mitchell 8/19.
+// Adapted to SuperDirt by Aleksandr Yakunichev, hi@ya.codes
+//
+// voice - controls modulation input phase in radians (min: 0, max: your sanity)
+// semitone - modulation frequency in semitones of fundamental
+// pitch1 - resonance filter frequency (Hz)
+// resonance - resonance of bandpass and resonz filters (min: 0, max: 1)
+SynthDef(\sossnare, {
+  arg out, pan, freq = 405, voice = 0.385, semitone = 0.452, pitch1 = 2000, resonance = 0.1, sustain = 0.5;
+  var source, noise, envelope;
+
+  source = PMOsc.ar(Saw.ar(freq * 0.85), freq * semitone, voice);
+
+  noise = Latch.ar(WhiteNoise.ar(0.1), Impulse.ar(1700 * 2));
+  noise = BRF.ar(noise, 4 * pitch1, resonance, 0.5);
+  noise = BRF.ar(noise, 2.5 * pitch1, resonance, 0.5);
+  noise = BRF.ar(noise, 1.8 * pitch1, resonance, 0.5);
+  noise = BRF.ar(noise, pitch1, resonance, Env.perc(0.005, sustain, -4).ar);
+  noise = Resonz.ar(noise, pitch1, 1, 40);
+
+  envelope = Env.perc(0.005, sustain, 0.5, -4).ar(Done.freeSelf);
+
+  OffsetOut.ar(out, DirtPan.ar((source + noise) * 4.dbamp, ~dirt.numChannels, pan, envelope));
+},
+metadata: (
+  credit: "Renick Bell",
+  category: \drums,
+  tags: [\pitched, \snare, \sos]
+)).add;
+);

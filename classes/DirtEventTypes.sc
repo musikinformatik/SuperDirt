@@ -42,12 +42,14 @@ DirtEventTypes {
 				var freq, lag, sustain;
 				var args, midiout, hasGate, midicmd, latency, chan;
 				var sendNRPN, schedmidi, schedmidicmd, donecmd;
-				var hasNote = ~n != \none;
+				var hasNote = ~n != \none, midiCommandPending = ~midicmd.notNil;
+				var nrpnMSB, nrpnLSB, valMSB, valLSB;
+				var ctlNum, control, num, val, note;
 
 				midiout = ~midiout.value;
 
 				if(midiout.isNil) {
-					~midiOutNotFoundError.throw;
+					~midiOutNotFoundError.throw
 				};
 				midicmd = ~midicmd;
 				~chan = ~midichan ? 0;
@@ -55,16 +57,17 @@ DirtEventTypes {
 
 				lag = ~lag + (~latency ? 0);
 				latency = lag; // for now.
-				schedmidi = if (latency == 0.0) {
-					{|f| f.value}
+
+				schedmidi = if(latency == 0.0) {
+					{|f| f.value }
 				} {
-					{|f| thisThread.clock.sched(latency, f)}
+					{|f| thisThread.clock.sched(latency, f) }
 				};
+
 				donecmd = { |cmd|
-					if (midicmd.notNil and: { midicmd === cmd }) {
-						midicmd = nil
-					}
+					if(midiCommandPending) { midiCommandPending = (midicmd !== cmd) }
 				};
+
 				schedmidicmd = { |cmd|
 					var func;
 					func = Event.default[\midiEventFunctions][cmd];
@@ -74,14 +77,13 @@ DirtEventTypes {
 				};
 
 				// guess MIDI events from parameters
-				if(~ccn.notNil and: {~ccv.notNil}) {
-					var ctlNum = ~ccn; // TODO - also check for ~ctlNum ?
-					var control = ~ccv;
+				if(~ccn.notNil and: {~ccv.notNil }) {
+					ctlNum = ~ccn; // TODO - also check for ~ctlNum ?
+					control = ~ccv;
 					schedmidi.value({ midiout.control(chan, ctlNum, control) });
 				};
 
 				if(~nrpn.notNil) {
-					var nrpnMSB, nrpnLSB, valMSB, valLSB;
 					~val = ~val ? 0;
 					nrpnLSB = ~nrpn % 128;
 					nrpnMSB = (~nrpn - nrpnLSB) / 128;
@@ -91,22 +93,22 @@ DirtEventTypes {
 						midiout.control(chan, 99, nrpnMSB);
 						midiout.control(chan, 98, nrpnLSB);
 						midiout.control(chan, 6,  valMSB);
-						midiout.control(chan, 38, valLSB)
+						midiout.control(chan, 38, valLSB);
 					});
 				};
 
-				if(~progNum.notNil)   { var num = ~progNum;   donecmd.value(\program); schedmidi.value({ midiout.program(chan, num) })};
-				if(~midibend.notNil)  { var val = ~midibend;  donecmd.value(\bend);    schedmidi.value({ midiout.bend(chan, val)    })};
-				if(~miditouch.notNil) { var val = ~miditouch; donecmd.value(\touch);   schedmidi.value({ midiout.touch(chan, val)   })};
+				if(~progNum.notNil)   { num = ~progNum;   donecmd.value(\program); schedmidi.value({ midiout.program(chan, num) })};
+				if(~midibend.notNil)  { val = ~midibend;  donecmd.value(\bend);    schedmidi.value({ midiout.bend(chan, val)    })};
+				if(~miditouch.notNil) { val = ~miditouch; donecmd.value(\touch);   schedmidi.value({ midiout.touch(chan, val)   })};
 
 				if (hasNote) {
 					freq = ~freq.value;
 					~midinote = (freq.cpsmidi).round(1).asInteger;
 					// Assume aftertouch means no noteOn, for now..
 					if(~polyTouch.notNil) {
-						var val = ~polyTouch;
-						var note = ~midinote;
-						schedmidi.value({midiout.polyTouch(chan, note, val)})
+						val = ~polyTouch;
+						note = ~midinote;
+						schedmidi.value({ midiout.polyTouch(chan, note, val) })
 					} {
 						~amp = ~amp.value;
 						sustain = ~sustain = ~sustain.value;
@@ -118,12 +120,12 @@ DirtEventTypes {
 						if(hasGate) {
 							thisThread.clock.sched(sustain + latency, {
 								midiout.noteOff(*args);
-							});
+							})
 						}
 					}
 				};
 
-				if(midicmd.notNil) { schedmidicmd.value(midicmd) };
+				if(midiCommandPending) { schedmidicmd.value(midicmd) };
 
 				true // always return something != nil to end processing in DirtEvent
 			}
