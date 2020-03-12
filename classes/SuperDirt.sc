@@ -234,7 +234,7 @@ SuperDirt {
 				event.postln;
 				if(event[\scMessage] != nil) // if you send something with the param scMessage,
 											 // the event will not play
-					{InterfaceEvent(event).debug}
+					{InterfaceEvent(event,~dirt.soundLibrary).parse}
 					//else
 					{DirtEvent(orbits @@ index, modules, event).play};
 			}, '/play2', senderAddr, recvPort: port).fix

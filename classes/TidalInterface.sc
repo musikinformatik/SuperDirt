@@ -9,25 +9,17 @@ sent from Tidal, and sends them t
 InterfaceEvent {
 
 	var <event;
-	var server;
+	var soundLibrary;
 
-    *new { |event|
-				"in Interface".postln;
-        ^super.newCopyArgs(event)
+    *new { |event,soundLibrary|
+				// "in Interface".postln;
+        ^super.newCopyArgs(event,soundLibrary)
     }
 
 	test {
 		// server = ~server.value;
 
-		if(~dirt.server != nil) //this depends on having the server be named ~dirt
-								//as specified in the example file: superdirt_startup.scd
-								//because I don't know supercollider
-			{"server exists".postln}
-			{"no server exists".postln};
-
-		if(~dirt.soundLibrary  != nil) //this depends on having the server be named ~dirt
-								//as specified in the example file: superdirt_startup.scd
-								//because I don't know supercollider super well
+		if(soundLibrary != nil) 
 			{"soundLibrary exists".postln}
 			{"no soundLibrary exists".postln};
 
@@ -48,59 +40,59 @@ InterfaceEvent {
 	}
 
 	loadSynthDefs{
-		"in loadSynthDefs".postln;
+		// "in loadSynthDefs".postln;
 		if(event[\filePath] != nil)
-			{~dirt.loadSynthDefs(event[\filePath].asString)}
+			{soundLibrary.loadSynthDefs(event[\filePath].asString)}
 			{"error: no path passed to loadSynthDefs"};
 	}
 
 	loadOnly {
-		"in loadonly".postln;
+		// "in loadonly".postln;
 		if(event[\filePath] != nil)
-			{~dirt.loadOnly(event[\filePath].asString)}
+			{soundLibrary.loadOnly(event[\filePath].asString)}
 			{"error: no path passed to loadOnly"};
 	}
 
 	loadSoundFileFolder {
-	"in loadSoundFileFolder".postln;
+	// "in loadSoundFileFolder".postln;
 		if(event[\filePath] != nil)
-			{~dirt.loadSoundFileFolder(event[\filePath].asString)}
+			{soundLibrary.loadSoundFileFolder(event[\filePath].asString)}
 			{"error: no path passed to loadSoundFileFolder"};
 	}
 
 	loadSoundFiles {
 		"in loadSoundFiles".postln;
 		if(event[\filePath] != nil)
-			{~dirt.loadSoundFiles(event[\filePath].asString)}
+			{soundLibrary.loadSoundFiles(event[\filePath].asString)}
 			{"error: no path passed to loadSoundFiles"};
 	}
 
 	loadSoundFile { 
-	"in loadSoundFile".postln;
+	// "in loadSoundFile".postln;
 		if(event[\filePath] != nil)
-			{~dirt.loadSoundFile(event[\filePath].asString)}
+			{soundLibrary.loadSoundFile(event[\filePath].asString)}
 			{"error: no path passed to loadSoundFile"};
 	}
 
 	freeAllSoundFiles {
-	"in freeAllSoundFiles".postln;
-	~dirt.freeAllSoundFiles;
+	// "in freeAllSoundFiles".postln;
+	soundLibrary.freeAllSoundFiles;
 	}
 
 	freeSoundFiles {
-	"in freeSoundFiles".postln;
+	// "in freeSoundFiles".postln;
 		if(event[\names] != nil)
-			{~dirt.freeSoundFiles(event[\names])}
+			{soundLibrary.freeSoundFiles(event[\names])}
 			{"error: no names passed to freeSoundFiles"};
 	}
 
 	postSampleInfo {
-	"in postSampleInfo".postln;
-	~dirt.postSampleInfo;
+	// "in postSampleInfo".postln;
+	soundLibrary.postSampleInfo;
 	}
 
 	initFreqSynthWindow{
-		"in initFreqSynthWindow".postln;
+		"initalizing frequency scope window".postln;
 		FreqScopeWindow().new;
 	}
 
