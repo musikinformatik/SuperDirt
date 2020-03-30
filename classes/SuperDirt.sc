@@ -240,7 +240,7 @@ SuperDirt {
                 "MADE IT HERE!!".postln;
 
                 if(event[\scMessage].notNil){
-                    DirtInterfaceEvent(event,~dirt.soundLibrary).debug;
+                    DirtInterfaceEvent(event,this.soundLibrary).debug;
                 }
             }, '/scMessage', senderAddr, recvPort: port).fix;
         );
