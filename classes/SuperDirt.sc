@@ -223,26 +223,30 @@ SuperDirt {
 				event.putPairs(msg[1..]);
 				receiveAction.value(event);
 				index = event[\orbit] ? 0;
-				// event.postln;
-
-				//send shit to the InterfaceEvent class
 
 				if(warnOutOfOrbit and: { index >= orbits.size } or: { index < 0 }) {
 						"SuperDirt: event falls out of existing orbits, index (%)".format(index).warn
 				};
 
-				event.postln;
-				if(event[\scMessage] != nil) // if you send something with the param scMessage,
-											 // the event will not play
-					{InterfaceEvent(event).debug}
-					//else
-					{DirtEvent(orbits @@ index, modules, event).play};
+			    DirtEvent(orbits @@ index, modules, event).play;
 			}, '/play2', senderAddr, recvPort: port).fix
 		);
 
+        netResponders.add(
+            OSCFunc({ |msg, time, tidalAddr|
+				var event = (), orbit, index;
+				event.putPairs(msg[1..]);
+				event.postln;
+                "ay".postln;
+
+                if(event[\scMessage].notNil){
+                    DirtInterfaceEvent(event).parse;
+                }
+            }, '/scMessage', senderAddr, recvPort: port).fix;
+        );
 
 		"SuperDirt: listening to Tidal on port %".format(port).postln;
-	}
+    }
 
 	closeNetworkConnection {
 		netResponders.do { |x| x.free };
