@@ -6,7 +6,7 @@ Currently, the SuperDirt class intercepts osc messages containing parameters
 sent from Tidal, and sends them t
 */
 
-InterfaceEvent {
+DirtInterfaceEvent {
 
 	var <event;
 	var server;
@@ -45,7 +45,13 @@ InterfaceEvent {
 			{\freeSoundFiles} {this.freeSoundFiles}
 			{\postSampleInfo} {this.postSampleInfo}
 			{\initFreqSynthWindow} {this.initFreqSynthWindow}
+			{\sendToTidal} {this.sendToTidal}
 	}
+
+	sendToTidal { |args|
+		"testing sendToTidal".postln;
+		~dirt.sendToTidal(event[\path])
+		}
 
 	loadSynthDefs{
 		"in loadSynthDefs".postln;
