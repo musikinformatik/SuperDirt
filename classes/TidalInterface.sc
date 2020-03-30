@@ -68,6 +68,7 @@ DirtInterfaceEvent {
 
 	loadSoundFiles {
 		"in loadSoundFiles".postln;
+		event[\filePath].asString.postln;
 		if(event[\filePath].notNil)
 			{soundLibrary.loadSoundFiles(event[\filePath].asString)}
 			{"error: no path passed to loadSoundFiles"};
