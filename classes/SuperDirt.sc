@@ -228,7 +228,16 @@ SuperDirt {
 						"SuperDirt: event falls out of existing orbits, index (%)".format(index).warn
 				};
 
+<<<<<<< HEAD
 			    DirtEvent(orbits @@ index, modules, event).play;
+=======
+				event.postln;
+				if(event[\scMessage] != nil) // if you send something with the param scMessage,
+											 // the event will not play
+					{InterfaceEvent(event,~dirt.soundLibrary).parse}
+					//else
+					{DirtEvent(orbits @@ index, modules, event).play};
+>>>>>>> a1540ffc0d07b703b3b3e63636d12680a5e07e0b
 			}, '/play2', senderAddr, recvPort: port).fix
 		);
 
