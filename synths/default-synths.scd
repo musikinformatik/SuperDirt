@@ -102,7 +102,7 @@ SynthDef(\dirt_from, { |out, sustain = 1, in, pan, inputFadeTime = 0.03|
 
 // pitch shifted live audio input
 (
-SynthDef(\inr, { |out, sustain = 1, freq = 440, speed = 1, begin=0, end=1, pan, accelerate, offset|
+SynthDef(\inr, { |out, sustain = 1, freq = 440, speed = 1, begin=0, end=1, pan, accelerate, offset, inputFadeTime = 0.03|
 	var env, sound, rate, phase;
 	env = Env.linen(inputFadeTime, sustain - (2 * inputFadeTime), inputFadeTime).kr;
 	phase = Line.ar(begin, end, sustain);
