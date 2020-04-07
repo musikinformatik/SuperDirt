@@ -42,7 +42,7 @@ DirtEventTypes {
 				var freq, lag, sustain;
 				var args, midiout, hasGate, midicmd, latency, chan;
 				var sendNRPN, schedmidi, schedmidicmd, donecmd;
-				var hasNote = (~n != \none or: {~note != nil});
+				var hasNote = (~n != \none or: {~note.notNil});
 				var midiCommandPending = ~midicmd.notNil;
 				var nrpnMSB, nrpnLSB, valMSB, valLSB;
 				var ctlNum, control, num, val, note;
