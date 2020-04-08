@@ -64,11 +64,11 @@ SynthDef(\pmsin, { |out, sustain = 1, freq = 440, speed = 1, begin=0, end=1, pan
 
 // live audio input
 (
-SynthDef(\in, { |out, sustain = 1, speed = 1, begin = 0, end = 1, pan, accelerate, offset|
-	var env, sound, rate, phase;
-	phase = Line.ar(begin, end, sustain);
-	rate = (begin + 1) * (speed + Sweep.kr(1, accelerate));
+SynthDef(\in, { |out, sustain = 1, pan, inputFadeTime = 0.03|
+	var env, sound;
+	env = Env.linen(inputFadeTime, sustain - (2 * inputFadeTime), inputFadeTime).kr;
 	sound = SoundIn.ar([0, 1]); // stereo in
+	sound = sound * env;
 	OffsetOut.ar(out,
 		DirtPan.ar(sound, ~dirt.numChannels, pan)
 	)
@@ -78,9 +78,11 @@ SynthDef(\in, { |out, sustain = 1, speed = 1, begin = 0, end = 1, pan, accelerat
 // read input from nth routing bus
 // see also: effect "to"
 (
-SynthDef(\dirt_from, { |out, sustain = 1, in, pan|
-	var sound;
-	sound = InFeedback.ar(in, ~dirt.numChannels).poll;
+SynthDef(\dirt_from, { |out, sustain = 1, in, pan, inputFadeTime = 0.03|
+	var env, sound;
+	env = Env.linen(inputFadeTime, sustain - (2 * inputFadeTime), inputFadeTime).kr;
+	sound = InFeedback.ar(in, ~dirt.numChannels);
+	sound = sound * env;
 	Out.ar(out,
 		DirtPan.ar(sound, ~dirt.numChannels, pan)
 	)
@@ -100,11 +102,13 @@ SynthDef(\dirt_from, { |out, sustain = 1, in, pan|
 
 // pitch shifted live audio input
 (
-SynthDef(\inr, { |out, sustain = 1, freq = 440, speed = 1, begin=0, end=1, pan, accelerate, offset|
+SynthDef(\inr, { |out, sustain = 1, freq = 440, speed = 1, begin=0, end=1, pan, accelerate, offset, inputFadeTime = 0.03|
 	var env, sound, rate, phase;
+	env = Env.linen(inputFadeTime, sustain - (2 * inputFadeTime), inputFadeTime).kr;
 	phase = Line.ar(begin, end, sustain);
 	rate = (begin + 1) * (speed + Sweep.kr(1, accelerate)) * freq / 440;
 	sound = SoundIn.ar([0, 1]); // stereo in
+	sound = sound * env;
 	sound = PitchShift.ar(sound, 0.1, rate, 0.02, 0.01);
 	OffsetOut.ar(out,
 		DirtPan.ar(sound, ~dirt.numChannels, pan)
