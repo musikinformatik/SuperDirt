@@ -96,7 +96,10 @@ SynthDef(\dirt_from, { |out, sustain = 1, in, pan|
 )
 );
 
-
+// panic button - equivalent of ctrl-.
+(
+~dirt.soundLibrary.addSynth(\superpanic, (play: { ~dirt.orbits.do(_.freeSynths) }))
+);
 
 // pitch shifted live audio input
 (
