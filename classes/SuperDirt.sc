@@ -204,7 +204,7 @@ SuperDirt {
 			senderAddr = nil;
 		} {
 			if (argSenderAddr.ip == "0.0.0.0") {
-                       		senderAddr = nil;
+				senderAddr = nil;
 			} {
 				senderAddr = argSenderAddr;
 			};
