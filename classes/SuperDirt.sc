@@ -203,12 +203,12 @@ SuperDirt {
 			"Please note: SC3.6 listens to any sender.".warn;
 			senderAddr = nil;
 		} {
-      if (argSenderAddr.ip == "0.0.0.0") {
-        senderAddr = nil;
-      } {
-        senderAddr = argSenderAddr;
-      };
-    };
+			if (argSenderAddr.ip == "0.0.0.0") {
+                       		senderAddr = nil;
+			} {
+				senderAddr = argSenderAddr;
+			};
+		};
 
 		port = argPort;
 
