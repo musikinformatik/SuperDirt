@@ -10,10 +10,11 @@ DirtInterfaceEvent {
 
 	var <event;
 	var soundLibrary;
+	var dirtInstance;
 
-    *new { |event,soundLibrary|
+    *new { |event,soundLibrary,dirtInstance|
 				// "in Interface".postln;
-        ^super.newCopyArgs(event,soundLibrary)
+        ^super.newCopyArgs(event,soundLibrary,dirtInstance)
     }
 
 	test {
@@ -47,8 +48,9 @@ DirtInterfaceEvent {
 
 	loadSynthDefs{
 		// "in loadSynthDefs".postln;
+		// this is stupid but
 		if(event[\filePath].notNil)
-			{soundLibrary.loadSynthDefs(event[\filePath].asString)}
+			{dirtInstance.loadSynthDefs(event[\filePath].asString)}
 			{"error: no path passed to loadSynthDefs"};
 	}
 

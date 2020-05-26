@@ -177,9 +177,21 @@ SuperDirt {
 		filePaths = pathMatch(standardizePath(path +/+ "*"));
 		filePaths.do { |filepath|
 			if(filepath.splitext.last == "scd") {
-				(dirt:this).use { filepath.load }; "loading synthdefs in %\n".postf(filepath)
+				filepath.postln;
+				(dirt:this).use { filepath.load }; 
+				"loading synthdefs in %\n".postf(filepath);
+			}
+		};
+
+// this was added just for use with TidalInterface functions with absolute paths
+// if a path is absolute, it's taken out by pathMatch(), and not loaded;
+		if(filePaths == []) {
+			if(path.splitext.last == "scd") {
+				path.postln;
+				(dirt:this).use {path.load }; "loading synthdefs in %\n".postf(path)
 			}
 		}
+
 	}
 
 	initVowels { |register|
@@ -235,7 +247,7 @@ SuperDirt {
 	        OSCFunc({ |msg, time, tidalAddr|
 				var event = (), orbit, index;
 				event.putPairs(msg[1..]);
-	            DirtInterfaceEvent(event,this.soundLibrary).debug;
+	            DirtInterfaceEvent(event,this.soundLibrary,this).debug;
 	        }, '/scMessage', senderAddr, recvPort: port).fix;
 	    );
 
