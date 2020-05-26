@@ -231,22 +231,16 @@ SuperDirt {
 			}, '/play2', senderAddr, recvPort: port).fix
 		);
 
-    netResponders.add(
-        OSCFunc({ |msg, time, tidalAddr|
+	    netResponders.add(
+	        OSCFunc({ |msg, time, tidalAddr|
 				var event = (), orbit, index;
 				event.putPairs(msg[1..]);
-				event.postln;
-                "ay".postln;
-                "MADE IT HERE!!".postln;
+	            DirtInterfaceEvent(event,this.soundLibrary).debug;
+	        }, '/scMessage', senderAddr, recvPort: port).fix;
+	    );
 
-                if(event[\scMessage].notNil){
-                    DirtInterfaceEvent(event,this.soundLibrary).debug;
-                }
-            }, '/scMessage', senderAddr, recvPort: port).fix;
-        );
-
-		"SuperDirt: listening to Tidal on port %".format(port).postln;
-    }
+			"SuperDirt: listening to Tidal on port %".format(port).postln;
+	    }
 
 	closeNetworkConnection {
 		netResponders.do { |x| x.free };

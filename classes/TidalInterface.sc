@@ -104,7 +104,7 @@ DirtInterfaceEvent {
 	}
 
 	debug { 
-		event.postln;
+		// event.postln;
 		this.parse;
 	}
 
