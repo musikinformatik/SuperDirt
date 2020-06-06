@@ -173,7 +173,6 @@ live coding them requires that you have your SuperDirt instance in an environmen
 	SynthDef("dirt_pitch_shift" ++ numChannels, { |out, psratio = 1, sustain = 1|
 		var signal = In.ar(out, numChannels);
 		var windowSize = sustain.linlin(0.01, 0.3, 0.01, 0.18);
-		windowSize.poll(0, "windowSize");
 		signal = PitchShift.ar(signal, windowSize:windowSize, pitchRatio:psratio, pitchDispersion:0, timeDispersion:0);
 		ReplaceOut.ar(out, signal)
 	}, [\ir, \ir, \ir]).add;
