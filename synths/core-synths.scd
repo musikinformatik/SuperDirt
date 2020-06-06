@@ -32,11 +32,12 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 			// sample phase
 			// BufSampleRate adjusts the rate if the sound file doesn't have the same rate as the soundcard
-			//phase =  Sweep.ar(1, rate * BufSampleRate.ir(bufnum)) + (BufFrames.ir(bufnum) * begin);
 
 			numFrames = BufFrames.ir(bufnum);
 			sawrate = rate * BufSampleRate.ir(bufnum) / (absdif(begin, end) * numFrames);
-			phase = (speed.sign * LFSaw.ar(sawrate, 1)).range(begin,end) * numFrames;
+			phase = (speed.sign * LFSaw.ar(sawrate, 1)).range(begin, end) * numFrames;
+
+			//phase =  Sweep.ar(1, rate * BufSampleRate.ir(bufnum)) + (BufFrames.ir(bufnum) * begin);
 
 			sound = BufRd.ar(
 				numChannels: sampleNumChannels,
@@ -45,6 +46,50 @@ live coding them requires that you have your SuperDirt instance in an environmen
 				loop: 0,
 				interpolation: 4 // cubic interpolation
 			);
+
+			sound = DirtPan.ar(sound, numChannels, pan);
+
+			Out.ar(out, sound)
+		}, [\ir, \ir, \ir, \ir, \ir, \ir, \ir, \ir]).add;
+	};
+
+	// the same for supporting long soundfiles.
+	// Direct file indexing is limited by 32bit float phase argument of BufRd
+	// but BufRd has cubic interpolation and is more hackable
+
+	(1..SuperDirt.maxSampleNumChannels).do { |sampleNumChannels|
+
+		var name = format("dirt_sample_long_%_%", sampleNumChannels, numChannels);
+
+		SynthDef(name, { |out, bufnum, sustain = 1, begin = 0, end = 1, speed = 1, endSpeed = 1, freq = 440, pan = 0|
+
+			var sound, rate,  numFrames, env, startPos, bufFrames;
+
+			// playback speed
+			rate = Line.kr(speed, endSpeed, sustain) * (freq / 60.midicps);
+
+			// sample phase
+			// BufSampleRate adjusts the rate if the sound file doesn't have the same rate as the soundcard
+			//phase =  Sweep.ar(1, rate * BufSampleRate.ir(bufnum)) + (BufFrames.ir(bufnum) * begin);
+
+			rate = rate * BufSampleRate.ir(bufnum);
+
+			bufFrames = BufFrames.ir(bufnum);
+
+			// when we play backward from zero, we have to start from the end
+			startPos = if((rate < 0) * (begin <= 0), bufFrames, bufFrames * begin);
+
+			sound = PlayBuf.ar(
+				numChannels: sampleNumChannels,
+				bufnum: bufnum,
+				rate: rate,
+				startPos: startPos,
+				loop: 0
+			);
+
+			env = EnvGen.kr(Env.linen(0, sustain, 0)); // todo: check if control rate smoothens (shouldn't)
+
+			sound = sound * env;
 
 			sound = DirtPan.ar(sound, numChannels, pan);
 
