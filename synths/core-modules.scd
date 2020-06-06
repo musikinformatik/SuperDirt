@@ -199,10 +199,23 @@ they respond to the existence of a value for one of the tidal parameters
 			[
 				attack: ~attack,
 				hold: ~hold,
-				release:~release,
+				release: ~release,
+				curve: ~curve,
 				out: ~out
 		])
 }, { ~attack.notNil or: { ~release.notNil }});
+
+~dirt.addModule('grenvelo',
+	{ |dirtEvent|
+		dirtEvent.sendSynth('dirt_grain_envelope' ++ ~numChannels,
+			[
+				sustain: ~sustain,
+				contour: ~contour,
+				plat: ~plat,
+				curve:~curve,
+				out: ~out
+		])
+}, { ~contour.notNil });
 
 
 ~dirt.addModule('tremolo',
