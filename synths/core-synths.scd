@@ -158,15 +158,22 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		ReplaceOut.ar(out, signal);
 	}, [\ir, \ir, \ir, \ir, \ir]).add;
 
-	// maybe sine shape is better?
-	SynthDef("dirt_grain_envelope" ++ numChannels, { |out, sustain = 1, contour = 0.5, plat = 0, curve = -3 |
+
+	SynthDef("dirt_grain_envelope" ++ numChannels, { |out, sustain = 1, tilt = 0.5, plat = 0, curve = -3 |
 		var signal = In.ar(out, numChannels);
-		var c = min(contour.abs, 1);
-		var attack = c;
-		var hold = plat;
-		var release = max(1 - c, 0);
-		var isum = reciprocal(attack + plat + release); // normalise to sustain
-		signal = signal * EnvGen.ar(Env.linen(attack, hold, release, 1, curve), timeScale: sustain * isum);
+		var p = plat.clip(0, 1);
+		var c = tilt.clip(0, 1);
+
+		var riseAndFall = 1 - p;
+		var attack = c * riseAndFall;
+		var release = (1 - c) * riseAndFall;
+		var hold = p;
+
+		// maybe sine shape is better?
+		var env = EnvGen.ar(Env.linen(attack, hold, release, 1, curve), timeScale: sustain);
+
+		signal = signal * env;
+
 		ReplaceOut.ar(out, signal);
 	}, [\ir, \ir, \ir, \ir, \ir]).add;
 

@@ -210,12 +210,12 @@ they respond to the existence of a value for one of the tidal parameters
 		dirtEvent.sendSynth('dirt_grain_envelope' ++ ~numChannels,
 			[
 				sustain: ~sustain,
-				contour: ~contour,
+				tilt: ~tilt,
 				plat: ~plat,
 				curve:~curve,
 				out: ~out
 		])
-}, { ~contour.notNil });
+}, { ~tilt.notNil });
 
 
 ~dirt.addModule('tremolo',
