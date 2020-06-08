@@ -80,10 +80,11 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 	*/
 
-	SynthDef("dirt_out" ++ numChannels, { |out, to, sustain = 1, fadeInTime = 0.001, fadeTime = 0.001, amp = 1|
+	SynthDef("dirt_out" ++ numChannels, { |out, to, sustain = 1, fadeInTime = 0.001, fadeTime = 0.001, amp = 1, through = 0|
 		var signal = In.ar(out, numChannels);
 		var env = EnvGen.ar(Env([0, 1, 1, 0], [fadeInTime, sustain, fadeTime], \sin), levelScale: amp);
 		Out.ar(to, signal * env);
+		ReplaceOut.ar(out, signal * through);
 	}, [\ir, \ir]).add;
 
 	/*
