@@ -88,6 +88,9 @@ tremolorate
 tremolodepth
 phaserrate
 phaserdepth
+tilt
+plat
+
 
 // used in effect modules (private, don't use)
 vowel
