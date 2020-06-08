@@ -65,6 +65,8 @@ this may be refacored later.
 /*
 these function as effects on the input of the synth or sample (see SynthDefs in core-synths)
 they respond to the existence of a value for one of the tidal parameters
+
+// "to" is an internal superdirt audio routing bus index. So you play audio to this bus.
 */
 
 
@@ -83,6 +85,7 @@ they respond to the existence of a value for one of the tidal parameters
 
 
 // # from 3 # toArg "freq"
+// from are the superdirt internal audio routing busses
 // synth needs to have an audio rate control.
 // it would be nice to be able to map several arguments
 
