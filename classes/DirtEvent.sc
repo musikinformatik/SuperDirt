@@ -98,7 +98,8 @@ DirtEvent {
 			)
 		};
 
-		sustain = ~sustain.value ?? {
+		sustain = ~sustain.value;
+		sustain = sustain ?? {
 			if(~legato.notNil) {
 				~delta * ~legato.value
 			} {
