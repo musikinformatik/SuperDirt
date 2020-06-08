@@ -189,7 +189,8 @@ DirtOrbit {
 			~octave = 5;
 			~midinote = #{ ~note ? ~n + (~octave * 12) };
 			~freq = #{ ~midinote.value.midicps };
-			~delta = 1.0;
+			~dur = 1.0;
+			~delta = #{ ~dur.value };
 
 			~latency = 0.0;
 			~lag = 0.0;
