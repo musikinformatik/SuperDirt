@@ -13,7 +13,7 @@ SynthDef(\testnote, { |out, sustain = 0.2, freq = 0, amp = 1, pan = 0, width = 0
 	var env, sound;
 	sound = SinOsc.ar(freq, 0.5pi);
 	env = EnvGen.ar(Env.perc(Rand(0.01, 0.02), sustain * Rand(1, 1.5)));
-	OffsetOut.ar(out,
+	Out.ar(out,
 		DirtPan.ar(env * sound, ~dirt.numChannels, pan, amp)
 	)
 }).add;

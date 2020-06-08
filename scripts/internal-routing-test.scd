@@ -9,7 +9,7 @@ SynthDef(\impin, { |out, freq = 440, pan|
 	var sound;
 	sound = \input.ar(0 ! ~dirt.numChannels);
 	sound = sound * LFSaw.ar(freq).max(0);
-	OffsetOut.ar(out,
+	Out.ar(out,
 		DirtPan.ar(sound, ~dirt.numChannels, pan)
 	)
 }).add
