@@ -56,6 +56,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 	// the same for supporting long soundfiles.
 	// Direct file indexing is limited by 32bit float phase argument of BufRd
 	// but BufRd has cubic interpolation and is more hackable
+	// see DirtSoundLibrary > instrumentForBuffer
 
 	(1..SuperDirt.maxSampleNumChannels).do { |sampleNumChannels|
 
@@ -72,7 +73,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 			// BufSampleRate adjusts the rate if the sound file doesn't have the same rate as the soundcard
 			//phase =  Sweep.ar(1, rate * BufSampleRate.ir(bufnum)) + (BufFrames.ir(bufnum) * begin);
 
-			rate = rate * BufSampleRate.ir(bufnum);
+			rate = rate * BufRateScale.ir(bufnum);
 
 			bufFrames = BufFrames.ir(bufnum);
 
