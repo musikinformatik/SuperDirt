@@ -58,7 +58,7 @@ DirtEvent {
 
 	calcTimeSpan {
 
-		var sustain, unitDuration;
+		var sustain, unitDuration, delta;
 		var speed = ~speed.value;
 		var loop = ~loop.value;
 		var accelerate = ~accelerate.value;
@@ -98,11 +98,13 @@ DirtEvent {
 			)
 		};
 
-		sustain = ~sustain.value ?? {
+		sustain = ~sustain.value;
+		sustain = sustain ?? {
+			delta = ~delta.value;
 			if(~legato.notNil) {
-				~delta * ~legato.value
+				delta * ~legato.value
 			} {
-				unitDuration = unitDuration ? ~delta;
+				unitDuration = unitDuration ? delta;
 				loop !? { unitDuration = unitDuration * loop.abs };
 			}
 		};

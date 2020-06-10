@@ -11,7 +11,7 @@
 		var pitch = freq * Line.kr(1, 1+accelerate, sustain);
 		sound = CombL.ar(sound, 0.05, pitch.reciprocal*(1-(detune/100)), sustain)
 		+ CombL.ar(sound, 0.05, pitch.reciprocal*(1+(detune/100)), sustain);
-		OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env))
+		Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env))
 	}).add
 );
 
@@ -31,7 +31,7 @@
 		var ascale =freqlist**clip(voice,0,4);
 		var sound = Mix.arFill(15, {arg i; EnvGen.ar(Env.perc(0.01*tscale[i], 0.5*tscale[i], 0.2*ascale[i] ), timeScale:sustain*5)
 			* SinOsc.ar(freq * freqlist[i] * Line.kr(1, 1+accelerate, sustain))});
-		OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan))
+		Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan))
 	}).add
 );
 
@@ -45,7 +45,7 @@
 		// the +0.01 to freq is because of edge case rounding internal to the MdaPiano synth
 		var sound = MdaPiano.ar(freq+0.01, vel:velocity*100, hard:0.8*velocity, decay:0.1*sustain,
 			tune:0.5, random:0.05, stretch:detune, muffle:0.8*muffle, stereo:stereo);
-		OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env))
+		Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env))
 	}).add
 );
 
@@ -56,7 +56,7 @@
 		var tension = 0.05*freq/400 * Line.kr(1,accelerate+1, sustain);
 		var loss = 1.0 - (0.01 * rate / freq);
 		var sound = MembraneHexagon.ar(Decay.ar(Impulse.ar(0,0,1), 0.01), tension, loss);
-		OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env))
+		Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env))
 	}).add
 );
 
@@ -73,7 +73,7 @@
 		sound = SinOsc.ar((n - 25.5).midicps);
 		clickdur = 0.02*sustain*decay;
 		sound = sound + (LPF.ar(WhiteNoise.ar(1), 1500*pitch1*Line.kr(1,1+accelerate,clickdur) ) * Line.ar(1, 0, clickdur));
-		OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env))
+		Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env))
 	}).add
 );
 
@@ -88,7 +88,7 @@
 		freq = (n*10).midicps;
 		env = EnvGen.ar(Env.linen(0.01, 0, 1, 1, -3), timeScale:sustain, doneAction:2);
 		sound = LPF.ar(SinOscFB.ar(XLine.ar(freq.expexp(10, 2000, 1000, 8000), freq, 0.025/rate), voice), 9000);
-		OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env))
+		Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env))
 	}).add
 );
 
@@ -104,7 +104,7 @@
 		accel = Line.kr(1, 1+accelerate, 0.2*sustain);
 		freq = 2000*accel*(n/5 + 1).wrap(0.5,2);
 		sound = HPF.ar(LPF.ar(WhiteNoise.ar(1), 3*freq), freq);
-		OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env))
+		Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env))
 	}).add
 );
 
@@ -120,7 +120,7 @@
 		accel = Line.kr(1, 1+accelerate, 0.2);
 		sound = LPF.ar(Pulse.ar(100*accel*(n/5+1).wrap(0.5,2)), Line.ar(1030, 30, 0.2*sustain));
 		sound = sound + (BPF.ar(HPF.ar(WhiteNoise.ar(1), 500), 1500) * Line.ar(1, 0, 0.2*decay));
-		OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env))
+		Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env))
 	}).add
 );
 
@@ -136,7 +136,7 @@
 		env = EnvGen.ar(Env.linen(0.01, 0, 0.6, 1, -3), timeScale:sustain, doneAction:2);
 		sound = BPF.ar(LPF.ar(WhiteNoise.ar(1), 7500*pitch1), 1500*pitch1);
 		sound = Mix.arFill(4, {arg i; sound * 0.5 * EnvGen.ar(Env.new([0,0,1,0],[spr*(i**(n.clip(0,5)+1)),0,0.04/rate]))});
-		OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env))
+		Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env))
 	}).add
 );
 
@@ -148,7 +148,7 @@
 		env = EnvGen.ar(Env.linen(0.05, 0.9, 0.05, 1, -2), timeScale:sustain, doneAction:2);
 		sound = VarSaw.ar(freq * (1.0 + EnvGen.kr(Env.linen(0.25,0.5,0.25,3,0), timeScale:sustain, doneAction:2)),
 			0, width:Line.kr(0.05,1,sustain));
-		OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env))
+		Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env))
 	}).add
 );
 
@@ -182,7 +182,7 @@
 			SinOsc.ar(basefreq/64*rate, 0).range(lfof1,lfof2),
 			resonance*4);
 		sound = sound.tanh * 2;
-		OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
+		Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
 	}).add
 );
 
@@ -202,7 +202,7 @@
 			LFTri.ar(basefreq/64*rate, 0.5).range(lfof1,lfof2),
 			resonance*4);
 		sound = sound.tanh*2;
-		OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
+		Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
 	}).add
 );
 
@@ -223,7 +223,7 @@
 		sound = MoogFF.ar(sound, SinOsc.ar(basefreq/32*rate, 0).range(lfof1,lfof2), resonance*4);
 		sound = MoogFF.ar(sound, min(env2*lfof2*1.1, 22000), 3);
 		sound = sound.tanh*5;
-		OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
+		Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
 	}).add
 );
 
@@ -242,7 +242,7 @@
 			sound,
 			pitch1 * 4 * basefreq + SinOsc.ar(basefreq/64*rate, 0, lfo*basefreq/2) + LFNoise2.ar(1,lfo*basefreq),
 			LFNoise2.ar(0,0.1,4*resonance));
-		OffsetOut.ar(out, DirtPan.ar(0.5*sound, ~dirt.numChannels, pan, env));
+		Out.ar(out, DirtPan.ar(0.5*sound, ~dirt.numChannels, pan, env));
 	}).add
 );
 
@@ -264,7 +264,7 @@
 		sound= AY.ar( AY.freqtotone(basefreq), AY.freqtotone(pitch2*basefreq), AY.freqtotone(pitch3*basefreq),
 			vola:va, volb:vb, volc:vc)/2;
 		sound = tanh(sound)*2;
-		OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
+		Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
 	}).add
 );
 
@@ -288,7 +288,7 @@
 			2*voice-1);
 		sound = HPF.ar(BMoog.ar(sound, ffreq, resonance, 3), 20);
 		sound = clip(sound, -1,1) * 0.3;
-		OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
+		Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
 	}).add
 );
 
@@ -301,7 +301,7 @@ SynthDef(\superfork, {|out, sustain=1, pan, freq, accelerate=0|
 	freq = freq * Line.kr(1, 1+accelerate, sustain);
 	env = EnvGen.ar(Env.linen(0.001, 0.998, 0.001), timeScale:sustain, doneAction:2);
 	sound = 0.2 * SinOsc.ar([1.0, 6.1, 16.7, 20.1] * freq) * XLine.ar([0.3, 1, 1.3, 2], [1e-4, 1e-7, 1e-6, 1e-7], sustain*[4,4,0.5,0.333]);
-	OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
+	Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
 }).add
 );
 
@@ -342,7 +342,7 @@ SynthDef(\superhammond, {|out, sustain=1, decay=0, pan, freq, vibrato=0.5, vrate
 	sound = 0.5 * Mix.ar( SinOsc.ar(freqs*(2*click+1), (2pi ! 9).rand, amps/amps.sum) );
 	sound = perc * 0.5 * SinOsc.ar(freq*percf, 2pi.rand) * XLine.ar(1,1e-6,2*decay+1) + sound;
 	sound = sound + BAllPass.ar(sound, 1000*LFTri.kr(vrate,0,vibrato/2,1));
-	OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
+	Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
 }).add
 );
 
@@ -367,7 +367,7 @@ SynthDef(\supervibe, {|out, sustain=1, decay=0, pan, freq, accelerate=0, velocit
 	decays = [1, 0.7*exp(-1.0*decay), 0.5*exp(-1.0*decay), 0.4*exp(-1.0*decay)];
 	sound = XLine.ar(1e-6, 1, 1/freqs) * XLine.ar(1, 1e-6, decays*4*sustain) * sound * mod; // main attacks and decays
 	sound = (XLine.ar(0.3*(velocity+1e-6),1e-6,0.02) * SinOsc.ar(hifreqs)).sum + sound.sum; // hi frequency onset
-	OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
+	Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
 }).add
 );
 
@@ -392,7 +392,7 @@ SynthDef(\superhoover, {|out, sustain=1, decay=0, pan, freq, accelerate=0, slide
 	mix = BPeakEQ.ar(mix, 6000, 1, 3);
 	mix = BPeakEQ.ar(mix, 3500, 1, 6);
 	mix = mix.dup + CombC.ar(mix.dup, 1/200, SinOsc.kr(3, [0.5pi, 1.5pi]).range(1/300, 1/200), 0);
-	OffsetOut.ar(out, DirtPan.ar(1.4*mix, ~dirt.numChannels, pan, env));
+	Out.ar(out, DirtPan.ar(1.4*mix, ~dirt.numChannels, pan, env));
 }).add
 );
 
@@ -410,7 +410,7 @@ SynthDef(\superzow, {|out, sustain=1, pan, accelerate, freq, decay=0, slide=1, d
 	var sound3 = VarSaw.ar(basefreq*(-1*detune/100+1), 0, Line.ar(0,0.5,sustain*20/slide));
 	sound = sound - DelayN.ar(sound2,0.2, Line.ar(0,1,5*sustain/slide)/basefreq)
 	  + DelayN.ar(sound3,0.2, Line.ar(0,1,20*sustain/slide)/basefreq);
-	OffsetOut.ar(out, DirtPan.ar(sound/2, ~dirt.numChannels, pan, env));
+	Out.ar(out, DirtPan.ar(sound/2, ~dirt.numChannels, pan, env));
 }).add
 );
 
@@ -421,7 +421,7 @@ SynthDef(\superstatic, {|out, sustain=1, pan, freq |
 	var env = EnvGen.ar(Env.sine(1, 0.5), timeScale:sustain, doneAction:2);
 	var sound = Dust.ar(freq*40) > 0.5;
 	sound = Pulse.ar(freq*sound*4,0.5,0.5);
-	OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env))
+	Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env))
 }).add
 );
 
@@ -444,7 +444,7 @@ SynthDef(\supergrind, {|out, pan, freq, sustain, accelerate, detune=0, voice=0, 
 	LocalOut.ar(LeakDC.ar(loop).tanh);
 	loop = loop + DelayC.ar(loop, 0.2, SinOsc.ar(1, 0, 1e-3, 0.1));
 	loop = GVerb.ar(sin(loop + (8*trig)*4)).sin + loop;
-	OffsetOut.ar(out, DirtPan.ar(0.3*loop, ~dirt.numChannels, pan, env));
+	Out.ar(out, DirtPan.ar(0.3*loop, ~dirt.numChannels, pan, env));
 }).add;
 );
 
@@ -466,7 +466,7 @@ SynthDef(\superprimes, {|out, pan, freq, sustain, accelerate, rate=1, detune=0, 
     	* LPF.ar(Decay.ar(trig, (primes+3)*sustain/10), voice.linexp(0,2,30,18000));
 	sound = GVerb.ar(sound.softclip, 10*voice.linexp(0,5,1,0.01), 10).tanh;
 	sound = SplayAz.ar(primes.size, sound.flat, center:LFNoise2.kr(sustain).range(0,primes.size-1));
-	OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
+	Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
 }).add;
 );
 
@@ -487,7 +487,7 @@ SynthDef(\superwavemechanics, {|out, pan, freq, sustain, accelerate, detune=0, v
 	d = Rand(1.6*i - detune, 1.7*i + detune).round(0.25);
 	sound = Resonz.ar(WhiteNoise.ar(0.5), freq * r * d, 0.01 + voice.linexp(0,1,1e-3,1));
 	sound = HPF.ar(Limiter.ar(55 * GVerb.ar(sound, resonance.linexp(0,1,99,0.1),10) ), 30).sanitize;
-	OffsetOut.ar(out, DirtPan.ar(sound.flat, ~dirt.numChannels, pan, env));
+	Out.ar(out, DirtPan.ar(sound.flat, ~dirt.numChannels, pan, env));
 }).add;
 );
 
@@ -503,7 +503,7 @@ SynthDef(\supertron, {|out, pan, freq, sustain, voice, detune, accelerate|
 	sound = Mix.ar( Pulse.ar(freq+[1+detune,-1-detune], RLPF.ar(sound, freq/6.1, 1.5).range(0,1-(voice/1.5))) );
 	sound = LeakDC.ar(sound);
 	LocalOut.ar(sound);
-	OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, aenv))
+	Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, aenv))
 }).add;
 );
 
@@ -520,7 +520,7 @@ SynthDef(\superreese,  {|out, pan, freq, sustain, accelerate, detune=0, voice=0|
 	sound = RLPF.ar(sound, freq*10, 1.0/q1);
 	sound = sound.clip2(1.0/5.0)* 5.0;
 	sound = 0.35*RLPF.ar(sound, freq*20, 1.0/q2);
-	OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
+	Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
 }).add;
 );
 
@@ -633,7 +633,7 @@ SynthDef(\superfm, {
 
 	var sound = FM7.ar(ctls, presets[5]) * amps;
 	sound = Mix.ar(sound) * (-15.dbamp);
-	OffsetOut.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
+	Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
 }).add;
 );
 
@@ -664,7 +664,7 @@ SynthDef(\soskick, {
   beater = LPF.ar(beater, XLine.ar(6000, 500, speed.clip * 0.1));
   beater = beater * Env.perc.ar;
 
-  OffsetOut.ar(out, DirtPan.ar((source + beater) * 3.dbamp, ~dirt.numChannels, pan, env));
+  Out.ar(out, DirtPan.ar((source + beater) * 3.dbamp, ~dirt.numChannels, pan, env));
 },
 metadata: (
   credit: "Renick Bell",
@@ -704,7 +704,7 @@ SynthDef(\soshats, {
 
   envelope = Env.perc(0.005, sustain).ar(Done.freeSelf);
 
-  OffsetOut.ar(out, DirtPan.ar((bpf + hpf) * (-5).dbamp, ~dirt.numChannels, pan, envelope));
+  Out.ar(out, DirtPan.ar((bpf + hpf) * (-5).dbamp, ~dirt.numChannels, pan, envelope));
 },
 metadata: (
   credit: "Renick Bell",
@@ -733,7 +733,7 @@ SynthDef(\sostoms, {
 
   envelope = Env.perc(0.005, sustain, (-4).dbamp, -6).ar(Done.freeSelf);
 
-  OffsetOut.ar(out, DirtPan.ar(source, ~dirt.numChannels, pan, envelope));
+  Out.ar(out, DirtPan.ar(source, ~dirt.numChannels, pan, envelope));
 },
 metadata: (
   credit: "Renick Bell",
@@ -770,7 +770,7 @@ SynthDef(\sossnare, {
 
   envelope = Env.perc(0.005, sustain, 0.5, -4).ar(Done.freeSelf);
 
-  OffsetOut.ar(out, DirtPan.ar((source + noise) * 4.dbamp, ~dirt.numChannels, pan, envelope));
+  Out.ar(out, DirtPan.ar((source + noise) * 4.dbamp, ~dirt.numChannels, pan, envelope));
 },
 metadata: (
   credit: "Renick Bell",

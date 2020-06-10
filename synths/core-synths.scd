@@ -67,6 +67,8 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		 //  doneAction: 14: free surrounding group and all nodes
 		var env = EnvGen.ar(Env([0, 1, 1, 0], [fadeInTime, sustain, fadeTime], \sin), levelScale: amp, doneAction: 14);
 		signal = signal * env * DirtGateCutGroup.ar(fadeTime, doneAction: 14);
+		// this takes the signal and offsets it so it matches precisely onto the sample
+		// as scheduled within one block (a synth is always started on the block bondary)
 		OffsetOut.ar(out, signal);
 		ReplaceOut.ar(in, Silent.ar(numChannels)) // clears bus signal for subsequent synths
 	}, [\ir, \ir, \ir, \ir, \ir, \ir]).add;
@@ -78,10 +80,11 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 	*/
 
-	SynthDef("dirt_out" ++ numChannels, { |out, to, sustain = 1, fadeInTime = 0.001, fadeTime = 0.001, amp = 1|
+	SynthDef("dirt_out" ++ numChannels, { |out, to, sustain = 1, fadeInTime = 0.001, fadeTime = 0.001, amp = 1, through = 0|
 		var signal = In.ar(out, numChannels);
 		var env = EnvGen.ar(Env([0, 1, 1, 0], [fadeInTime, sustain, fadeTime], \sin), levelScale: amp);
 		Out.ar(to, signal * env);
+		ReplaceOut.ar(out, signal * through);
 	}, [\ir, \ir]).add;
 
 	/*
@@ -152,16 +155,34 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		ReplaceOut.ar(out, signal)
 	}, [\ir, \ir, \ir]).add;
 
-	SynthDef("dirt_envelope" ++ numChannels, { |out, attack = 0, hold = 0, release = inf |
+	SynthDef("dirt_envelope" ++ numChannels, { |out, attack = 0, hold = 0, release = inf, curve = -3 |
 		var signal = In.ar(out, numChannels);
-		signal = signal * EnvGen.ar(Env.linen(attack, hold, release, 1, -3));
+		signal = signal * EnvGen.ar(Env.linen(attack, hold, release, 1, curve: curve));
 		ReplaceOut.ar(out, signal);
-	}, [\ir, \ir, \ir, \ir]).add;
+	}, [\ir, \ir, \ir, \ir, \ir]).add;
+
+
+	SynthDef("dirt_grain_envelope" ++ numChannels, { |out, sustain = 1, tilt = 0.5, plat = 0, curve = -3 |
+		var signal = In.ar(out, numChannels);
+		var p = plat.clip(0, 1);
+		var c = tilt.clip(0, 1);
+
+		var riseAndFall = 1 - p;
+		var attack = c * riseAndFall;
+		var release = (1 - c) * riseAndFall;
+		var hold = p;
+
+		// maybe sine shape is better?
+		var env = EnvGen.ar(Env.linen(attack, hold, release, 1, curve), timeScale: sustain);
+
+		signal = signal * env;
+
+		ReplaceOut.ar(out, signal);
+	}, [\ir, \ir, \ir, \ir, \ir]).add;
 
 	SynthDef("dirt_pitch_shift" ++ numChannels, { |out, psratio = 1, sustain = 1|
 		var signal = In.ar(out, numChannels);
 		var windowSize = sustain.linlin(0.01, 0.3, 0.01, 0.18);
-		windowSize.poll(0, "windowSize");
 		signal = PitchShift.ar(signal, windowSize:windowSize, pitchRatio:psratio, pitchDispersion:0, timeDispersion:0);
 		ReplaceOut.ar(out, signal)
 	}, [\ir, \ir, \ir]).add;

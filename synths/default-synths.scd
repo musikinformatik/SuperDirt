@@ -23,7 +23,7 @@ SynthDef(\imp, { |out, sustain = 1, freq = 440, speed = 1, begin=0, end=1, pan, 
 	phase = Line.kr(begin, end, sustain);
 	rate = (begin + 1) * (speed + Sweep.kr(1, accelerate));
 	sound = Blip.ar(rate.linexp(0, 1, 1, freq) * [1, 1.25, 1.51, 1.42], ExpRand(80, 118) * phase).sum;
-	OffsetOut.ar(out,
+	Out.ar(out,
 		DirtPan.ar(sound, ~dirt.numChannels, pan, env)
 	)
 }).add
@@ -39,7 +39,7 @@ SynthDef(\psin, { |out, sustain = 1, freq = 440, speed = 1, begin=0, end=1, pan,
 	phase = Line.ar(begin, end, sustain);
 	rate = speed + Sweep.kr(1, accelerate);
 	sound = SinOsc.ar(freq, SinOsc.ar(modfreq * (1..5), 0, 1 - phase * 10 * env / (1..5), 0.5pi)).sum;
-	OffsetOut.ar(out,
+	Out.ar(out,
 		DirtPan.ar(sound, ~dirt.numChannels, pan, env)
 	)
 }).add
@@ -56,7 +56,7 @@ SynthDef(\pmsin, { |out, sustain = 1, freq = 440, speed = 1, begin=0, end=1, pan
 	phase = Line.ar(begin, end, sustain);
 	rate = speed + Sweep.kr(1, accelerate);
 	sound = SinOsc.ar(freq, SinOsc.ar(modfreq * (1..5), 0, 1 - phase * 10 * env / (1..5), 0.5pi)).sum;
-	OffsetOut.ar(out,
+	Out.ar(out,
 		DirtPan.ar(sound, ~dirt.numChannels, pan, env)
 	)
 }).add
@@ -69,7 +69,7 @@ SynthDef(\in, { |out, sustain = 1, pan, inputFadeTime = 0.03|
 	env = Env.linen(inputFadeTime, sustain - (2 * inputFadeTime), inputFadeTime).kr;
 	sound = SoundIn.ar([0, 1]); // stereo in
 	sound = sound * env;
-	OffsetOut.ar(out,
+	Out.ar(out,
 		DirtPan.ar(sound, ~dirt.numChannels, pan)
 	)
 }).add
@@ -113,7 +113,7 @@ SynthDef(\inr, { |out, sustain = 1, freq = 440, speed = 1, begin=0, end=1, pan, 
 	sound = SoundIn.ar([0, 1]); // stereo in
 	sound = sound * env;
 	sound = PitchShift.ar(sound, 0.1, rate, 0.02, 0.01);
-	OffsetOut.ar(out,
+	Out.ar(out,
 		DirtPan.ar(sound, ~dirt.numChannels, pan)
 	)
 }).add
@@ -125,7 +125,7 @@ SynthDef(\gabor, { |out, sustain = 0.03, freq = 440, pan = 0, width = 0.3|
 	var env, sound;
 	sound = SinOsc.ar(freq, 0.5pi);
 	env = LFGauss.ar(sustain, width, loop: 0).range(0, 1);
-	OffsetOut.ar(out,
+	Out.ar(out,
 		DirtPan.ar(env * sound, ~dirt.numChannels, pan)
 	)
 }).add;
@@ -134,7 +134,7 @@ SynthDef(\gabor, { |out, sustain = 0.03, freq = 440, pan = 0, width = 0.3|
 // dirac delta function approximation
 (
 SynthDef(\dirac, { |out, sustain = 0.03, pan = 0|
-	OffsetOut.ar(out,
+	Out.ar(out,
 		DirtPan.ar(Impulse.ar(0), ~dirt.numChannels, pan)
 	)
 }).add;
@@ -152,7 +152,7 @@ SynthDef(\cyclo, { |out, freq, sustain = 1, speed = 1, begin = 0, end = 1, pan, 
 	freq = (cycle * speed) % ((1..16) * ratio + phase) + 1 * freq * rate;
 
 	sound = SinOsc.ar(freq).mean;
-	OffsetOut.ar(out,
+	Out.ar(out,
 		DirtPan.ar(sound, ~dirt.numChannels, pan, env)
 	)
 }).add

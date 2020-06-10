@@ -8,7 +8,7 @@ SynthDef(\gendy, { |out, sustain = 1, freq = 440, pan, fratio = 0|
 	gfreq2 = freq * (2 ** fratio);
 	env = EnvGen.ar(Env.sine(sustain), doneAction:2);
 	sound = Gendy1.ar(1, 1, 1, 1, gfreq1, gfreq2);
-	OffsetOut.ar(out,
+	Out.ar(out,
 		DirtPan.ar(sound, ~dirt.numChannels, pan, env)
 	)
 }).add
