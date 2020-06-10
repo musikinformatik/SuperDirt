@@ -52,7 +52,7 @@ this may be refacored later.
 				])
 			} {
 				if(~instrument.isNil) {
-					"module 'sound': instrument not found: %".format(~sound).postln
+					"module 'sound': instrument not found: %".format(~s).postln
 				} {
 					// here, we just derive the arguments as necessary from the environment
 					dirtEvent.sendSynth(~instrument, ~argNames)
