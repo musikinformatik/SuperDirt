@@ -58,7 +58,7 @@ SuperDirt {
 
 	initRoutingBusses {
 		audioRoutingBusses = { Bus.audio(server, numChannels) }.dup(numRoutingBusses);
-		controlBusses = { Bus.audio(server, numChannels) }.dup(numControlBusses);
+		controlBusses = { Bus.control(server, numChannels) }.dup(numControlBusses);
 	}
 
 	set { |...pairs|
