@@ -16,9 +16,11 @@ SuperDirt {
 	var <>orbits;
 	var <>modules;
 	var <>audioRoutingBusses;
+	var <>controlBusses;
 
 	var <port, <senderAddr, <replyAddr, netResponders;
-	var <>receiveAction, <>warnOutOfOrbit = true, <>maxLatency = 42, <>numRoutingBusses = 16;
+	var <>receiveAction, <>warnOutOfOrbit = true, <>maxLatency = 42;
+	var <>numRoutingBusses = 16, <>numControlBusses = 128;
 
 	classvar <>default, <>maxSampleNumChannels = 2, <>postBadValues = false;
 
@@ -55,7 +57,8 @@ SuperDirt {
 	}
 
 	initRoutingBusses {
-		audioRoutingBusses = { Bus.audio(server, numChannels) }.dup(numRoutingBusses)
+		audioRoutingBusses = { Bus.audio(server, numChannels) }.dup(numRoutingBusses);
+		controlBusses = { Bus.audio(server, numChannels) }.dup(numControlBusses);
 	}
 
 	set { |...pairs|
