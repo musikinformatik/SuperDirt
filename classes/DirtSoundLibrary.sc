@@ -251,7 +251,10 @@ DirtSoundLibrary {
 	}
 
 	instrumentForBuffer { |buffer|
-		^format("dirt_sample_%_%", buffer.numChannels, this.numChannels).asSymbol
+		var needs64BitPrecision = buffer.numFrames > 16777216;
+		var synthName = if(needs64BitPrecision) { "dirt_sample_long_%_%" } { "dirt_sample_%_%" };
+		if(needs64BitPrecision) { "event for long sound file: %".format(buffer.path).postln };
+		^format(synthName, buffer.numChannels, this.numChannels).asSymbol
 	}
 
 	openFolder { |name, index = 0|
