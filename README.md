@@ -35,11 +35,15 @@ If you want SuperDirt to start automatically, you can load it from the startup f
 - for server options, see `ServerOptions` helpfile: http://doc.sccode.org/Classes/ServerOptions.html
 
 ## Options on-the-fly
-- add sound files. `~dirt.loadSoundFiles("path/to/my/samples/*")` You can drag and drop folders into the editor and add a wildcard (*) after it.
+- add sound files. `~dirt.loadSoundFiles("path/to/my/samples/*")` You can drag and drop folders into the editor and add a wildcard (*) after˘ it.
 - you can pass the udp port on which superdirt is listenting and the output channel offsets: `~dirt.start(port, channels)`
 - new orbits can be created on the fly (e.g. `~dirt.makeBusses([0, 0, 0])`).
 - add or edit SynthDef files to add your own synthesis methods to be called from tidal: https://github.com/musikinformatik/SuperDirt/blob/master/synths/default-synths.scd
 - you can live rewrite the core synths (but take care not to break them ...): https://github.com/musikinformatik/SuperDirt/blob/master/synths/core-synths.scd
+
+## Trouble Shooting
+ If you run into unspecific troubles and want to quickly reset everything, you can run the following: `SuperDirt.resetEverything`
+You can minimize downtime if you have a startup file that automatically starts SuperDirt (see Automatic startup, above).
 
 
 ## Using SuperDirt with SuperCollider 3.6
