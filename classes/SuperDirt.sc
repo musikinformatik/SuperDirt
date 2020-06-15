@@ -28,6 +28,12 @@ SuperDirt {
 		^super.newCopyArgs(numChannels, server ? Server.default).init
 	}
 
+	*resetEverything {
+		"===========> stopping all servers and recompiling the class library.".postln;
+		Server.killAll;
+		thisProcess.recompile;
+	}
+
 	init {
 		soundLibrary = DirtSoundLibrary(server, numChannels);
 		modules = [];
