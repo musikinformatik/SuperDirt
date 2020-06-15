@@ -163,8 +163,9 @@ DirtGateCutGroup {
 		// this is necessary because the message "==" tests for objects, not for signals
 		var same = { |a, b| BinaryOpUGen('==', a, b) };
 		var or = { |a, b| (a + b) > 0 };
+		var stealVoice = NumRunningSynths.kr > \maxVoices.ir(inf);
 		var sameSample = same.(\sample.ir(0), \gateSample.kr(0));
-		var free = or.(\cutAll.kr(0), sameSample);
+		var free = [\cutAll.kr(0), sameSample, stealVoice].reduce(or);
 		^EnvGen.kr(Env.cutoff(releaseTime), (1 - free), doneAction:doneAction);
 	}
 }
