@@ -230,21 +230,21 @@ SuperDirt {
 				var latency = time - Main.elapsedTime;
 				var event = (), orbit, index;
 				if(dropWhen.value.not) {
-				if(latency > maxLatency) {
-					"The scheduling delay is too long. Your networks clocks may not be in sync".warn;
-					latency = 0.2;
-				};
-				replyAddr = tidalAddr; // collect tidal reply address
-				event[\latency] = latency;
-				event.putPairs(msg[1..]);
-				receiveAction.value(event);
-				index = event[\orbit] ? 0;
+					if(latency > maxLatency) {
+						"The scheduling delay is too long. Your networks clocks may not be in sync".warn;
+						latency = 0.2;
+					};
+					replyAddr = tidalAddr; // collect tidal reply address
+					event[\latency] = latency;
+					event.putPairs(msg[1..]);
+					receiveAction.value(event);
+					index = event[\orbit] ? 0;
 
-				if(warnOutOfOrbit and: { index >= orbits.size } or: { index < 0 }) {
+					if(warnOutOfOrbit and: { index >= orbits.size } or: { index < 0 }) {
 						"SuperDirt: event falls out of existing orbits, index (%)".format(index).warn
-				};
+					};
 
-				DirtEvent(orbits @@ index, modules, event).play
+					DirtEvent(orbits @@ index, modules, event).play
 				}
 
 			}, '/play2', senderAddr, recvPort: port).fix
