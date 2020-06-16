@@ -20,6 +20,7 @@ SuperDirt {
 
 	var <port, <senderAddr, <replyAddr, netResponders;
 	var <>receiveAction, <>warnOutOfOrbit = true, <>maxLatency = 42;
+	var <>dropWhen = false;
 	var <>numRoutingBusses = 16, <>numControlBusses = 128;
 
 	classvar <>default, <>maxSampleNumChannels = 2, <>postBadValues = false;
@@ -228,6 +229,7 @@ SuperDirt {
 			OSCFunc({ |msg, time, tidalAddr|
 				var latency = time - Main.elapsedTime;
 				var event = (), orbit, index;
+				if(dropWhen.value.not) {
 				if(latency > maxLatency) {
 					"The scheduling delay is too long. Your networks clocks may not be in sync".warn;
 					latency = 0.2;
@@ -243,6 +245,7 @@ SuperDirt {
 				};
 
 				DirtEvent(orbits @@ index, modules, event).play
+				}
 
 			}, '/play2', senderAddr, recvPort: port).fix
 		);
