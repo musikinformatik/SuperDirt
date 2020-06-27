@@ -65,11 +65,18 @@ SuperDirt {
 
 	initRoutingBusses {
 		audioRoutingBusses = { Bus.audio(server, numChannels) }.dup(numRoutingBusses);
-		controlBusses = { Bus.control(server, numChannels) }.dup(numControlBusses);
+		controlBusses = { Bus.control(server, 1) }.dup(numControlBusses);
 	}
 
 	set { |...pairs|
 		orbits.do(_.set(*pairs))
+	}
+
+	setControlBus { |...pairs|
+		pairs.pairsDo { |index, value|
+			var bus = controlBusses.at(index);
+			if(bus.notNil) { bus.set(value) }
+		};
 	}
 
 	free {
@@ -248,6 +255,13 @@ SuperDirt {
 				}
 
 			}, '/play2', senderAddr, recvPort: port).fix
+		);
+
+		netResponders.add(
+			OSCFunc({ |msg, time, tidalAddr|
+				var args = msg.drop(1);
+				this.setControlBus(*args);
+			}, '/setControlBus', senderAddr, recvPort: port).fix
 		);
 
 
