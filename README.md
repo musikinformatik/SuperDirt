@@ -1,7 +1,26 @@
-# SuperDirt 1.0-dev
-SuperCollider implementation of the Dirt sampler for the Tidal programming language
 
-Alex McLean and Julian Rohrhuber
+# SuperDirt 1.0-dev
+
+SuperCollider implementation of the Dirt sampler, originally designed
+for the [TidalCycles](https://github.com/tidalcycles/tidal)
+environment. SuperDirt is a general purpose framework for playing
+samples and synths, controllable over the Open Sound Control protocol,
+and locally from the SuperCollider language.
+
+(C) 2015-2020 Julian Rohrhuber, Alex McLean and contributors
+
+SuperDirt is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation, either version 2 of the License, or (at your
+option) any later version.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
 ## Requirements
 
