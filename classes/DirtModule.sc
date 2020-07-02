@@ -1,9 +1,11 @@
 /*
-
-DirtModules encapsulate two functions:
+DirtModule.sc - encapsulates two functions:
 1) for testing for parameters (whether or not to start a synth at all)
 2) activated when the parameters are found in the message from tidal
 
+(c) 2015-2020 Julian Rohrhuber and contributors. Distributed under the
+terms of GNU General Public License version 2, or (at your option) any
+later version. Details: http://www.gnu.org/licenses/
 */
 
 

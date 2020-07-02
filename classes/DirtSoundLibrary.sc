@@ -1,12 +1,15 @@
 
 /*
 
-This library unifies access to buffers and synth events.
+DirtRemoteSoundFileInfo.sc - unifies access to buffers and synth events.
 
-valid fileExtensions can be extended, currently they are ["wav", "aif", "aiff", "aifc"]
+(C) 2015-2020 Julian Rohrhuber and contributors. Distributed under the
+terms of GNU General Public License version 2, or (at your option) any
+later version. Details: http://www.gnu.org/licenses/
 
 */
 
+// valid fileExtensions can be extended, currently they are ["wav", "aif", "aiff", "aifc"]
 
 DirtSoundLibrary {
 

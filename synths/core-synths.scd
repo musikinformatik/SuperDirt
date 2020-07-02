@@ -10,6 +10,12 @@ Their name and parameter names shouldn't be changed. Parameter names can be adde
 
 live coding them requires that you have your SuperDirt instance in an environment variable called ~dirt.
 
+(C) 2015-2020 Julian Rohrhuber and contributors
+SuperDirt is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation, either version 2 of the License, or (at your
+option) any later version.
+
 */
 
 (

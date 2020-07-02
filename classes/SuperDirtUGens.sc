@@ -1,7 +1,12 @@
 
 /*
+SuperDirtUGens - A few UGen classes that build subgraphs for SuperDirt Synths
 
-A few UGen classes that build subgraphs for SuperDirt Synths
+(C) 2015-2020 Julian Rohrhuber and contributors
+SuperDirt is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation, either version 2 of the License, or (at your
+option) any later version.
 
 The panners take care of different combinations of in and out channels.
 
@@ -17,7 +22,6 @@ DirtEvent converts the tidal input: ~pan = ~pan * 2 - 1;
 Where we write -1 for pan in tidal, we get -3, which should be equivalent to 1.
 In multichannel panning this is not an issue, because it is cyclic in the range [-1..1], or [0..2]
 In stereo panning, we need to .fold(-1, 1)
-
 */
 
 

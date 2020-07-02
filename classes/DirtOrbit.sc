@@ -1,5 +1,9 @@
 /*
 
+(C) 2015-2020 Julian Rohrhuber and contributors. Distributed under the
+terms of GNU General Public License version 2, or (at your option) any
+later version. Details: http://www.gnu.org/licenses/
+
 An orbit encapsulates a continuous state that affects all sounds played in it.
 It has default parameters for all sounds, which can be set, e.g. pan, and which can be overridden from tidal.
 Its globalEffects are e.g. delay, reverb, and also the monitor which handles the audio output routing.

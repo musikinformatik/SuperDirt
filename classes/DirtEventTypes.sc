@@ -1,7 +1,10 @@
 /*
+DirtEventTypes.sc - This class adds event types to the global event
+library. They can be played from sclang.
 
-This class adds event types to the global event library. They can be played from sclang.
-
+(c) 2015-2020 Julian Rohrhuber and contributors. Distributed under the
+terms of GNU General Public License version 2, or (at your option) any
+later version. Details: http://www.gnu.org/licenses/
 */
 
 DirtEventTypes {

@@ -1,11 +1,20 @@
+/*
 
-// list of new SynthDefs, and in parentheses the special parameters they accept
-// ("!" means it's not a standard Tidal param and needs to be defined)
-// most of these SynthDefs use sustain to scale the overall envelope, and many use accelerate to provide a pitch glide
-//
-// tutorial1, tutorial2, tutorial3, tutorial4, tutorial5(f!),
-// supermandolin(detune), supergong(voice,decay), superpiano(velocity,detune,muffle!,stereo!), superhex,
-// superkick(pitch1,decay), superhat, supersnare(decay), superclap(delay,pitch1), super808(voice), supersiren
+list of new SynthDefs, and in parentheses the special parameters they accept
+ ("!" means it's not a standard Tidal param and needs to be defined)
+ most of these SynthDefs use sustain to scale the overall envelope, and many use accelerate to provide a pitch glide
+
+ tutorial1, tutorial2, tutorial3, tutorial4, tutorial5(f!),
+ supermandolin(detune), supergong(voice,decay), superpiano(velocity,detune,muffle!,stereo!), superhex,
+ superkick(pitch1,decay), superhat, supersnare(decay), superclap(delay,pitch1), super808(voice), supersiren
+
+(C) 2015-2020 Ben Gold, Julian Rohrhuber and contributors
+SuperDirt is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation, either version 2 of the License, or (at your
+option) any later version.
+
+*/
 
 // a very basic starting point, just a 440Hz sine wave
 (

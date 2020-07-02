@@ -8,6 +8,12 @@ CORE SYNTHDEFS FOR DIRT
 	when you change them, to update them, hit cmd-period (i.e. stop the synths on the server) once.
 	they'll come back automatically
 
+(C) 2015-2020 Julian Rohrhuber, Ben Gold and contributors
+SuperDirt is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation, either version 2 of the License, or (at your
+option) any later version.
+
 */
 
 
