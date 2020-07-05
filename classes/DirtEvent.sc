@@ -111,7 +111,7 @@ DirtEvent {
 
 		// end samples if sustain exceeds buffer duration
 		// for every buffer, unitDuration is (and should be) defined.
-		~buffer !? { sustain = min(unitDuration, sustain) };
+		if(useUnit) { sustain = min(unitDuration, sustain) };
 
 		~fadeTime = min(~fadeTime.value, sustain * 0.19098);
 		~fadeInTime = if(~begin != 0) { ~fadeTime } { 0.0 };

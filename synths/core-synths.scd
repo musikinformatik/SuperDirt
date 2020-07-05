@@ -50,7 +50,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 			sound = DirtPan.ar(sound, numChannels, pan);
 
 			Out.ar(out, sound)
-		}, [\ir, \ir, \ir, \ir, \ir, \ir, \ir, \ir]).add;
+		}, [\ir, \ir, \ir, \ir, \ir, \ir, \ir, \ir, \ir]).add;
 	};
 
 	// the same for supporting long soundfiles.
@@ -95,7 +95,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 			sound = DirtPan.ar(sound, numChannels, pan);
 
 			Out.ar(out, sound)
-		}, [\ir, \ir, \ir, \ir, \ir, \ir, \ir, \ir]).add;
+		}, [\ir, \ir, \ir, \ir, \ir, \ir, \ir, \ir, \ir]).add;
 	};
 
 	/*
@@ -131,7 +131,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		var env = EnvGen.ar(Env([0, 1, 1, 0], [fadeInTime, sustain, fadeTime], \sin), levelScale: amp);
 		Out.ar(to, signal * env);
 		ReplaceOut.ar(out, signal * through);
-	}, [\ir, \ir]).add;
+	}, [\ir, \ir, \ir, \ir, \ir, \ir, \ir]).add;
 
 	/*
 
@@ -259,7 +259,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		signal = signal + phaserwave;
 
 		ReplaceOut.ar(out, signal);
-	}, [\ir, \ir, \ir]).add;
+	}, [\ir, \ir, \ir, \ir]).add;
 
 }.value
 )
