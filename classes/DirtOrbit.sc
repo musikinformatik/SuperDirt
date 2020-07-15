@@ -39,7 +39,7 @@ DirtOrbit {
 	init {
 		server = dirt.server;
 		if(server.serverRunning.not) {
-			Error("SuperColldier server '%' not running. Couldn't start DirtOrbit".format(server.name)).warn;
+			Error("SuperCollider server '%' not running. Couldn't start DirtOrbit".format(server.name)).warn;
 			^this
 		};
 		group = server.nextPermNodeID;
