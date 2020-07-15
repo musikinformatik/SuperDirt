@@ -10,7 +10,7 @@ valid fileExtensions can be extended, currently they are ["wav", "aif", "aiff", 
 
 DirtSoundLibrary {
 
-	var <server, <numChannels, <buffers, <bufferEvents, <synthEvents;
+	var <server, <numChannels, <buffers, <bufferEvents, <synthEvents, <metaDataEvents;
 	var <>fileExtensions = #["wav", "aif", "aiff", "aifc"];
 	var <>verbose = false;
 	var <>defaultEvent;
@@ -23,6 +23,7 @@ DirtSoundLibrary {
 		buffers = IdentityDictionary.new;
 		bufferEvents = IdentityDictionary.new;
 		synthEvents = IdentityDictionary.new;
+		metaDataEvents = IdentityDictionary.new;
 	}
 
 	free {
@@ -30,7 +31,7 @@ DirtSoundLibrary {
 		this.freeAllSoundFiles;
 	}
 
-	addBuffer { |name, buffer, appendToExisting = false|
+	addBuffer { |name, buffer, appendToExisting = false, metaData|
 		var event;
 		if(buffer.isNil) { Error("tried to add Nil to buffer library").throw };
 		if(synthEvents[name].notNil) {
@@ -45,29 +46,31 @@ DirtSoundLibrary {
 		event = this.makeEventForBuffer(buffer);
 		buffers[name] = buffers[name].add(buffer);
 		bufferEvents[name] = bufferEvents[name].add(event);
+		metaData !? { metaDataEvents[name] = metaDataEvents[name].add(metaData) };
 		if(verbose) { "new sample buffer named '%':\n%\n\n".postf(name, event) };
 	}
 
-	addSynth { |name, event, appendToExisting = false, useSynthDefSustain = false|
+	addSynth { |name, event, appendToExisting = false, useSynthDefSustain = false, metaData|
 		if(bufferEvents[name].notNil) {
 			"a sample buffer with that name already exists: %\nSkipping...".format(name).warn;
 			^this
 		};
 		if(appendToExisting.not and: { synthEvents[name].notNil }) {
 			"\nreplacing '%' (%)\n".postf(name, synthEvents[name].size);
-			synthEvents[name] = nil;
+			this.freeSynths(name);
 		};
 		if(event.isNil) { event = (instrument: name) };
 		if(event[\hash].isNil) { event[\hash] = name.identityHash };
 		if(useSynthDefSustain) { this.useSynthDefSustain(event) };
 		synthEvents[name] = synthEvents[name].add(event);
+		metaData !? { metaDataEvents[name] = metaDataEvents[name].add(metaData) };
 		if(verbose) { "new synth named '%':\n%\n\n".postf(name, event) };
 	}
 
-	addMIDI { |name, device, event|
+	addMIDI { |name, device, event, appendToExisting = false, metaData|
 		var midiEvent = DirtEventTypes.midiEvent.copy.put(\midiout, device);
 		if(event.notNil) { midiEvent.putAll(event) };
-		this.addSynth(name, midiEvent)
+		this.addSynth(name, midiEvent, appendToExisting, false, metaData)
 	}
 
 	useSynthDefSustain { |event|
@@ -91,12 +94,14 @@ DirtSoundLibrary {
 				if(this.findBuffer(buf).notNil) { buf.free } // don't free aliases
 			};
 			bufferEvents.removeAt(name);
+			metaDataEvents.removeAt(name);
 		}
 	}
 
 	freeSynths { |names|
 		names.asArray.do { |name|
-			synthEvents.removeAt(name)
+			synthEvents.removeAt(name);
+			metaDataEvents.removeAt(name);
 		}
 	}
 
@@ -307,6 +312,7 @@ DirtSoundLibrary {
 	memoryFootprint {
 		^buffers.sum { |array| array.sum { |buffer| buffer.memoryFootprint.asFloat } } // in bytes
 	}
+
 
 	/* private implementation */
 
