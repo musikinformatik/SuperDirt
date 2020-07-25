@@ -64,10 +64,22 @@ SynthDef(\pmsin, { |out, sustain = 1, freq = 440, speed = 1, begin=0, end=1, pan
 
 // live audio input
 (
-SynthDef(\in, { |out, sustain = 1, pan, inputFadeTime = 0.03|
+SynthDef(\in, { |out, soundin = 0, sustain = 1, pan, inputFadeTime = 0.03|
 	var env, sound;
 	env = Env.linen(inputFadeTime, sustain - (2 * inputFadeTime), inputFadeTime).kr;
-	sound = SoundIn.ar([0, 1]); // stereo in
+	sound = SoundIn.ar([0, 1] + soundin); // stereo in
+	sound = sound * env;
+	Out.ar(out,
+		DirtPan.ar(sound, ~dirt.numChannels, pan)
+	)
+}).add
+);
+
+(
+SynthDef(\in1, { |out, soundin = 0, sustain = 1, pan, inputFadeTime = 0.03|
+	var env, sound;
+	env = Env.linen(inputFadeTime, sustain - (2 * inputFadeTime), inputFadeTime).kr;
+	sound = SoundIn.ar(soundin); // mono in
 	sound = sound * env;
 	Out.ar(out,
 		DirtPan.ar(sound, ~dirt.numChannels, pan)
