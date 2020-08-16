@@ -148,6 +148,7 @@ this may be refacored later.
 		dirtEvent.sendSynth('dirt_pitch_shift' ++ ~numChannels,
 			[
 				psrate: ~psrate,
+				psdisp: ~psdisp,
 				sustain: ~sustain,
 				out: ~out
 		])

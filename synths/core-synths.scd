@@ -226,10 +226,10 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		ReplaceOut.ar(out, signal);
 	}, [\ir, \ir, \ir, \ir, \ir]).add;
 
-	SynthDef("dirt_pitch_shift" ++ numChannels, { |out, psratio = 1, sustain = 1|
+	SynthDef("dirt_pitch_shift" ++ numChannels, { |out, psrate = 1, sustain = 1, psdisp = 0|
 		var signal = In.ar(out, numChannels);
 		var windowSize = sustain.linlin(0.01, 0.3, 0.01, 0.18);
-		signal = PitchShift.ar(signal, windowSize:windowSize, pitchRatio:psratio, pitchDispersion:0, timeDispersion:0);
+		signal = PitchShift.ar(signal, windowSize:windowSize, pitchRatio:psrate, pitchDispersion:0, timeDispersion:psdisp);
 		ReplaceOut.ar(out, signal)
 	}, [\ir, \ir, \ir]).add;
 
