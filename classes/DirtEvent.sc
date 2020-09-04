@@ -47,12 +47,7 @@ DirtEvent {
 
 	orderTimeSpan {
 		var temp;
-		if(~end >= ~begin) {
-			if(~speed < 0) { temp = ~end; ~end = ~begin; ~begin = temp };
-		} {
-			// backwards
-			~speed = ~speed.neg;
-		};
+		if(~speed < 0) { temp = ~end; ~end = ~begin; ~begin = temp };
 		~length = absdif(~end, ~begin);
 	}
 
