@@ -121,7 +121,7 @@ DirtEvent {
 		~channel !? { ~pan = ~pan.value + (~channel.value / ~numChannels) };
 		~pan = ~pan * 2 - 1; // convert unipolar (0..1) range into bipolar one (-1...1)
 		~delayAmp = ~delay ? 0.0; // for clarity
-		~latency = ~latency + ~lag.value + (~offset.value * ~speed.value);
+		~latency = ~latency + ~lag.value + (~offset.value * ~speed.value.abs);
 	}
 
 	getMsgFunc { |instrument|
