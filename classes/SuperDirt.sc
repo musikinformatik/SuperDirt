@@ -13,6 +13,7 @@ SuperDirt {
 
 	var <numChannels, <server;
 	var <soundLibrary, <vowels;
+	var <lastEvent;
 	var <>orbits;
 	var <>modules;
 	var <>audioRoutingBusses;
@@ -29,6 +30,7 @@ SuperDirt {
 	init {
 		soundLibrary = DirtSoundLibrary(server, numChannels);
 		modules = [];
+		lastEvent = ();
 		this.loadSynthDefs;
 		this.initVowels(\counterTenor);
 		this.initRoutingBusses;
@@ -215,6 +217,7 @@ SuperDirt {
 			OSCFunc({ |msg, time, tidalAddr|
 				var latency = time - Main.elapsedTime;
 				var event = (), orbit, index;
+
 				if(latency > maxLatency) {
 					"The scheduling delay is too long. Your networks clocks may not be in sync".warn;
 					latency = 0.2;
@@ -228,6 +231,8 @@ SuperDirt {
 				if(warnOutOfOrbit and: { index >= orbits.size } or: { index < 0 }) {
 						"SuperDirt: event falls out of existing orbits, index (%)".format(index).warn
 				};
+
+				lastEvent.putAll(event);
 
 				DirtEvent(orbits @@ index, modules, event).play
 
