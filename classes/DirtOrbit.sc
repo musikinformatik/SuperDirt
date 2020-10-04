@@ -39,7 +39,7 @@ DirtOrbit {
 	init {
 		server = dirt.server;
 		if(server.serverRunning.not) {
-			Error("SuperColldier server '%' not running. Couldn't start DirtOrbit".format(server.name)).warn;
+			Error("SuperCollider server '%' not running. Couldn't start DirtOrbit".format(server.name)).warn;
 			^this
 		};
 		group = server.nextPermNodeID;
@@ -189,7 +189,8 @@ DirtOrbit {
 			~octave = 5;
 			~midinote = #{ ~note ? ~n + (~octave * 12) };
 			~freq = #{ ~midinote.value.midicps };
-			~delta = 1.0;
+			~dur = 1.0;
+			~delta = #{ ~dur.value };
 
 			~latency = 0.0;
 			~lag = 0.0;

@@ -6,6 +6,20 @@ This object handles OSC communication and local effects.
 These are relative to a server and a number of output channels
 It keeps a number of dirt orbits (see below).
 
+(C) 2015-2020 Julian Rohrhuber and contributors
+
+SuperDirt is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation, either version 2 of the License, or (at your
+option) any later version.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
@@ -17,14 +31,23 @@ SuperDirt {
 	var <>orbits;
 	var <>modules;
 	var <>audioRoutingBusses;
+	var <>controlBusses;
 
 	var <port, <senderAddr, <replyAddr, netResponders;
-	var <>receiveAction, <>warnOutOfOrbit = true, <>maxLatency = 42, <>numRoutingBusses = 16;
+	var <>receiveAction, <>warnOutOfOrbit = true, <>maxLatency = 42;
+	var <>dropWhen = false;
+	var <>numRoutingBusses = 16, <>numControlBusses = 128;
 
 	classvar <>default, <>maxSampleNumChannels = 2, <>postBadValues = false;
 
 	*new { |numChannels = 2, server|
 		^super.newCopyArgs(numChannels, server ? Server.default).init
+	}
+
+	*resetEverything {
+		"===========> stopping all servers and recompiling the class library.".postln;
+		Server.killAll;
+		thisProcess.recompile;
 	}
 
 	init {
@@ -57,11 +80,19 @@ SuperDirt {
 	}
 
 	initRoutingBusses {
-		audioRoutingBusses = { Bus.audio(server, numChannels) }.dup(numRoutingBusses)
+		audioRoutingBusses = { Bus.audio(server, numChannels) }.dup(numRoutingBusses);
+		controlBusses = { Bus.control(server, 1) }.dup(numControlBusses);
 	}
 
 	set { |...pairs|
 		orbits.do(_.set(*pairs))
+	}
+
+	setControlBus { |...pairs|
+		pairs.pairsDo { |index, value|
+			var bus = controlBusses.at(index);
+			if(bus.notNil) { bus.set(value) }
+		};
 	}
 
 	free {
@@ -205,7 +236,11 @@ SuperDirt {
 			"Please note: SC3.6 listens to any sender.".warn;
 			senderAddr = nil;
 		} {
-			senderAddr = argSenderAddr
+			if (argSenderAddr.ip == "0.0.0.0") {
+				senderAddr = nil;
+			} {
+				senderAddr = argSenderAddr;
+			};
 		};
 
 		port = argPort;
@@ -218,25 +253,34 @@ SuperDirt {
 				var latency = time - Main.elapsedTime;
 				var event = (), orbit, index;
 
-				if(latency > maxLatency) {
-					"The scheduling delay is too long. Your networks clocks may not be in sync".warn;
-					latency = 0.2;
-				};
-				replyAddr = tidalAddr; // collect tidal reply address
-				event[\latency] = latency;
-				event.putPairs(msg[1..]);
-				receiveAction.value(event);
-				index = event[\orbit] ? 0;
+				if(dropWhen.value.not) {
+					if(latency > maxLatency) {
+						"The scheduling delay is too long. Your networks clocks may not be in sync".warn;
+						latency = 0.2;
+					};
+					replyAddr = tidalAddr; // collect tidal reply address
+					event[\latency] = latency;
+					event.putPairs(msg[1..]);
+					receiveAction.value(event);
+					index = event[\orbit] ? 0;
 
-				if(warnOutOfOrbit and: { index >= orbits.size } or: { index < 0 }) {
+					if(warnOutOfOrbit and: { index >= orbits.size } or: { index < 0 }) {
 						"SuperDirt: event falls out of existing orbits, index (%)".format(index).warn
-				};
+					};
 
-				lastEvent.putAll(event);
-
-				DirtEvent(orbits @@ index, modules, event).play
+				  lastEvent.putAll(event);
+					
+          DirtEvent(orbits @@ index, modules, event).play
+				}
 
 			}, '/play2', senderAddr, recvPort: port).fix
+		);
+
+		netResponders.add(
+			OSCFunc({ |msg, time, tidalAddr|
+				var args = msg.drop(1);
+				this.setControlBus(*args);
+			}, '/setControlBus', senderAddr, recvPort: port).fix
 		);
 
 

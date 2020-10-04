@@ -1,7 +1,26 @@
-# SuperDirt 1.0-dev
-SuperCollider implementation of the Dirt sampler for the Tidal programming language
 
-Alex McLean and Julian Rohrhuber
+# SuperDirt 1.0-dev
+
+SuperCollider implementation of the Dirt sampler, originally designed
+for the [TidalCycles](https://github.com/tidalcycles/tidal)
+environment. SuperDirt is a general purpose framework for playing
+samples and synths, controllable over the Open Sound Control protocol,
+and locally from the SuperCollider language.
+
+(C) 2015-2020 Julian Rohrhuber, Alex McLean and contributors
+
+SuperDirt is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation, either version 2 of the License, or (at your
+option) any later version.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
 ## Requirements
 
@@ -35,11 +54,15 @@ If you want SuperDirt to start automatically, you can load it from the startup f
 - for server options, see `ServerOptions` helpfile: http://doc.sccode.org/Classes/ServerOptions.html
 
 ## Options on-the-fly
-- add sound files. `~dirt.loadSoundFiles("path/to/my/samples/*")` You can drag and drop folders into the editor and add a wildcard (*) after it.
+- add sound files. `~dirt.loadSoundFiles("path/to/my/samples/*")` You can drag and drop folders into the editor and add a wildcard (*) after˘ it.
 - you can pass the udp port on which superdirt is listenting and the output channel offsets: `~dirt.start(port, channels)`
 - new orbits can be created on the fly (e.g. `~dirt.makeBusses([0, 0, 0])`).
 - add or edit SynthDef files to add your own synthesis methods to be called from tidal: https://github.com/musikinformatik/SuperDirt/blob/master/synths/default-synths.scd
 - you can live rewrite the core synths (but take care not to break them ...): https://github.com/musikinformatik/SuperDirt/blob/master/synths/core-synths.scd
+
+## Trouble Shooting
+ If you run into unspecific troubles and want to quickly reset everything, you can run the following: `SuperDirt.resetEverything`
+You can minimize downtime if you have a startup file that automatically starts SuperDirt (see Automatic startup, above).
 
 
 ## Using SuperDirt with SuperCollider 3.6
