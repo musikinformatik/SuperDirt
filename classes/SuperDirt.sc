@@ -268,9 +268,9 @@ SuperDirt {
 						"SuperDirt: event falls out of existing orbits, index (%)".format(index).warn
 					};
 
-				  lastEvent.putAll(event);
-					
-          DirtEvent(orbits @@ index, modules, event).play
+					lastEvent.putAll(event);
+
+					DirtEvent(orbits @@ index, modules, event).play
 				}
 
 			}, '/play2', senderAddr, recvPort: port).fix
