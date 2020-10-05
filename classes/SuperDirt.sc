@@ -259,7 +259,7 @@ SuperDirt {
 
 		netResponders.add(
 			OSCFunc({ |msg, time, tidalAddr|
-				senderAddr.sendMsg("/handshake_reply", *this.handshakeReplyData)
+				tidalAddr.sendMsg("/handshake_reply", *this.handshakeReplyData)
 			}, '/handshake', senderAddr, recvPort: port).fix
 		);
 
