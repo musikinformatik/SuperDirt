@@ -257,9 +257,18 @@ SuperDirt {
 
 		this.closeNetworkConnection;
 
+
 		netResponders.add(
 			OSCFunc({ |msg, time, tidalAddr|
-				replyAddr = tidalAddr; // collect tidal reply address
+				if(replyAddr.isNil) {
+					replyAddr = tidalAddr; // collect tidal reply address
+					replyAddr.sendMsg("/hello");
+				};
+			}, '/hello', senderAddr, recvPort: port).fix
+		);
+
+		netResponders.add(
+			OSCFunc({ |msg, time, tidalAddr|
 				tidalAddr.sendMsg("/handshake_reply", *this.handshakeReplyData)
 			}, '/handshake', senderAddr, recvPort: port).fix
 		);
@@ -304,6 +313,7 @@ SuperDirt {
 	closeNetworkConnection {
 		netResponders.do { |x| x.free };
 		netResponders = List.new;
+		replyAddr = nil;
 	}
 
 	sendToTidal { |args|
