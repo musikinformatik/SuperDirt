@@ -240,7 +240,13 @@ SuperDirt {
 		^data
 	}
 
+
+
 	connect { |argSenderAddr, argPort|
+
+		var playFunc;
+
+
 
 		if(Main.scVersionMajor == 3 and: { Main.scVersionMinor == 6 }) {
 			"Please note: SC3.6 listens to any sender.".warn;
@@ -258,53 +264,63 @@ SuperDirt {
 		this.closeNetworkConnection;
 
 
+		playFunc = { |msg, time, tidalAddr|
+			var latency = time - Main.elapsedTime;
+			var event = (), orbit, index;
+			if(dropWhen.value.not) {
+				if(latency > maxLatency) {
+					"The scheduling delay is too long. Your networks clocks may not be in sync".warn;
+					latency = 0.2;
+				};
+				replyAddr = tidalAddr; // collect tidal reply address
+				event[\latency] = latency;
+				event.putPairs(msg[1..]);
+				receiveAction.value(event);
+				index = event[\orbit] ? 0;
+
+				if(warnOutOfOrbit and: { index >= orbits.size } or: { index < 0 }) {
+					"SuperDirt: event falls out of existing orbits, index (%)".format(index).warn
+				};
+
+				DirtEvent(orbits @@ index, modules, event).play
+			}
+		};
+
+
 		netResponders.add(
 			OSCFunc({ |msg, time, tidalAddr|
 				if(replyAddr.isNil) {
 					replyAddr = tidalAddr; // collect tidal reply address
-					replyAddr.sendMsg("/tidal/hello/reply");
+					replyAddr.sendMsg("/dirt/hello/reply");
 				};
-			}, "/tidal/hello", senderAddr, recvPort: port).fix
+			}, "/dirt/hello", senderAddr, recvPort: port).fix
 		);
 
 		netResponders.add(
 			OSCFunc({ |msg, time, tidalAddr|
-				tidalAddr.sendMsg("/tidal/handshake/reply", *this.handshakeReplyData)
-			}, "/tidal/handshake", senderAddr, recvPort: port).fix
+				tidalAddr.sendMsg("/dirt/handshake/reply", *this.handshakeReplyData)
+			}, "/dirt/handshake", senderAddr, recvPort: port).fix
 		);
 
 		netResponders.add(
 			// pairs of parameter names and values in arbitrary order
-			OSCFunc({ |msg, time, tidalAddr|
-				var latency = time - Main.elapsedTime;
-				var event = (), orbit, index;
-				if(dropWhen.value.not) {
-					if(latency > maxLatency) {
-						"The scheduling delay is too long. Your networks clocks may not be in sync".warn;
-						latency = 0.2;
-					};
-					replyAddr = tidalAddr; // collect tidal reply address
-					event[\latency] = latency;
-					event.putPairs(msg[1..]);
-					receiveAction.value(event);
-					index = event[\orbit] ? 0;
-
-					if(warnOutOfOrbit and: { index >= orbits.size } or: { index < 0 }) {
-						"SuperDirt: event falls out of existing orbits, index (%)".format(index).warn
-					};
-
-					DirtEvent(orbits @@ index, modules, event).play
-				}
-
-			}, '/play2', senderAddr, recvPort: port).fix
+			OSCFunc(playFunc, "/dirt/play", senderAddr, recvPort: port).fix
 		);
 
 		netResponders.add(
 			OSCFunc({ |msg, time, tidalAddr|
 				var args = msg.drop(1);
 				this.setControlBus(*args);
-			}, '/setControlBus', senderAddr, recvPort: port).fix
+			}, "dirt/setControlBus", senderAddr, recvPort: port).fix
 		);
+
+		// backward compatibility
+
+		netResponders.add(
+			// pairs of parameter names and values in arbitrary order
+			OSCFunc(playFunc, '/play2', senderAddr, recvPort: port).fix
+		);
+
 
 
 		"SuperDirt: listening to Tidal on port %".format(port).postln;
