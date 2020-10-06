@@ -227,15 +227,15 @@ SuperDirt {
 		};
 	}
 
-	// parameter names are prefixed by an &
+	// parameter names are prefixed by an &&
 
 	handshakeReplyData {
 		var data = List.new;
-		data.add("&serverHostname");
+		data.add("&&serverHostname");
 		data.add(server.addr.hostname);
-		data.add("&serverPort");
+		data.add("&&serverPort");
 		data.add(server.addr.port);
-		data.add("&controlBusIndices");
+		data.add("&&controlBusIndices");
 		controlBusses.do { |x| data.add(x.index) };
 		^data
 	}
