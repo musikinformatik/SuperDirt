@@ -265,7 +265,7 @@ SuperDirt {
 
 
 		playFunc = { |msg, time, tidalAddr|
-			var latency = time - Main.elapsedTime;
+			var latency = time - thisThread.seconds;
 			var event = (), orbit, index;
 			if(dropWhen.value.not) {
 				if(latency > maxLatency) {
