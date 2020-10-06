@@ -262,15 +262,15 @@ SuperDirt {
 			OSCFunc({ |msg, time, tidalAddr|
 				if(replyAddr.isNil) {
 					replyAddr = tidalAddr; // collect tidal reply address
-					replyAddr.sendMsg("/hello_tidal_reply");
+					replyAddr.sendMsg("/tidal/hello/reply");
 				};
-			}, '/hello_tidal', senderAddr, recvPort: port).fix
+			}, "/tidal/hello", senderAddr, recvPort: port).fix
 		);
 
 		netResponders.add(
 			OSCFunc({ |msg, time, tidalAddr|
-				tidalAddr.sendMsg("/handshake_tidal_reply", *this.handshakeReplyData)
-			}, '/handshake_tidal', senderAddr, recvPort: port).fix
+				tidalAddr.sendMsg("/tidal/handshake/reply", *this.handshakeReplyData)
+			}, "/tidal/handshake", senderAddr, recvPort: port).fix
 		);
 
 		netResponders.add(
