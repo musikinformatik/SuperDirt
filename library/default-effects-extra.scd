@@ -21,7 +21,7 @@ DEFAULT EFFECTS EXTRA
 		var sig = In.ar(out, ~dirt.numChannels);
 		sig = WaveLoss.ar(sig, drop, outof: 100, mode: 2);
 		ReplaceOut.ar(out, sig)
-	},[\ir, \ir]).add;
+	},[\ir]).add;
 
 	// Squiz
 	// "reminiscent of some weird mixture of filter, ring-modulator
@@ -39,7 +39,7 @@ DEFAULT EFFECTS EXTRA
 		var sig = In.ar(out, ~dirt.numChannels);
 		sig = Squiz.ar(sig, pitchratio);
 		ReplaceOut.ar(out, sig)
-	}, [\ir, \ir]).add;
+	}, [\ir]).add;
 
 	// Frequency shifter
 	// Total shift is sum of `fshift` (in Hz) and `fshiftnote` times the current note frequency.
@@ -61,7 +61,7 @@ DEFAULT EFFECTS EXTRA
 		var shift = freq * fshiftnote + fshift;
 		sig = FreqShift.ar(sig, shift, fshiftphase);
 		ReplaceOut.ar(out, sig);
-	}, [\ir, \ir, \ir, \ir, \ir]).add;
+	}, [\ir]).add;
 
 	// Triode-like distortion, uses only the `triode` parameter
 	~dirt.addModule('triode', { |dirtEvent|
@@ -79,7 +79,7 @@ DEFAULT EFFECTS EXTRA
 		sc = triode * 10 + 1e-3;
 		sig = (sig * (sig > 0)) + (tanh(sig * sc) / sc * (sig < 0));
 		ReplaceOut.ar(out, LeakDC.ar(sig));
-	}, [\ir, \ir]).add;
+	}, [\ir]).add;
 
 	// Sonic Pi's krush
 	// modified a bit so krush "0" is the same as dry signal
@@ -102,7 +102,7 @@ DEFAULT EFFECTS EXTRA
 		signal = RLPF.ar(signal, clip(freq, 20, 10000), 1);
 		signal = SelectX.ar(krush * 2.0, [orig, signal]);
 		ReplaceOut.ar(out, signal);
-	}, [\ir, \ir, \ir]).add;
+	}, [\ir]).add;
 
 	// Sonic Pi's octaver
 	// uses `octer` for octave harmonics, `octersub` for half-frequency harmonics, and `octersubsub` for
@@ -128,7 +128,7 @@ DEFAULT EFFECTS EXTRA
 		signal = SelectX.ar(octer, [signal, octer * oct1, DC.ar(0)]);
 		signal = signal + (octersub * oct2 * sub) + (octersubsub * oct3 * sub);
 		ReplaceOut.ar(out, signal);
-	}, [\ir, \ir, \ir, \ir]).add;
+	}, [\ir]).add;
 
 	// Ring modulation with `ring` (modulation amount), `ringf` (modulation frequency), and `ringdf` (slide
 	// in modulation frequency)
@@ -149,7 +149,7 @@ DEFAULT EFFECTS EXTRA
 		mod = ring * SinOsc.ar(Clip.kr(XLine.kr(ringf, ringf + ringdf), 20, 20000));
 		signal = ring1(signal, mod);
 		ReplaceOut.ar(out, signal);
-	}, [\ir, \ir, \ir, \ir]).add;
+	}, [\ir]).add;
 
 	// A crunchy distortion with a lot of high harmonics, the only parameter is `distort`
 	~dirt.addModule('distort', { |dirtEvent|
@@ -169,7 +169,7 @@ DEFAULT EFFECTS EXTRA
 		mod = (mod.cubed * 8).softclip * 0.5;
 		mod = SelectX.ar(distort, [signal, mod]);
 		ReplaceOut.ar(out, mod);
-	}, [\ir, \ir]).add;
+	}, [\ir]).add;
 
 	// Spectral delay
 	~dirt.addModule('spectral-delay', { |dirtEvent|
@@ -201,7 +201,7 @@ DEFAULT EFFECTS EXTRA
 		};
 		signal = signal * 0.2 + (filtered * 4); // this controls wet / dry
 		ReplaceOut.ar(out, signal)
-	}, [\ir, \ir, \ir]).add;
+	}, [\ir]).add;
 
 	// Spectral freeze
 	~dirt.addModule('spectral-freeze', { |dirtEvent|
@@ -220,7 +220,7 @@ DEFAULT EFFECTS EXTRA
 		chain = signal.asArray.collect { |x| FFT(LocalBuf(2048), x) };
 		signal = IFFT(PV_Freeze(chain, freeze));
 		ReplaceOut.ar(out, signal)
-	}, [\ir, \ir]).add;
+	}, [\ir]).add;
 
 	// Spectral comb
 	~dirt.addModule('spectral-comb', { |dirtEvent|
@@ -238,7 +238,7 @@ DEFAULT EFFECTS EXTRA
 		chain = signal.asArray.collect { |x| FFT(LocalBuf(2048), x) };
 		signal = IFFT(PV_RectComb(chain, numTeeth: teeth * comb, width: 1-comb));
 		ReplaceOut.ar(out, signal)
-	}, [\ir, \ir]).add;
+	}, [\ir]).add;
 
 	// Spectral smear
 	~dirt.addModule('spectral-smear', { |dirtEvent|
@@ -256,7 +256,7 @@ DEFAULT EFFECTS EXTRA
 		chain = signal.asArray.collect { |x| FFT(LocalBuf(2048), x) };
 		signal = IFFT(PV_MagSmear(chain, bins: smear.linexp(0.0,1.0,1,64)));
 		ReplaceOut.ar(out, signal)
-	}, [\ir, \ir]).add;
+	}, [\ir]).add;
 
 	// Spectral scramble
 	~dirt.addModule('spectral-scram', { |dirtEvent|
@@ -275,7 +275,7 @@ DEFAULT EFFECTS EXTRA
 		chain = signal.asArray.collect { |x| FFT(LocalBuf(2048), x) };
 		signal = IFFT(PV_BinScramble(chain, wipe: scram, width: scram));
 		ReplaceOut.ar(out, signal)
-	}, [\ir, \ir]).add;
+	}, [\ir]).add;
 
 	// Spectral binshift
 	~dirt.addModule('spectral-binshift', { |dirtEvent|
@@ -295,7 +295,7 @@ DEFAULT EFFECTS EXTRA
 		signal = IFFT(PV_BinShift(chain, stretch: binshift.linlin(0.0,1.0,0.01,4.0),
 		shift: binshift * 10, interp: 1));
 		ReplaceOut.ar(out, signal)
-	}, [\ir, \ir]).add;
+	}, [\ir]).add;
 
 	// Spectral high pass filter
 	~dirt.addModule('spectral-hbrick', { |dirtEvent|
@@ -315,7 +315,7 @@ DEFAULT EFFECTS EXTRA
 		chain = signal.asArray.collect { |x| FFT(LocalBuf(2048), x) };
 		signal = IFFT(PV_BrickWall(chain, wipe: hbrick * 0.6)); // Signal almost disappears around 0.5 therefore it's scaled a bit
 		ReplaceOut.ar(out, signal)
-	}, [\ir, \ir]).add;
+	}, [\ir]).add;
 
 	// Spectral low pass filter
 	~dirt.addModule('spectral-lbrick', { |dirtEvent|
@@ -335,7 +335,7 @@ DEFAULT EFFECTS EXTRA
 		// lbrick parameter scaled to negative range to activate lopass filter (see ugen help file)
 		signal = IFFT(PV_BrickWall(chain, wipe: lbrick.linlin(0.0,1.0,0.0,(-1.0))));
 		ReplaceOut.ar(out, signal)
-	}, [\ir, \ir]).add;
+	}, [\ir]).add;
 
 	// Conformer
 	~dirt.addModule('spectral-conformer', { |dirtEvent|
@@ -357,7 +357,7 @@ DEFAULT EFFECTS EXTRA
 				PV_ConformalMap(chain, real.linlin(0.0,1.0,0.01,2.0), imag.linlin(0.00,1.0,0.01,10.0))
 			).tanh;
 		ReplaceOut.ar(out, signal)
-	}, [\ir, \ir, \ir]).add;
+	}, [\ir]).add;
 
 	// Enhance
 	~dirt.addModule('spectral-enhance', { |dirtEvent|
@@ -381,7 +381,7 @@ DEFAULT EFFECTS EXTRA
 				enhance.linlin(0.0,1.0,0.0,0.99))
 			).tanh; // .tanh is used as a crude limiter here beacause sometimes this ugen goes crazy
 		ReplaceOut.ar(out, signal)
-	}, [\ir, \ir]).add;
+	}, [\ir]).add;
 
 
 
@@ -412,5 +412,5 @@ DEFAULT EFFECTS EXTRA
 			hpfCutoffFreq
 		);
 		ReplaceOut.ar(out, signal)
-	}).add;
+}, [\ir]).add;
 )

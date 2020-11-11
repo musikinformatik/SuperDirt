@@ -1,5 +1,4 @@
-
-# SuperDirt 1.0-dev
+# SuperDirt
 
 SuperCollider implementation of the Dirt sampler, originally designed
 for the [TidalCycles](https://github.com/tidalcycles/tidal)

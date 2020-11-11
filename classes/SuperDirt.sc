@@ -227,6 +227,18 @@ SuperDirt {
 		};
 	}
 
+	// parameter names are prefixed by an &
+
+	handshakeReplyData {
+		var data = List.new;
+		data.add("&serverHostname");
+		data.add(server.addr.hostname);
+		data.add("&serverPort");
+		data.add(server.addr.port);
+		data.add("&controlBusIndices");
+		controlBusses.do { |x| data.add(x.index) };
+		^data
+	}
 
 	connect { |argSenderAddr, argPort|
 
@@ -244,6 +256,13 @@ SuperDirt {
 		port = argPort;
 
 		this.closeNetworkConnection;
+
+		netResponders.add(
+			OSCFunc({ |msg, time, tidalAddr|
+				replyAddr = tidalAddr; // collect tidal reply address
+				tidalAddr.sendMsg("/handshake_reply", *this.handshakeReplyData)
+			}, '/handshake', senderAddr, recvPort: port).fix
+		);
 
 		netResponders.add(
 			// pairs of parameter names and values in arbitrary order

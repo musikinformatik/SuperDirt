@@ -50,7 +50,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 			sound = DirtPan.ar(sound, numChannels, pan);
 
 			Out.ar(out, sound)
-		}, [\ir, \ir, \ir, \ir, \ir, \ir, \ir, \ir, \ir]).add;
+		}, [\ir, \ir, \ir, \ir, \ir, \ir, \ir, \ir, \kr]).add; // pan can be modulated
 	};
 
 	// the same for supporting long soundfiles.
@@ -95,7 +95,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 			sound = DirtPan.ar(sound, numChannels, pan);
 
 			Out.ar(out, sound)
-		}, [\ir, \ir, \ir, \ir, \ir, \ir, \ir, \ir, \ir]).add;
+		}, [\ir, \ir, \ir, \ir, \ir, \ir, \ir, \ir, \kr]).add; // pan can be modulated
 	};
 
 	/*
@@ -111,13 +111,13 @@ live coding them requires that you have your SuperDirt instance in an environmen
 	SynthDef("dirt_gate" ++ numChannels, { |out, in, sustain = 1, fadeInTime = 0.001, fadeTime = 0.001, amp = 1|
 		var signal = In.ar(in, numChannels);
 		 //  doneAction: 14: free surrounding group and all nodes
-		var env = EnvGen.ar(Env([0, 1, 1, 0], [fadeInTime, sustain, fadeTime], \sin), levelScale: amp, doneAction: 14);
-		signal = signal * env * DirtGateCutGroup.ar(fadeTime, doneAction: 14);
+		var env = EnvGen.ar(Env([0, 1, 1, 0], [fadeInTime, sustain, fadeTime], \sin), doneAction: 14);
+		signal = signal * env * amp * DirtGateCutGroup.ar(fadeTime, doneAction: 14);
 		// this takes the signal and offsets it so it matches precisely onto the sample
 		// as scheduled within one block (a synth is always started on the block bondary)
 		OffsetOut.ar(out, signal);
 		ReplaceOut.ar(in, Silent.ar(numChannels)) // clears bus signal for subsequent synths
-	}, [\ir, \ir, \ir, \ir, \ir, \ir]).add;
+	}, [\ir, \ir, \ir, \ir, \ir, \kr]).add; // amp can be modulated
 
 
 	/*
@@ -126,12 +126,12 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 	*/
 
-	SynthDef("dirt_out" ++ numChannels, { |out, to, sustain = 1, fadeInTime = 0.001, fadeTime = 0.001, amp = 1, through = 0|
+	SynthDef("dirt_out" ++ numChannels, { |out, to, sustain = 1, fadeInTime = 0.001, fadeTime = 0.001, through = 0, amp = 1|
 		var signal = In.ar(out, numChannels);
-		var env = EnvGen.ar(Env([0, 1, 1, 0], [fadeInTime, sustain, fadeTime], \sin), levelScale: amp);
-		Out.ar(to, signal * env);
+		var env = EnvGen.ar(Env([0, 1, 1, 0], [fadeInTime, sustain, fadeTime], \sin));
+		Out.ar(to, signal * env * amp);
 		ReplaceOut.ar(out, signal * through);
-	}, [\ir, \ir, \ir, \ir, \ir, \ir, \ir]).add;
+	}, [\ir, \ir, \ir, \ir, \ir, \ir, \kr]).add;  // amp can be modulated
 
 	/*
 
@@ -140,6 +140,8 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 	*/
 
+	// vowels are fix for now for each event
+	// TODO: send frequecies from tidal, allow their modulation here
 
 	SynthDef("dirt_vowel" ++ numChannels, { |out, resonance = 0.5, cutoff = 0|
 		var voweled, signal, vowelFreqs, vowelAmps, vowelRqs;
@@ -154,7 +156,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 		ReplaceOut.ar(out, signal);
 
-	}, [\ir, \ir, \ir]).add;
+	}, [\ir]).add;
 
 	// would be nice to have some more parameters in some cases
 
@@ -162,20 +164,20 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		var signal = In.ar(out, numChannels);
 		signal = signal.round(0.5 ** (crush-1));
 		ReplaceOut.ar(out, signal)
-	}, [\ir, \ir]).add;
+	}, [\ir, \kr]).add;
 
 
 	SynthDef("dirt_coarse" ++ numChannels, { |out, coarse = 0, bandq = 10|
 		var signal = In.ar(out, numChannels);
 		signal = Latch.ar(signal, Impulse.ar(SampleRate.ir / coarse));
 		ReplaceOut.ar(out, signal)
-	}, [\ir, \ir, \ir]).add;
+	}, [\ir, \kr, \kr]).add;
 
 	SynthDef("dirt_hpf" ++ numChannels, { |out, hcutoff = 440, hresonance = 0|
 		var signal = In.ar(out, numChannels);
 		signal = RHPF.ar(signal, hcutoff.abs.clip(20, SampleRate.ir / 2), hresonance.linexp(0, 1, 1, 0.001));
 		ReplaceOut.ar(out, signal)
-	}, [\ir, \ir, \ir]).add;
+	}, [\ir, \kr, \kr]).add;
 
 	SynthDef("dirt_bpf" ++ numChannels, { |out, bandqf = 440, bandq = 10|
 		var signal = In.ar(out, numChannels);
@@ -183,7 +185,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		bandqf = bandqf.clip(20, SampleRate.ir / 2); // limit extremes
 		signal = BPF.ar(signal, bandqf, 1/bandq) * max(bandq, 1.0);
 		ReplaceOut.ar(out, signal)
-	}, [\ir, \ir, \ir]).add;
+	}, [\ir, \kr, \kr]).add;
 
 	SynthDef("dirt_shape" ++ numChannels, { |out, shape = 0|
 		var signal = In.ar(out, numChannels), amp = 1;
@@ -193,13 +195,13 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 		signal = (1 + shape) * signal / (1 + (shape * abs(signal)));
 		ReplaceOut.ar(out, signal * amp)
-	}, [\ir, \ir]).add;
+	}, [\ir, \kr]).add;
 
 	SynthDef("dirt_lpf" ++ numChannels, { |out, cutoff = 440, resonance = 0|
 		var signal = In.ar(out, numChannels);
 		signal = RLPF.ar(signal, cutoff.abs.clip(20, SampleRate.ir / 2), resonance.linexp(0, 1, 1, 0.001));
 		ReplaceOut.ar(out, signal)
-	}, [\ir, \ir, \ir]).add;
+	}, [\ir, \kr, \kr]).add;
 
 	SynthDef("dirt_envelope" ++ numChannels, { |out, attack = 0, hold = 0, release = inf, curve = -3 |
 		var signal = In.ar(out, numChannels);
@@ -243,10 +245,11 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		signal = signal * tremolowave;
 
 		ReplaceOut.ar(out, signal);
-	}, [\ir, \ir, \ir]).add;
+	}, [\ir, \kr, \kr]).add;
 
 	// Phaser audio DSP effect definition. Params: phaserrate (Hz); phaserdepth (amplitude)
-	SynthDef("dirt_phaser" ++ numChannels, { |out, phaserrate = 1.0, phaserdepth = 0.5, sustain = 4 |
+	// TODO: fix "sustain" value (this parameter is always the synth event duration!)
+	SynthDef("dirt_phaser" ++ numChannels, { |out,  sustain = 4, phaserrate = 1.0, phaserdepth = 0.5 |
 		var signal, phaserwave;
 		var phase =  LFPar.kr(phaserrate).range(0.0088, 0.01);
 
@@ -259,7 +262,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		signal = signal + phaserwave;
 
 		ReplaceOut.ar(out, signal);
-	}, [\ir, \ir, \ir, \ir]).add;
+	}, [\ir, \ir, \kr, \kr]).add;
 
 }.value
 )
