@@ -10,6 +10,7 @@ DirtEvent {
 	play {
 		event.parent = orbit.defaultParentEvent;
 		event.use {
+			var immediate = ~latency.isNil;
 			// s and n stand for synth/sample and note/number
 			~s ?? { this.splitName };
 			// unless orbit wide diversion returns something, we proceed
@@ -21,7 +22,14 @@ DirtEvent {
 				this.finaliseParameters;
 				// unless event diversion returns something, we proceed
 				~play.(this) ?? {
-					if(~sustain >= orbit.minSustain) { this.playSynths }; // otherwise drop it.
+					if(~sustain >= orbit.minSustain) { // otherwise drop it.
+						if(immediate) {
+							SystemClock.sched(~latencyOffset, { this.playSynths; nil });
+						} {
+							~latency = ~latency + ~latencyOffset;
+							this.playSynths
+						}
+					};
 				}
 			}
 		}
@@ -121,7 +129,7 @@ DirtEvent {
 		~channel !? { ~pan = ~pan.value + (~channel.value / ~numChannels) };
 		~pan = ~pan * 2 - 1; // convert unipolar (0..1) range into bipolar one (-1...1)
 		~delayAmp = ~delay ? 0.0; // for clarity
-		~latency = ~latency + ~lag.value + (~offset.value * ~speed.value.abs);
+		~latencyOffset =  ~lag.value + (~offset.value * ~speed.value.abs);
 	}
 
 	getMsgFunc { |instrument|
@@ -167,7 +175,7 @@ DirtEvent {
 	}
 
 	playSynths {
-		var cutGroup;
+		var cutGroup, delta;
 		~cut = ~cut.value;
 		if(~cut != 0) {
 			cutGroup = orbit.getCutGroup(~cut);
