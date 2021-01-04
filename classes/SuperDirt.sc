@@ -240,8 +240,6 @@ SuperDirt {
 		^data
 	}
 
-
-
 	connect { |argSenderAddr, argPort|
 
 		var playFunc;
@@ -288,6 +286,7 @@ SuperDirt {
 
 
 		netResponders.add(
+
 			OSCFunc({ |msg, time, tidalAddr|
 				if(replyAddr.isNil) {
 					replyAddr = tidalAddr; // collect tidal reply address
