@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 Usage:
 
-error = DirtPartTimeError(3, "this messagse was ill-intended");
+error = DirtPartTimeError(3, "this message was ill-intended");
 
 // in your code, later:
 
