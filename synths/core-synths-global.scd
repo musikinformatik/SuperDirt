@@ -36,7 +36,7 @@ CORE SYNTHDEFS FOR DIRT
 			[
 				signal,
 				Limiter.ar(signal),
-				tanh(signal)
+				softclip(signal * 0.5) * 2
 			]
 		);
 
