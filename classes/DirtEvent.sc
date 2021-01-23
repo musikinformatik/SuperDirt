@@ -117,7 +117,6 @@ DirtEvent {
 	}
 
 	finaliseParameters {
-		~amp = pow(~gain.value.min(2) + ~overgain.value, 4) * ~amp.value;
 		~channel !? { ~pan = ~pan.value + (~channel.value / ~numChannels) };
 		~pan = ~pan * 2 - 1; // convert unipolar (0..1) range into bipolar one (-1...1)
 		~delayAmp = ~delay ? 0.0; // for clarity
