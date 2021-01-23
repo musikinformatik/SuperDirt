@@ -23,7 +23,7 @@ CORE SYNTHDEFS FOR DIRT
 
 	*/
 
-	SynthDef("dirt_monitor" ++ numChannels, { |dryBus, effectBus, outBus, gate = 1|
+	SynthDef("dirt_monitor" ++ numChannels, { |dryBus, effectBus, outBus, gate = 1, limitertype = 1|
 		var drySignal = In.ar(dryBus, numChannels);
 		var wetSignal = In.ar(effectBus, numChannels);
 		//var signal = XFade2.ar(wetSignal, drySignal, dry * 2 - 1);
@@ -32,12 +32,13 @@ CORE SYNTHDEFS FOR DIRT
 
 		signal = Select.ar(CheckBadValues.ar(signal, post: post) > 0, [signal, DC.ar(0)]);
 
-		signal = Limiter.ar(signal);
-
-		// or if you like it harsher
-		//signal = tanh(signal);
-		// or:
-		//signal = distort(signal);
+		signal = Select.ar(limitertype,
+			[
+				signal,
+				Limiter.ar(signal),
+				softclip(signal * 0.5) * 2
+			]
+		);
 
 		DirtPause.ar(signal, graceTime:4);
 
