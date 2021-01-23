@@ -44,7 +44,7 @@ CORE SYNTHDEFS FOR DIRT
 
 		signal = signal * EnvGen.kr(Env.asr, gate, doneAction:2);
 		Out.ar(outBus, signal)
-	}, [\ir, \ir, \kr, \kr]).add;
+	}, [\ir, \ir, \kr, \kr, \kr]).add;
 
 
 	// RMS measurement, sending back to editor
