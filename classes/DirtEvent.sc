@@ -47,18 +47,13 @@ DirtEvent {
 
 	orderTimeSpan {
 		var temp;
-		if(~end >= ~begin) {
-			if(~speed < 0) { temp = ~end; ~end = ~begin; ~begin = temp };
-		} {
-			// backwards
-			~speed = ~speed.neg;
-		};
+		if(~speed < 0) { temp = ~end; ~end = ~begin; ~begin = temp };
 		~length = absdif(~end, ~begin);
 	}
 
 	calcTimeSpan {
 
-		var sustain, unitDuration;
+		var sustain, unitDuration, delta;
 		var speed = ~speed.value;
 		var loop = ~loop.value;
 		var accelerate = ~accelerate.value;
@@ -98,18 +93,20 @@ DirtEvent {
 			)
 		};
 
-		sustain = ~sustain.value ?? {
+		sustain = ~sustain.value;
+		sustain = sustain ?? {
+			delta = ~delta.value;
 			if(~legato.notNil) {
-				~delta * ~legato.value
+				delta * ~legato.value
 			} {
-				unitDuration = unitDuration ? ~delta;
+				unitDuration = unitDuration ? delta;
 				loop !? { unitDuration = unitDuration * loop.abs };
 			}
 		};
 
 		// end samples if sustain exceeds buffer duration
 		// for every buffer, unitDuration is (and should be) defined.
-		~buffer !? { sustain = min(unitDuration, sustain) };
+		if(useUnit) { sustain = min(unitDuration, sustain) };
 
 		~fadeTime = min(~fadeTime.value, sustain * 0.19098);
 		~fadeInTime = if(~begin != 0) { ~fadeTime } { 0.0 };
@@ -120,11 +117,10 @@ DirtEvent {
 	}
 
 	finaliseParameters {
-		~amp = pow(~gain.value.min(2) + ~overgain.value, 4) * ~amp.value;
 		~channel !? { ~pan = ~pan.value + (~channel.value / ~numChannels) };
 		~pan = ~pan * 2 - 1; // convert unipolar (0..1) range into bipolar one (-1...1)
 		~delayAmp = ~delay ? 0.0; // for clarity
-		~latency = ~latency + ~lag.value + (~offset.value * ~speed.value);
+		~latency = ~latency + ~lag.value + (~offset.value * ~speed.value.abs);
 	}
 
 	getMsgFunc { |instrument|

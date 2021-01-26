@@ -32,11 +32,12 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 			// sample phase
 			// BufSampleRate adjusts the rate if the sound file doesn't have the same rate as the soundcard
-			//phase =  Sweep.ar(1, rate * BufSampleRate.ir(bufnum)) + (BufFrames.ir(bufnum) * begin);
 
 			numFrames = BufFrames.ir(bufnum);
 			sawrate = rate * BufSampleRate.ir(bufnum) / (absdif(begin, end) * numFrames);
-			phase = (speed.sign * LFSaw.ar(sawrate, 1)).range(begin,end) * numFrames;
+			phase = (speed.sign * LFSaw.ar(sawrate, 1)).range(begin, end) * numFrames;
+
+			//phase =  Sweep.ar(1, rate * BufSampleRate.ir(bufnum)) + (BufFrames.ir(bufnum) * begin);
 
 			sound = BufRd.ar(
 				numChannels: sampleNumChannels,
@@ -49,7 +50,52 @@ live coding them requires that you have your SuperDirt instance in an environmen
 			sound = DirtPan.ar(sound, numChannels, pan);
 
 			Out.ar(out, sound)
-		}, [\ir, \ir, \ir, \ir, \ir, \ir, \ir, \ir]).add;
+		}, [\ir, \ir, \ir, \ir, \ir, \ir, \ir, \ir, \kr]).add; // pan can be modulated
+	};
+
+	// the same for supporting long soundfiles.
+	// Direct file indexing is limited by 32bit float phase argument of BufRd
+	// but BufRd has cubic interpolation and is more hackable
+	// see DirtSoundLibrary > instrumentForBuffer
+
+	(1..SuperDirt.maxSampleNumChannels).do { |sampleNumChannels|
+
+		var name = format("dirt_sample_long_%_%", sampleNumChannels, numChannels);
+
+		SynthDef(name, { |out, bufnum, sustain = 1, begin = 0, end = 1, speed = 1, endSpeed = 1, freq = 440, pan = 0|
+
+			var sound, rate,  numFrames, env, startPos, bufFrames;
+
+			// playback speed
+			rate = Line.kr(speed, endSpeed, sustain) * (freq / 60.midicps);
+
+			// sample phase
+			// BufSampleRate adjusts the rate if the sound file doesn't have the same rate as the soundcard
+			//phase =  Sweep.ar(1, rate * BufSampleRate.ir(bufnum)) + (BufFrames.ir(bufnum) * begin);
+
+			rate = rate * BufRateScale.ir(bufnum);
+
+			bufFrames = BufFrames.ir(bufnum);
+
+			// when we play backward from zero, we have to start from the end
+			startPos = if((rate < 0) * (begin <= 0), bufFrames, bufFrames * begin);
+
+			sound = PlayBuf.ar(
+				numChannels: sampleNumChannels,
+				bufnum: bufnum,
+				rate: rate,
+				startPos: startPos,
+				loop: 0
+			);
+
+			env = EnvGen.kr(Env.linen(0, sustain, 0)); // todo: check if control rate smoothens (shouldn't)
+
+			sound = sound * env;
+
+			sound = DirtPan.ar(sound, numChannels, pan);
+
+			Out.ar(out, sound)
+		}, [\ir, \ir, \ir, \ir, \ir, \ir, \ir, \ir, \kr]).add; // pan can be modulated
 	};
 
 	/*
@@ -62,14 +108,17 @@ live coding them requires that you have your SuperDirt instance in an environmen
 	// the monitor does the mixing and zeroing of the busses for each sample grain
 	// so that they can all play in one bus
 
-	SynthDef("dirt_gate" ++ numChannels, { |out, in, sustain = 1, fadeInTime = 0.001, fadeTime = 0.001, amp = 1|
+	SynthDef("dirt_gate" ++ numChannels, { |out, in, sustain = 1, fadeInTime = 0.001, fadeTime = 0.001, amp = 1, gain = 1, overgain = 0|
 		var signal = In.ar(in, numChannels);
 		 //  doneAction: 14: free surrounding group and all nodes
-		var env = EnvGen.ar(Env([0, 1, 1, 0], [fadeInTime, sustain, fadeTime], \sin), levelScale: amp, doneAction: 14);
-		signal = signal * env * DirtGateCutGroup.ar(fadeTime, doneAction: 14);
+		var env = EnvGen.ar(Env([0, 1, 1, 0], [fadeInTime, sustain, fadeTime], \sin), doneAction: 14);
+		amp = amp * pow(gain.min(2) + overgain, 4);
+		signal = signal * env * amp * DirtGateCutGroup.ar(fadeTime, doneAction: 14);
+		// this takes the signal and offsets it so it matches precisely onto the sample
+		// as scheduled within one block (a synth is always started on the block bondary)
 		OffsetOut.ar(out, signal);
 		ReplaceOut.ar(in, Silent.ar(numChannels)) // clears bus signal for subsequent synths
-	}, [\ir, \ir, \ir, \ir, \ir, \ir]).add;
+	}, [\ir, \ir, \ir, \ir, \ir, \kr, \ir, \ir]).add; // amp can be modulated, gain and overgain can't
 
 
 	/*
@@ -78,11 +127,12 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 	*/
 
-	SynthDef("dirt_out" ++ numChannels, { |out, to, sustain = 1, fadeInTime = 0.001, fadeTime = 0.001, amp = 1|
+	SynthDef("dirt_out" ++ numChannels, { |out, to, sustain = 1, fadeInTime = 0.001, fadeTime = 0.001, through = 0, amp = 1|
 		var signal = In.ar(out, numChannels);
-		var env = EnvGen.ar(Env([0, 1, 1, 0], [fadeInTime, sustain, fadeTime], \sin), levelScale: amp);
-		Out.ar(to, signal * env);
-	}, [\ir, \ir]).add;
+		var env = EnvGen.ar(Env([0, 1, 1, 0], [fadeInTime, sustain, fadeTime], \sin));
+		Out.ar(to, signal * env * amp);
+		ReplaceOut.ar(out, signal * through);
+	}, [\ir, \ir, \ir, \ir, \ir, \ir, \kr]).add;  // amp can be modulated
 
 	/*
 
@@ -91,6 +141,8 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 	*/
 
+	// vowels are fix for now for each event
+	// TODO: send frequecies from tidal, allow their modulation here
 
 	SynthDef("dirt_vowel" ++ numChannels, { |out, resonance = 0.5, cutoff = 0|
 		var voweled, signal, vowelFreqs, vowelAmps, vowelRqs;
@@ -105,7 +157,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 		ReplaceOut.ar(out, signal);
 
-	}, [\ir, \ir, \ir]).add;
+	}, [\ir]).add;
 
 	// would be nice to have some more parameters in some cases
 
@@ -113,20 +165,20 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		var signal = In.ar(out, numChannels);
 		signal = signal.round(0.5 ** (crush-1));
 		ReplaceOut.ar(out, signal)
-	}, [\ir, \ir]).add;
+	}, [\ir, \kr]).add;
 
 
 	SynthDef("dirt_coarse" ++ numChannels, { |out, coarse = 0, bandq = 10|
 		var signal = In.ar(out, numChannels);
 		signal = Latch.ar(signal, Impulse.ar(SampleRate.ir / coarse));
 		ReplaceOut.ar(out, signal)
-	}, [\ir, \ir, \ir]).add;
+	}, [\ir, \kr, \kr]).add;
 
 	SynthDef("dirt_hpf" ++ numChannels, { |out, hcutoff = 440, hresonance = 0|
 		var signal = In.ar(out, numChannels);
 		signal = RHPF.ar(signal, hcutoff.abs.clip(20, SampleRate.ir / 2), hresonance.linexp(0, 1, 1, 0.001));
 		ReplaceOut.ar(out, signal)
-	}, [\ir, \ir, \ir]).add;
+	}, [\ir, \kr, \kr]).add;
 
 	SynthDef("dirt_bpf" ++ numChannels, { |out, bandqf = 440, bandq = 10|
 		var signal = In.ar(out, numChannels);
@@ -134,7 +186,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		bandqf = bandqf.clip(20, SampleRate.ir / 2); // limit extremes
 		signal = BPF.ar(signal, bandqf, 1/bandq) * max(bandq, 1.0);
 		ReplaceOut.ar(out, signal)
-	}, [\ir, \ir, \ir]).add;
+	}, [\ir, \kr, \kr]).add;
 
 	SynthDef("dirt_shape" ++ numChannels, { |out, shape = 0|
 		var signal = In.ar(out, numChannels), amp = 1;
@@ -144,25 +196,43 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 		signal = (1 + shape) * signal / (1 + (shape * abs(signal)));
 		ReplaceOut.ar(out, signal * amp)
-	}, [\ir, \ir]).add;
+	}, [\ir, \kr]).add;
 
 	SynthDef("dirt_lpf" ++ numChannels, { |out, cutoff = 440, resonance = 0|
 		var signal = In.ar(out, numChannels);
 		signal = RLPF.ar(signal, cutoff.abs.clip(20, SampleRate.ir / 2), resonance.linexp(0, 1, 1, 0.001));
 		ReplaceOut.ar(out, signal)
-	}, [\ir, \ir, \ir]).add;
+	}, [\ir, \kr, \kr]).add;
 
-	SynthDef("dirt_envelope" ++ numChannels, { |out, attack = 0, hold = 0, release = inf |
+	SynthDef("dirt_envelope" ++ numChannels, { |out, attack = 0, hold = 0, release = inf, curve = -3 |
 		var signal = In.ar(out, numChannels);
-		signal = signal * EnvGen.ar(Env.linen(attack, hold, release, 1, -3));
+		signal = signal * EnvGen.ar(Env.linen(attack, hold, release, 1, curve: curve));
 		ReplaceOut.ar(out, signal);
-	}, [\ir, \ir, \ir, \ir]).add;
+	}, [\ir, \ir, \ir, \ir, \ir]).add;
 
-	SynthDef("dirt_pitch_shift" ++ numChannels, { |out, psratio = 1, sustain = 1|
+
+	SynthDef("dirt_grain_envelope" ++ numChannels, { |out, sustain = 1, tilt = 0.5, plat = 0, curve = -3 |
+		var signal = In.ar(out, numChannels);
+		var p = plat.clip(0, 1);
+		var c = tilt.clip(0, 1);
+
+		var riseAndFall = 1 - p;
+		var attack = c * riseAndFall;
+		var release = (1 - c) * riseAndFall;
+		var hold = p;
+
+		// maybe sine shape is better?
+		var env = EnvGen.ar(Env.linen(attack, hold, release, 1, curve), timeScale: sustain);
+
+		signal = signal * env;
+
+		ReplaceOut.ar(out, signal);
+	}, [\ir, \ir, \ir, \ir, \ir]).add;
+
+	SynthDef("dirt_pitch_shift" ++ numChannels, { |out, psrate = 1, sustain = 1, psdisp = 0|
 		var signal = In.ar(out, numChannels);
 		var windowSize = sustain.linlin(0.01, 0.3, 0.01, 0.18);
-		windowSize.poll(0, "windowSize");
-		signal = PitchShift.ar(signal, windowSize:windowSize, pitchRatio:psratio, pitchDispersion:0, timeDispersion:0);
+		signal = PitchShift.ar(signal, windowSize:windowSize, pitchRatio:psrate, pitchDispersion:0, timeDispersion:psdisp);
 		ReplaceOut.ar(out, signal)
 	}, [\ir, \ir, \ir]).add;
 
@@ -176,10 +246,11 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		signal = signal * tremolowave;
 
 		ReplaceOut.ar(out, signal);
-	}, [\ir, \ir, \ir]).add;
+	}, [\ir, \kr, \kr]).add;
 
 	// Phaser audio DSP effect definition. Params: phaserrate (Hz); phaserdepth (amplitude)
-	SynthDef("dirt_phaser" ++ numChannels, { |out, phaserrate = 1.0, phaserdepth = 0.5, sustain = 4 |
+	// TODO: fix "sustain" value (this parameter is always the synth event duration!)
+	SynthDef("dirt_phaser" ++ numChannels, { |out,  sustain = 4, phaserrate = 1.0, phaserdepth = 0.5 |
 		var signal, phaserwave;
 		var phase =  LFPar.kr(phaserrate).range(0.0088, 0.01);
 
@@ -192,7 +263,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		signal = signal + phaserwave;
 
 		ReplaceOut.ar(out, signal);
-	}, [\ir, \ir, \ir]).add;
+	}, [\ir, \ir, \kr, \kr]).add;
 
 }.value
 )
