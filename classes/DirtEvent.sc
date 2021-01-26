@@ -152,6 +152,8 @@ DirtEvent {
 				in: orbit.synthBus.index, // read from synth bus, which is reused
 				out: orbit.dryBus.index, // write to orbital dry bus
 				amp: ~amp,
+				gain: ~gain,
+				overgain: ~overgain,
 				sample: ~hash, // required for the cutgroup mechanism
 				sustain: ~sustain, // after sustain, free all synths and group
 				fadeInTime: ~fadeInTime, // fade in
