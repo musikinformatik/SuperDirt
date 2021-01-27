@@ -18,6 +18,7 @@ DirtEventTypes {
 				Error("dirt event: no dirt instance found.\n\n// You could try:\nSuperDirt.default = ~dirt;").throw;
 			};
 			~delta = ~delta ?? { ~stretch.value * ~dur.value };
+			~amp = ~amp.value;
 			~latency = ~latency ?? { dirt.server.latency };
 			if(~n.isArray) {
 				keys = currentEnvironment.keys.asArray;
