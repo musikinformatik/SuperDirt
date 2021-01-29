@@ -117,7 +117,6 @@ DirtEvent {
 	}
 
 	finaliseParameters {
-		~amp = pow(~gain.value.min(2) + ~overgain.value, 4) * ~amp.value;
 		~channel !? { ~pan = ~pan.value + (~channel.value / ~numChannels) };
 		~pan = ~pan * 2 - 1; // convert unipolar (0..1) range into bipolar one (-1...1)
 		~delayAmp = ~delay ? 0.0; // for clarity
@@ -153,6 +152,8 @@ DirtEvent {
 				in: orbit.synthBus.index, // read from synth bus, which is reused
 				out: orbit.dryBus.index, // write to orbital dry bus
 				amp: ~amp,
+				gain: ~gain,
+				overgain: ~overgain,
 				sample: ~hash, // required for the cutgroup mechanism
 				sustain: ~sustain, // after sustain, free all synths and group
 				fadeInTime: ~fadeInTime, // fade in
