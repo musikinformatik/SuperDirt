@@ -98,6 +98,53 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		}, [\ir, \ir, \ir, \ir, \ir, \ir, \ir, \ir, \kr]).add; // pan can be modulated
 	};
 
+	// this is the time-stretching sample player, based on an overlap-add method
+	// TODO: long sample version
+	(1..SuperDirt.maxSampleNumChannels).do { |sampleNumChannels|
+
+		var name = format("dirt_stretchsample_%_%", sampleNumChannels, numChannels);
+
+		SynthDef(name, { |out, bufnum, sustain = 1, begin = 0, end = 1, speed = 1, endSpeed = 1, freq = 440, pan = 0, timescale = 1|
+
+			var sound, rate, phase, sawrate, numFrames, index, windowIndex, window, timescaleStep, windowSize;
+
+			// playback speed
+			rate = Line.kr(speed, endSpeed, sustain) * (freq / 60.midicps);
+
+			// sample phase
+			// BufSampleRate adjusts the rate if the sound file doesn't have the same rate as the soundcard
+			//phase =  Sweep.ar(1, rate * BufSampleRate.ir(bufnum)) + (BufFrames.ir(bufnum) * begin);
+
+			numFrames = BufFrames.ir(bufnum);
+			// try windows that are 1/29th the width of the result, but not too small or large or it sounds weird
+			windowSize = numFrames * timescale / 29.0;
+			windowSize = windowSize.clip(1000*timescale, BufSampleRate.ir(bufnum)/10);
+			timescaleStep = windowSize / timescale;
+			sawrate = rate * BufSampleRate.ir(bufnum) / (absdif(begin, end) * timescale * numFrames);
+			phase = (speed.sign * LFSaw.ar(sawrate, 1)).range(begin,end) * numFrames * timescale;
+			// do the overlap-add by running through a pair of indices, shifting weights with the window function
+			index = (phase.div(timescaleStep) - [1.0, 0.0]) * (timescaleStep / timescale - timescaleStep) + phase;
+			windowIndex = phase - (phase.div(timescaleStep) - [1.0, 0.0] * timescaleStep);
+			// Gaussian window, the "50" means it's about 3.5 sigma to the edge of the window
+			window = exp(-50 * squared(windowIndex/windowSize - 0.5));
+
+			sound = window * BufRd.ar(
+				numChannels: sampleNumChannels,
+				bufnum: bufnum,
+				phase: index,
+				loop: 0,
+				interpolation: 4 // cubic interpolation
+			).flop;
+			sound = sound / window.sum;
+
+			sound = DirtPan.ar(sound, numChannels, pan);
+
+			Out.ar(out, sound)
+		}, [\ir, \ir, \ir, \ir, \ir, \ir, \ir, \ir, \ir, \ir]).add;
+	};
+
+
+
 	/*
 
 	Bus Routing Monitor

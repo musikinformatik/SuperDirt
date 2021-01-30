@@ -38,17 +38,32 @@ this may be refacored later.
 		if(~diversion.value.isNil) {
 			if(~buffer.notNil) {
 				// argumets could be omitted using getMsgFunc, but for making it easier to understand, we write them out
-				dirtEvent.sendSynth(~instrument,  [
-					bufnum: ~buffer,
-					sustain: ~sustain,
-					speed: ~speed,
-					freq: ~freq,
-					endSpeed: ~endSpeed,
-					begin: ~begin,
-					end: ~end,
-					pan: ~pan,
-					out: ~out
-				])
+				if(~timescale.notNil) {
+					dirtEvent.sendSynth(~stretchInstrument,  [
+						bufnum: ~buffer,
+						sustain: ~sustain,
+						speed: ~speed,
+						freq: ~freq,
+						endSpeed: ~endSpeed,
+						begin: ~begin,
+						end: ~end,
+						pan: ~pan,
+						timescale: ~timescale,
+						out: ~out
+					])
+				} {
+					dirtEvent.sendSynth(~instrument,  [
+						bufnum: ~buffer,
+						sustain: ~sustain,
+						speed: ~speed,
+						freq: ~freq,
+						endSpeed: ~endSpeed,
+						begin: ~begin,
+						end: ~end,
+						pan: ~pan,
+						out: ~out
+					])
+				}
 			} {
 				if(~instrument.isNil) {
 					"module 'sound': instrument not found: %".format(~s).postln
