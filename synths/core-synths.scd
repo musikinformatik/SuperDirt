@@ -105,7 +105,8 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 		SynthDef(name, { |out, bufnum, sustain = 1, begin = 0, end = 1, speed = 1, endSpeed = 1, freq = 440, pan = 0, timescale = 1|
 
-			var sound, rate, phase, sawrate, numFrames, index, windowIndex, window, timescaleStep, windowSize;
+			var sound, rate, phase, sawrate, numFrames, index, windowIndex, window, timescaleStep;
+			var sound0, sound1, windowSize;
 
 			// playback speed
 			rate = Line.kr(speed, endSpeed, sustain) * (freq / 60.midicps);
@@ -127,14 +128,21 @@ live coding them requires that you have your SuperDirt instance in an environmen
 			// Gaussian window, the "50" means it's about 3.5 sigma to the edge of the window
 			window = exp(-50 * squared(windowIndex/windowSize - 0.5));
 
-			sound = window * BufRd.ar(
+			sound0 = window[0] * BufRd.ar(
 				numChannels: sampleNumChannels,
 				bufnum: bufnum,
-				phase: index,
+				phase: index[0],
 				loop: 0,
 				interpolation: 4 // cubic interpolation
-			).flop;
-			sound = sound / window.sum;
+			);
+			sound1 = window[1] * BufRd.ar(
+				numChannels: sampleNumChannels,
+				bufnum: bufnum,
+				phase: index[1],
+				loop: 0,
+				interpolation: 4 // cubic interpolation
+			);
+			sound = (sound0 + sound1) / window.sum;
 
 			sound = DirtPan.ar(sound, numChannels, pan);
 
