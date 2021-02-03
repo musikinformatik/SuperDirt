@@ -99,7 +99,6 @@ live coding them requires that you have your SuperDirt instance in an environmen
 	};
 
 	// this is the time-stretching sample player, based on an overlap-add method
-	// TODO: long sample version
 	(1..SuperDirt.maxSampleNumChannels).do { |sampleNumChannels|
 
 		var name = format("dirt_stretchsample_%_%", sampleNumChannels, numChannels);

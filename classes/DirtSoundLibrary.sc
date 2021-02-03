@@ -264,7 +264,6 @@ DirtSoundLibrary {
 	}
 
 	stretchInstrumentForBuffer { |buffer|
-		// may need to add support for long samples?
 		^format("dirt_stretchsample_%_%", buffer.numChannels, this.numChannels).asSymbol
 	}
 
