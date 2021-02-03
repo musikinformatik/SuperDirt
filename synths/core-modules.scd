@@ -38,7 +38,8 @@ this may be refacored later.
 		if(~diversion.value.isNil) {
 			if(~buffer.notNil) {
 				// arguments could be omitted using getMsgFunc, but for making it easier to understand, we write them out
-				args = [
+				var instrument;
+				var args = [
 					bufnum: ~buffer,
 					sustain: ~sustain,
 					speed: ~speed,
@@ -48,7 +49,7 @@ this may be refacored later.
 					end: ~end,
 					pan: ~pan,
 					out: ~out
-				]
+				];
 
 				if(~timescale.notNil) {
 					instrument = ~stretchInstrument;
