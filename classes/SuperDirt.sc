@@ -284,14 +284,10 @@ SuperDirt {
 			}
 		};
 
-
 		netResponders.add(
-
 			OSCFunc({ |msg, time, tidalAddr|
-				if(replyAddr.isNil) {
-					replyAddr = tidalAddr; // collect tidal reply address
-					replyAddr.sendMsg("/dirt/hello/reply");
-				};
+				replyAddr = tidalAddr; // collect tidal reply address
+				replyAddr.sendMsg("/dirt/hello/reply");
 			}, "/dirt/hello", senderAddr, recvPort: port).fix
 		);
 
