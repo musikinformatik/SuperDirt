@@ -290,9 +290,8 @@ SuperDirt {
 				var synth = SynthDescLib.global.at(name);
 				var controls = synth.controls;
 				var controlNames = msg[1];
-				controls.do{arg control; controlNames = controlNames ++ " " ++ control.name};
+				controls.do{|control| controlNames = controlNames ++ " " ++ control.name};
 				tidalAddr.sendMsg("/dirt/synth-info/reply", controlNames);
-				controlNames.postln;
 			}, "/dirt/synth-info", senderAddr, recvPort: port).fix
 		);
 
