@@ -103,7 +103,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 		var name = format("dirt_stretchsample_%_%", sampleNumChannels, numChannels);
 
-		SynthDef(name, { |out, bufnum, sustain = 1, begin = 0, end = 1, speed = 1, endSpeed = 1, freq = 440, pan = 0, timescale = 1|
+		SynthDef(name, { |out, bufnum, sustain = 1, begin = 0, end = 1, speed = 1, endSpeed = 1, freq = 440, pan = 0, timescale = 1, timescalewin = 1|
 
 			var sound, rate, phase, sawrate, numFrames, index, windowIndex, window, timescaleStep;
 			var sound0, sound1, windowSize;
@@ -116,9 +116,11 @@ live coding them requires that you have your SuperDirt instance in an environmen
 			//phase =  Sweep.ar(1, rate * BufSampleRate.ir(bufnum)) + (BufFrames.ir(bufnum) * begin);
 
 			numFrames = BufFrames.ir(bufnum);
-			// try windows that are 1/29th the width of the result, but not too small or large or it sounds weird
-			windowSize = numFrames * timescale / 29.0;
-			windowSize = windowSize.clip(1000*timescale, BufSampleRate.ir(bufnum)/10);
+			// Picking the right window size is a tricky thing, something around 2000 samples is usually
+			// OK for sounds of moderate length (around 0.5 to several seconds long).
+			// But this is also scaled below to be a bit smaller/larger based on desired playback rate.
+			// If it's still not good, you can use the "timescalewin" parameter to multiply the window size
+			windowSize = timescale.clip(0.1,2) * 0.05 * BufSampleRate.ir(bufnum) * timescalewin;
 			timescaleStep = windowSize / timescale;
 			sawrate = rate * BufSampleRate.ir(bufnum) / (absdif(begin, end) * timescale * numFrames);
 			phase = (speed.sign * LFSaw.ar(sawrate, 1)).range(begin,end) * numFrames * timescale;
@@ -147,7 +149,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 			sound = DirtPan.ar(sound, numChannels, pan);
 
 			Out.ar(out, sound)
-		}, [\ir, \ir, \ir, \ir, \ir, \ir, \ir, \ir, \ir, \ir]).add;
+		}, [\ir, \ir, \ir, \ir, \ir, \ir, \ir, \ir, \kr, \ir, \ir]).add;
 	};
 
 
