@@ -53,7 +53,7 @@ this may be refacored later.
 
 				if(~timescale.notNil) {
 					instrument = ~stretchInstrument;
-					args = args.add(\timescale).add(~timescale).add(\timescalewin).add(~timescalewin ? 1);
+					args = args ++ [\timescale, ~timescale, \timescalewin, ~timescalewin ? 1];
 				} {
 					instrument = ~instrument;
 				};

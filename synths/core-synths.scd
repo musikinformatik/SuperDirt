@@ -106,7 +106,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		SynthDef(name, { |out, bufnum, sustain = 1, begin = 0, end = 1, speed = 1, endSpeed = 1, freq = 440, pan = 0, timescale = 1, timescalewin = 1|
 
 			var sound, rate, phase, sawrate, numFrames, index, windowIndex, window, timescaleStep;
-			var sound0, sound1, windowSize;
+			var sound0, sound1, windowSize, nSteps;
 
 			// playback speed
 			rate = Line.kr(speed, endSpeed, sustain) * (freq / 60.midicps);
@@ -125,8 +125,9 @@ live coding them requires that you have your SuperDirt instance in an environmen
 			sawrate = rate * BufSampleRate.ir(bufnum) / (absdif(begin, end) * timescale * numFrames);
 			phase = (speed.sign * LFSaw.ar(sawrate, 1)).range(begin,end) * numFrames * timescale;
 			// do the overlap-add by running through a pair of indices, shifting weights with the window function
-			index = (phase.div(timescaleStep) - [1.0, 0.0]) * (timescaleStep / timescale - timescaleStep) + phase;
-			windowIndex = phase - (phase.div(timescaleStep) - [1.0, 0.0] * timescaleStep);
+			nSteps = phase.div(timescaleStep) - [1.0, 0.0];
+			index = nSteps * (timescaleStep / timescale - timescaleStep) + phase;
+			windowIndex = phase - (nSteps * timescaleStep);
 			// Gaussian window, the "50" means it's about 3.5 sigma to the edge of the window
 			window = exp(-50 * squared(windowIndex/windowSize - 0.5));
 
