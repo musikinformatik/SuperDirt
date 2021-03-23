@@ -112,7 +112,9 @@ DirtEventTypes {
 						note = ~midinote;
 						schedmidi.value({ midiout.polyTouch(chan, note, val) })
 					} {
-						~amp = ~amp.value;
+						// match dirt_gate SynthDef amplitude scaling
+						~amp =  ~amp.value * pow(~gain.min(2) + ~overgain, 4);
+
 						sustain = ~sustain = ~sustain.value;
 						if(~uid.notNil and: { midiout.notNil }) {
 							~uid = midiout.uid    // mainly for sysex cmd
