@@ -14,6 +14,7 @@ DirtSoundLibrary {
 	var <>fileExtensions = #["wav", "aif", "aiff", "aifc"];
 	var <>verbose = false;
 	var <>defaultEvent;
+	var <>doNotReadYet = false;
 
 	*new { |server, numChannels|
 		^super.newCopyArgs(server, numChannels).init
@@ -142,7 +143,9 @@ DirtSoundLibrary {
 		names.do { |name|
 			this.loadSoundFileFolder(path +/+ name, name, appendToExisting)
 		};
-		"\n... file reading complete\n\n".post;
+		if(doNotReadYet.not) {
+			"\n... file reading complete\n\n".post
+		};
 	}
 
 	loadSoundFiles { |paths, appendToExisting = false, namingFunction = (_.basename)| // paths are folderPaths
@@ -155,20 +158,22 @@ DirtSoundLibrary {
 			"no folders found in paths: '%'".format(paths).warn; ^this
 		};
 		memory = this.memoryFootprint;
-		"\nloading % sample bank%:\n".postf(folderPaths.size, if(folderPaths.size > 1) { "s" } { "" });
+		"\n\n% existing sample bank%:\n".postf(folderPaths.size, if(folderPaths.size > 1) { "s" } { "" });
 		folderPaths.do { |folderPath|
 			this.loadSoundFileFolder(folderPath, namingFunction.(folderPath), appendToExisting)
 		};
-		"\n... file reading complete. Required % MB of memory.\n\n".format(
-			this.memoryFootprint - memory div: 1e6
-		).post;
+		if(doNotReadYet.not) {
+			"\n... file reading complete. Required % MB of memory.\n\n".format(
+				this.memoryFootprint - memory div: 1e6
+			).post
+		};
 	}
 
 	loadSoundFileFolder { |folderPath, name, appendToExisting = false|
 		var files;
 
 		if(File.exists(folderPath).not) {
-			"\ncouldn't load '%' files, path doesn't exist: %.".format(name, folderPath).postln;
+			"\ncouldn't read '%' files, path doesn't exist: %.".format(name, folderPath).postln;
 			^this
 		};
 
@@ -185,17 +190,17 @@ DirtSoundLibrary {
 	}
 
 	loadSoundFilePaths { |filePaths, name, appendToExisting = false|
-		var buf;
 
 		filePaths.do { |filepath|
-			try {
-				buf = this.readSoundFile(filepath);
+			try { |erreur|
+				var buf = this.readSoundFile(filepath);
 				if(buf.notNil) {
 					this.addBuffer(name, buf, appendToExisting);
 					appendToExisting = true; // append all others
-				}
+				};
+				if(erreur.isException) { erreur.reportError };
 			}
-		};
+		}
 
 	}
 
@@ -210,7 +215,7 @@ DirtSoundLibrary {
 			if(verbose) { "\nignored file: %\n".postf(path) };
 			^nil
 		}
-		^Buffer.readWithInfo(server, path)
+		^Buffer.readWithInfo(server, path, onlyHeader: doNotReadYet)
 	}
 
 
@@ -226,9 +231,12 @@ DirtSoundLibrary {
 	}
 
 	getEvent { |name, index|
-		// first look up buffers, then synths
+
 		var allEvents = this.at(name);
-		^if(allEvents.isNil) {
+		var event;
+
+		event = if(allEvents.isNil) {
+			// first look up buffers, then synths
 			if(SynthDescLib.at(name).notNil) {
 				// use tidal's "n" as note, only for synths that have no event defined
 				(instrument: name, hash: name.identityHash)
@@ -238,7 +246,23 @@ DirtSoundLibrary {
 				}
 			}
 		} {
-			allEvents.wrapAt(index.asInteger)
+			allEvents.wrapAt(index.asInteger);
+		};
+
+		if(doNotReadYet and: { event[\notYetRead] }) {
+			"reading soundfile as needed: %:%".format(name, index).postln;
+			this.readFileIfNecessary(event);
+			^nil
+		};
+
+		^event
+
+	}
+
+	readFileIfNecessary { |event|
+		var buffer = event[\bufferObject];
+		if(buffer.notNil) {
+			buffer.readWithInfo(onComplete: { event[\notYetRead] = false })
 		}
 	}
 
@@ -246,6 +270,8 @@ DirtSoundLibrary {
 		var baseFreq = 60.midicps;
 		^(
 			buffer: buffer.bufnum,
+			bufferObject: buffer,
+			notYetRead: doNotReadYet,
 			instrument: this.instrumentForBuffer(buffer),
 			bufNumFrames: buffer.numFrames,
 			bufNumChannels: buffer.numChannels,
@@ -292,9 +318,14 @@ DirtSoundLibrary {
 	postSampleInfo {
 		var keys = buffers.keys.asArray.sort;
 		if(buffers.isEmpty) {
-			"\nCurrently there are no samples loaded.".postln;
+			"\nCurrently there are no samples read into memory.".postln;
 		} {
-			"\nCurrently there are % sample banks in memory (% MB):\n\nName (number of variants), range of durations (memory)\n"
+			if(doNotReadYet) {
+				"samples only registered, will read them on demand.".postln;
+			} {
+				"\nCurrently there are % sample banks in memory (% MB):"
+				"\n\nName (number of variants), range of durations (memory)\n"
+			}
 			.format(buffers.size, this.memoryFootprint div: 1e6).postln;
 		};
 		keys.do { |name|
