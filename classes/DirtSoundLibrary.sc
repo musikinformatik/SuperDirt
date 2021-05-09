@@ -252,7 +252,6 @@ DirtSoundLibrary {
 		if(doNotReadYet and: { event[\notYetRead] }) {
 			"reading soundfile as needed: %:%".format(name, index).postln;
 			this.readFileIfNecessary(event);
-			^nil
 		};
 
 		^event
