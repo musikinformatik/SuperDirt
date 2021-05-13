@@ -146,6 +146,14 @@ SuperDirt {
 		soundLibrary.postSampleInfo
 	}
 
+	doNotReadYet_ { |bool|
+		soundLibrary.doNotReadYet_(bool)
+	}
+
+	doNotReadYet {
+		^soundLibrary.doNotReadYet
+	}
+
 	verbose_ { |bool|
 		soundLibrary.verbose_(bool)
 	}

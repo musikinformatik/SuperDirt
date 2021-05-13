@@ -129,6 +129,9 @@ w.view.layout = HLayout(*~dirt.orbits.collect { |x|
 
 ::
 
+method::doNotReadYet
+If set to code::true::, any sound files are not read but only their paths registered, so that they can be read when needed. This may result in a missing sound when it is played first. It is useful when computer memory is limited.
+
 method::loadSoundFiles
 Read a number of sound file from disk and load them into the server memory. The buffer information is also kept in link::#buffers::, a dictionary. You can do this any time while running, and incrementally add more files.
 
