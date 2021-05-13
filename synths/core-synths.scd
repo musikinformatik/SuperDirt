@@ -33,7 +33,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 			// sample phase
 			// BufSampleRate adjusts the rate if the sound file doesn't have the same rate as the soundcard
 
-			numFrames = BufFrames.ir(bufnum);
+			numFrames = max(BufFrames.ir(bufnum), 1); // make sure it is > 0, when no file is read yet
 			sawrate = rate * BufSampleRate.ir(bufnum) / (absdif(begin, end) * numFrames);
 			phase = (speed.sign * LFSaw.ar(sawrate, 1)).range(begin, end) * numFrames;
 
@@ -64,7 +64,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 		SynthDef(name, { |out, bufnum, sustain = 1, begin = 0, end = 1, speed = 1, endSpeed = 1, freq = 440, pan = 0|
 
-			var sound, rate,  numFrames, env, startPos, bufFrames;
+			var sound, rate,  env, startPos, numFrames;
 
 			// playback speed
 			rate = Line.kr(speed, endSpeed, sustain) * (freq / 60.midicps);
@@ -75,10 +75,10 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 			rate = rate * BufRateScale.ir(bufnum);
 
-			bufFrames = BufFrames.ir(bufnum);
+			numFrames = max(BufFrames.ir(bufnum), 1); // make sure it is > 0, when no file is read yet
 
 			// when we play backward from zero, we have to start from the end
-			startPos = if((rate < 0) * (begin <= 0), bufFrames, bufFrames * begin);
+			startPos = if((rate < 0) * (begin <= 0), numFrames, numFrames * begin);
 
 			sound = PlayBuf.ar(
 				numChannels: sampleNumChannels,
