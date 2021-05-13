@@ -162,7 +162,9 @@ DirtSoundLibrary {
 		folderPaths.do { |folderPath|
 			this.loadSoundFileFolder(folderPath, namingFunction.(folderPath), appendToExisting)
 		};
-		if(doNotReadYet.not) {
+		if(doNotReadYet) {
+			"\n ... sample banks registered, will read files as necessary".postln;
+		} {
 			"\n... file reading complete. Required % MB of memory.\n\n".format(
 				this.memoryFootprint - memory div: 1e6
 			).post
