@@ -251,7 +251,7 @@ DirtSoundLibrary {
 			allEvents.wrapAt(index.asInteger);
 		};
 
-		if(doNotReadYet and: { event[\notYetRead] }) {
+		if(doNotReadYet and: { event.notNil and: { event[\notYetRead] } }) {
 			"reading soundfile as needed: %:%".format(name, index).postln;
 			this.readFileIfNecessary(event);
 			if(server.hasBooted.not) { ^nil }; //  avoid a crash in the booting server's shared memory interface
