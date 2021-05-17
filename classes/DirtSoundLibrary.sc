@@ -237,18 +237,22 @@ DirtSoundLibrary {
 		var allEvents = this.at(name);
 		var event;
 
-		event = if(allEvents.isNil) {
+		if(allEvents.isNil) {
 			// first look up buffers, then synths
-			if(SynthDescLib.at(name).notNil) {
+			event = if(SynthDescLib.at(name).notNil) {
 				// use tidal's "n" as note, only for synths that have no event defined
 				(instrument: name, hash: name.identityHash)
 			} {
 				if(defaultEvent.notNil) {
 					(instrument: name, hash: name.identityHash).putAll(defaultEvent)
 				}
-			}
+			};
+
+			^event
+
 		} {
-			allEvents.wrapAt(index.asInteger);
+			// the index may be \none (a Symbol), but this converts it to 0
+			event = allEvents.wrapAt(index.asInteger);
 		};
 
 		if(doNotReadYet and: { event.notNil and: { event[\notYetRead] } }) {
