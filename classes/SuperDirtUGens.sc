@@ -144,6 +144,16 @@ DirtRateScale : UGen {
 	}
 }
 
+DirtFreq : UGen {
+	*kr {
+		var speed = \speed.kr(1);
+		var freq = \freq.kr(440);
+		var freqMul = Line.kr(speed, speed + \accellerate.kr(0), \sustain.ir);
+		^Select.kr(\speedScalesFreq.ir(0), [freq, freqMul * freq])
+	}
+}
+
+
 
 /*
 In order to avoid bookkeeping on the language side, we implement cutgroups as follows:
