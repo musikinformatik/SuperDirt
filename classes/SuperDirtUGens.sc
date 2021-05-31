@@ -144,12 +144,24 @@ DirtRateScale : UGen {
 	}
 }
 
-DirtFreq : UGen {
+/*
+Frequency scaler with speed like samples do.
+Switch on by settig speedFreq > 0
+*/
+
+DirtFreqScale : UGen {
 	*kr {
-		var speed = \speed.kr(1);
-		var freq = \freq.kr(440);
-		var freqMul = Line.kr(speed, speed + \accellerate.kr(0), \sustain.ir);
-		^Select.kr(\speedScalesFreq.ir(0), [freq, freqMul * freq])
+		var speed = \speed.kr(1).abs;
+		var speedTerm = Line.kr(speed, speed * \accellerate.ir(0), \sustain.ir(1));
+		// linear interpolation between a factor of 1 (speedFreq = 0) and of speedTerm (speedFreq = 1)
+		^\speedFreq.ir(0) * (speedTerm - 1) + 1
+	}
+
+	*ar {
+		var speed = \speed.kr(1).abs;
+		var speedTerm = Line.ar(speed, speed * \accellerate.kr(0), \sustain.ir(1));
+		// linear interpolation between a factor of 1 (speedFreq = 0) and of speedTerm (speedFreq = 1)
+		^\speedFreq.ir(0) * (speedTerm - 1) + 1
 	}
 }
 
