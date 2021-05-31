@@ -145,8 +145,9 @@ DirtRateScale : UGen {
 }
 
 /*
-Frequency scaler with speed like samples do.
+Frequency scaler with speed like samples have it
 Switch on by settig speedFreq > 0
+Intermediate values scale proportionally
 */
 
 DirtFreqScale : UGen {
