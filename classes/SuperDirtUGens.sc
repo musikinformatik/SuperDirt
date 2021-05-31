@@ -152,14 +152,14 @@ Switch on by settig speedFreq > 0
 DirtFreqScale : UGen {
 	*kr {
 		var speed = \speed.kr(1).abs;
-		var speedTerm = Line.kr(speed, speed * \accelerate.ir(0), \sustain.ir(1));
+		var speedTerm = Line.kr(speed, speed * \accelerate.ir, \sustain.ir);
 		// linear interpolation between a factor of 1 (speedFreq = 0) and of speedTerm (speedFreq = 1)
 		^\speedFreq.ir(0) * (speedTerm - 1) + 1
 	}
 
 	*ar {
 		var speed = \speed.kr(1).abs;
-		var speedTerm = Line.ar(speed, speed * \accelerate.kr(0), \sustain.ir(1));
+		var speedTerm = Line.ar(speed, speed * \accelerate.kr, \sustain.ir);
 		// linear interpolation between a factor of 1 (speedFreq = 0) and of speedTerm (speedFreq = 1)
 		^\speedFreq.ir(0) * (speedTerm - 1) + 1
 	}
