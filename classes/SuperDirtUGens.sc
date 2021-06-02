@@ -150,6 +150,25 @@ DirtRateScale : UGen {
 	}
 }
 
+/*
+Frequency scaler with speed like samples have it
+Switch on by settig speedFreq > 0
+Intermediate values scale proportionally
+*/
+
+DirtFreqScale : UGen {
+
+	*kr { |speed = 1, accelerate = 0, sustain = 1, speedFreq|
+		var speedTerm;
+		speed = speed.abs;
+		speedFreq = speedFreq ?? { \speedFreq.ir(0) };
+		speedTerm = Line.kr(speed, speed * (accelerate + 1), sustain);
+		// linear interpolation between a factor of 1 (speedFreq = 0) and of speedTerm (speedFreq = 1)
+		^speedFreq * (speedTerm - 1) + 1
+	}
+}
+
+
 
 /*
 In order to avoid bookkeeping on the language side, we implement cutgroups as follows:
