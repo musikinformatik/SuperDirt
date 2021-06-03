@@ -112,11 +112,10 @@
 // "sustain" for overall timescale, "accelerate" for tonal glide
 (
 	SynthDef(\supersnare, {|out, sustain=1, pan, accelerate, n, decay=1, speed=1|
-		var env, sound, scale;
-		env = EnvGen.ar(Env.linen(0.01, 0, 0.6, 1, -3), timeScale:sustain, doneAction:2);
-		scale = DirtFreqScale.kr(speed, accelerate, sustain);
-		sound = LPF.ar(Pulse.ar(100*scale*(n/5+1).wrap(0.5,2)), Line.ar(1030, 30, 0.2*sustain));
-		sound = sound + (BPF.ar(HPF.ar(WhiteNoise.ar(1), 500), 1500) * Line.ar(1, 0, 0.2*decay));
+		var env = EnvGen.ar(Env.linen(0.01, 0, 0.6, 1, -3), timeScale:sustain, doneAction:2);
+		var freq = 100 * DirtFreqScale.kr(speed, accelerate, sustain) * (n/5+1).wrap(0.5,2);
+		var sound = LPF.ar(Pulse.ar(freq), Line.ar(1030, 30, 0.2*sustain))
+			+ (BPF.ar(HPF.ar(WhiteNoise.ar(1), 500), 1500) * Line.ar(1, 0, 0.2*decay));
 		Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env))
 	}).add
 );
