@@ -172,7 +172,7 @@ SynthDef(\cyclo, { |out, freq, sustain = 1, speed = 1, begin = 0, end = 1, pan, 
 
 // debug a few time related values
 (
-SynthDef(\debug, { |begin = -1, end = -1, delta = -1, sustain = -1, unitDuration = -1, cycle = -1, speed = 1, acceletate = 0|
+SynthDef(\debug, { |begin = -1, end = -1, delta = -1, sustain = -1, unitDuration = -1, cycle = -1, speed = 1, accelerate = 0|
 	var trig = Impulse.kr(0);
 	cycle.poll(trig, label: "cycle");
 	begin.poll(trig, label: "begin");
@@ -181,7 +181,7 @@ SynthDef(\debug, { |begin = -1, end = -1, delta = -1, sustain = -1, unitDuration
 	sustain.poll(trig, label: "sustain");
 	unitDuration.poll(trig, label: "unitDuration");
 	speed.poll(trig, label: "speed");
-	acceletate.poll(trig, label: "acceletate");
+	accelerate.poll(trig, label: "accelerate");
 	DC.kr(0).poll(trig, label: "\n\n");
 }).add
 );
