@@ -180,6 +180,7 @@ DirtSoundLibrary {
 		};
 
 		files = pathMatch(folderPath.standardizePath +/+ "*"); // dependent on operating system
+		files.sort // ASCII sorting
 
 		if(files.notEmpty) {
 			name = name.asSymbol;
