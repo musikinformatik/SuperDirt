@@ -168,10 +168,16 @@ DirtEvent {
 	}
 
 	playSynths {
-		var cutGroup;
+		var cutGroup, cutOrbit;
 		~cut = ~cut.value;
 		if(~cut != 0) {
-			cutGroup = orbit.getCutGroup(~cut);
+			if(~cutOrbit.notNil) {
+				// select orbit with which to cross-cut
+				cutGroup = orbit.dirt.orbits.wrapAt(~cutOrbit).getCutGroup(~cut)
+			} {
+				// cut only in this orbit
+				cutGroup = orbit.getCutGroup(~cut)
+			};
 			~hash ?? { ~hash = ~sound.identityHash }; // just to be safe
 		};
 
