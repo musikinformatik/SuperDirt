@@ -26,7 +26,7 @@ DirtOrbit {
 	var <dirt,  <outBus, <orbitIndex;
 	var <server;
 	var <synthBus, <globalEffectBus, <dryBus;
-	var <group, <globalEffects, <cutGroups;
+	var <group, <globalEffects;
 	var <>minSustain;
 
 
@@ -43,7 +43,6 @@ DirtOrbit {
 			^this
 		};
 		group = server.nextPermNodeID;
-		cutGroups = IdentityDictionary.new;
 		synthBus = Bus.audio(server, dirt.numChannels);
 		dryBus = Bus.audio(server, dirt.numChannels);
 		globalEffectBus = Bus.audio(server, dirt.numChannels);
@@ -77,7 +76,7 @@ DirtOrbit {
 	}
 
 	cmdPeriod {
-		cutGroups.clear
+
 	}
 
 	initNodeTree {
@@ -157,17 +156,6 @@ DirtOrbit {
 		server.freePermNodeID(group);
 		synthBus.free;
 		globalEffectBus.free;
-		cutGroups.clear;
-	}
-
-	getCutGroup { |id|
-		var cutGroup = cutGroups.at(id);
-		if(cutGroup.isNil) {
-			cutGroup = server.nextNodeID;
-			server.sendMsg("/g_new", cutGroup, 1, group);
-			cutGroups.put(id, cutGroup);
-		}
-		^cutGroup
 	}
 
 
