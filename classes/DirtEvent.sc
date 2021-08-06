@@ -174,7 +174,6 @@ DirtEvent {
 			orbit.globalEffects.do { |x| x.set(currentEnvironment) };
 
 			if(~cut != 0) {
-				// for now, set all groups
 				server.sendMsg(\n_set,
 					if(~cutAll.notNil) { orbit.dirt.group } { orbit.group },
 					\gateSample, ~hash,
