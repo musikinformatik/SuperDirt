@@ -81,7 +81,8 @@ DirtOrbit {
 
 	initNodeTree {
 		server.makeBundle(nil, { // make sure they are in order
-			server.sendMsg("/g_new", group, 0, 1); // make sure group exists
+			server.sendMsg("/g_new", dirt.group, 0, 1); // make sure group exists
+			server.sendMsg("/g_new", group, 0, dirt.group); // make sure group exists
 			globalEffects.reverseDo { |x|
 				x.play(group, outBus, dryBus, globalEffectBus, orbitIndex)
 			}

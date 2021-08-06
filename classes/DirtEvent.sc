@@ -176,9 +176,9 @@ DirtEvent {
 
 			if(~cut != 0) {
 				// for now, set all groups
-				server.sendMsg(\n_set, 0,
+				server.sendMsg(\n_set, orbit.dirt.group,
 					\gateSample, ~hash,
-					\gateCutOrbit,  ~cutOrbit ?? { ~orbit },
+					\gateCutOrbit, if(~cutAll.notNil) { -1 } { ~orbit },
 					\gateCut, ~cut.abs,
 					\cutAllSamples, if(~cut > 0) { 1 } { 0 }
 				)
