@@ -155,7 +155,6 @@ DirtEvent {
 				gain: ~gain,
 				overgain: ~overgain,
 				sample: ~hash, // required for the cutgroup mechanism
-				orbit: ~orbit,
 				cut: ~cut.abs,
 				sustain: ~sustain, // after sustain, free all synths and group
 				fadeInTime: ~fadeInTime, // fade in
@@ -176,9 +175,9 @@ DirtEvent {
 
 			if(~cut != 0) {
 				// for now, set all groups
-				server.sendMsg(\n_set, orbit.dirt.group,
+				server.sendMsg(\n_set,
+					if(~cutAll.notNil) { orbit.dirt.group } { orbit.group },
 					\gateSample, ~hash,
-					\gateCutOrbit, if(~cutAll.notNil) { -1 } { ~orbit },
 					\gateCut, ~cut.abs,
 					\cutAllSamples, if(~cut > 0) { 1 } { 0 }
 				)

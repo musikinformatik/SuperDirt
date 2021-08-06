@@ -183,12 +183,9 @@ DirtGateCutGroup {
 		var same = { |a, b| BinaryOpUGen('==', a, b) };
 		var or = { |a, b| (a + b) > 0 };
 		var and = { |... args| args.product };
-		var gateCutOrbit = \gateCutOrbit.kr(0);
 		var sameSample = same.(\sample.ir(0), \gateSample.kr(0));
-		var sameOrbit = same.(\orbit.ir(0), gateCutOrbit);
 		var sameCut = same.(\cut.ir(0), \gateCut.kr(0));
-		var cutAll = gateCutOrbit < 0;
-		var free = and.(or.(\cutAllSamples.kr(0), sameSample), or.(sameOrbit, cutAll), sameCut);
+		var free = and.(or.(\cutAllSamples.kr(0), sameSample), sameCut);
 		^EnvGen.kr(Env.cutoff(releaseTime), (1 - free), doneAction:doneAction);
 	}
 }
