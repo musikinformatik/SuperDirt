@@ -99,6 +99,8 @@ live coding them requires that you have your SuperDirt instance in an environmen
 	};
 
 	// this is the time-stretching sample player, based on an overlap-add method
+	// the method is designed for timescale > 1 (i.e. stretching),
+	// but works reasonably well for values between 0.1 and 3, depending on the sample
 	(1..SuperDirt.maxSampleNumChannels).do { |sampleNumChannels|
 
 		var name = format("dirt_stretchsample_%_%", sampleNumChannels, numChannels);
@@ -121,6 +123,13 @@ live coding them requires that you have your SuperDirt instance in an environmen
 			// But this is also scaled below to be a bit smaller/larger based on desired playback rate.
 			// If it's still not good, you can use the "timescalewin" parameter to multiply the window size
 			windowSize = timescale.clip(0.1,2) * 0.05 * BufSampleRate.ir(bufnum) * timescalewin;
+			// Next is the (pre-scaled) number of samples between indices. Note that while windowSize
+			// is clipped, timescaleStep cannot be without the duration of the resulting sound becoming
+			// different from timescale * sample_duration.
+			// For very small values of timescale, this means it'll "skip" through the sound, only playing
+			// a few samples at regular intervals
+			// For very large values of timescale, the overlap will be very large, possibly leading to
+			// some audible repetition
 			timescaleStep = windowSize / timescale;
 			sawrate = rate * BufSampleRate.ir(bufnum) / (absdif(begin, end) * timescale * numFrames);
 			phase = (speed.sign * LFSaw.ar(sawrate, 1)).range(begin,end) * numFrames * timescale;
