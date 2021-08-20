@@ -37,8 +37,9 @@ this may be refacored later.
 	{ |dirtEvent|
 		if(~diversion.value.isNil) {
 			if(~buffer.notNil) {
-				// argumets could be omitted using getMsgFunc, but for making it easier to understand, we write them out
-				dirtEvent.sendSynth(~instrument,  [
+				// arguments could be omitted using getMsgFunc, but for making it easier to understand, we write them out
+				var instrument;
+				var args = [
 					bufnum: ~buffer,
 					sustain: ~sustain,
 					speed: ~speed,
@@ -48,7 +49,17 @@ this may be refacored later.
 					end: ~end,
 					pan: ~pan,
 					out: ~out
-				])
+				];
+
+				if(~timescale.notNil) {
+					instrument = ~stretchInstrument;
+					args = args ++ [\timescale, ~timescale, \timescalewin, ~timescalewin ? 1];
+				} {
+					instrument = ~instrument;
+				};
+
+				dirtEvent.sendSynth(instrument, args);
+
 			} {
 				if(~instrument.isNil) {
 					"module 'sound': instrument not found: %".format(~s).postln

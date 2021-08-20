@@ -110,6 +110,7 @@ DirtEvent {
 
 		~fadeTime = min(~fadeTime.value, sustain * 0.19098);
 		~fadeInTime = if(~begin != 0) { ~fadeTime } { 0.0 };
+		if (~timescale.notNil) {sustain = sustain * ~timescale };
 		~sustain = sustain - (~fadeTime + ~fadeInTime);
 		~speed = speed;
 		~endSpeed = endSpeed;
