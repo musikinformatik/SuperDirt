@@ -6,6 +6,7 @@ This class adds event types to the global event library. They can be played from
 
 DirtEventTypes {
 	classvar <midiEvent;
+	classvar <>alwaysFlop = true;
 
 	*initClass {
 
@@ -20,7 +21,7 @@ DirtEventTypes {
 			~delta = ~delta ?? { ~stretch.value * ~dur.value };
 			~amp = ~amp.value;
 			~latency = ~latency ?? { dirt.server.latency };
-			if(~n.isArray) {
+			if(alwaysFlop or: { ~n.isArray }) {
 				keys = currentEnvironment.keys.asArray;
 				values = keys.collect(_.envirGet).flop;
 				values.do { |each|
