@@ -156,6 +156,7 @@ DirtEvent {
 				gain: ~gain,
 				overgain: ~overgain,
 				sample: ~hash, // required for the cutgroup mechanism
+				cut: ~cut.abs,
 				sustain: ~sustain, // after sustain, free all synths and group
 				fadeInTime: ~fadeInTime, // fade in
 				fadeTime: ~fadeTime // fade out
@@ -169,28 +170,20 @@ DirtEvent {
 	}
 
 	playSynths {
-		var cutGroup, cutOrbit;
-		~cut = ~cut.value;
-		if(~cut != 0) {
-			if(~cutOrbit.notNil) {
-				// select orbit with which to cross-cut
-				cutGroup = orbit.dirt.orbits.wrapAt(~cutOrbit).getCutGroup(~cut)
-			} {
-				// cut only in this orbit
-				cutGroup = orbit.getCutGroup(~cut)
-			};
-			~hash ?? { ~hash = ~sound.identityHash }; // just to be safe
-		};
-
 		server.makeBundle(~latency, { // use this to build a bundle
 
 			orbit.globalEffects.do { |x| x.set(currentEnvironment) };
 
-			if(cutGroup.notNil) {
-				server.sendMsg(\n_set, cutGroup, \gateSample, ~hash, \cutAll, if(~cut > 0) { 1 } { 0 });
+			if(~cut != 0) {
+				server.sendMsg(\n_set,
+					if(~cutAll.notNil) { orbit.dirt.group } { orbit.group },
+					\gateSample, ~hash,
+					\gateCut, ~cut.abs,
+					\cutAllSamples, if(~cut > 0) { 1 } { 0 }
+				)
 			};
 
-			this.prepareSynthGroup(cutGroup);
+			this.prepareSynthGroup(orbit.group);
 			modules.do(_.value(this));
 			this.sendGateSynth; // this one needs to be last
 

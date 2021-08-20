@@ -31,6 +31,7 @@ SuperDirt {
 	var <>modules;
 	var <>audioRoutingBusses;
 	var <>controlBusses;
+	var <group;
 
 	var <port, <senderAddr, <replyAddr, netResponders;
 	var <>receiveAction, <>warnOutOfOrbit = true, <>maxLatency = 42;
@@ -55,6 +56,7 @@ SuperDirt {
 		this.loadSynthDefs;
 		this.initVowels(\counterTenor);
 		this.initRoutingBusses;
+		group = server.nextPermNodeID;
 	}
 
 

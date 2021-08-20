@@ -34,6 +34,7 @@ Pdef(\x,
 			postln(join(n, " ") ++ "\n");
 			Pfuncn({ n.choose }, 2 ** rrand(6, 9))
 		}),
+		\cut, Prand([1, 2, 3], inf),
 		\n, Pwhite(0, 20, inf),
 		\speed, Pbrown(1, 1.2, 0.01),
 		\amp, Pwhite().linexp(0, 1, 0.001, 0.3),
