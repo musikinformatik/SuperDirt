@@ -27,6 +27,11 @@ DirtEvent {
 		}
 	}
 
+	bind { |func|
+		// synchronise function call with latency given in the current environment
+		orbit.server.makeBundle(~latency, func)
+	}
+
 	splitName {
 		var s, n;
 		#s, n = ~sound.asString.split($:);
