@@ -40,8 +40,8 @@ SynthDef(\plick, { |out, freq = 220, amp = 0.1, sustain = 1|
 
 ~dirt.soundLibrary.addSynth(\plack,
 	(playInside: { |e|
-		// make sure that you play it in the group and to the out
-		(instrument: \plick, out: ~out, freq: ~freq, amp: ~amp, group: ~group).play
+		// make sure that you play it in the ~synthGroup and to the out
+		(instrument: \plick, out: ~out, freq: ~freq, amp: ~amp, group: ~synthGroup).play
 	})
 )
 
@@ -60,9 +60,28 @@ d1 $ s "plack bd"
 Ndef(\x, { Decay.kr(\trig.tr(0), 0.1) * PinkNoise.ar });
 
 ~dirt.soundLibrary.addSynth(\myNdef, (playInside: { |e|
-		Ndef(\x).set(\trig, 1);
-	// make sure that you play it in the group and to the out
-		(instrument: \dirt_from, in: Ndef(\x).bus, out: ~out, amp: ~amp, group: ~group).play;
+	Ndef(\x).set(\trig, 1); // trigger the \trig control
+	Ndef(\x).wakeUp; // make sure the Ndef runs
+	// make sure that you play it in the ~synthGroup and to the ~out
+	(
+		instrument: \dirt_from,
+		in: Ndef(\x).bus,
+		out: ~out,
+		amp: ~amp,
+		group: ~synthGroup
+	).play;
+})
+)
+)
+
+// alternatively, you can use the sendSynth function
+(
+Ndef(\x, { Decay.kr(\trig.tr(0), 0.1) * PinkNoise.ar });
+
+~dirt.soundLibrary.addSynth(\myNdef, (playInside: { |e|
+	Ndef(\x).set(\trig, 1); // trigger the \trig control
+	Ndef(\x).wakeUp; // make sure the Ndef runs
+	e.sendSynth(\dirt_from, [in: Ndef(\x).bus, out: ~out, amp: ~amp]);
 })
 )
 )
