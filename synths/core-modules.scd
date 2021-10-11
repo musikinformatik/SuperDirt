@@ -61,11 +61,15 @@ this may be refacored later.
 				dirtEvent.sendSynth(instrument, args);
 
 			} {
-				if(~instrument.isNil) {
-					"module 'sound': instrument not found: %".format(~s).postln
+				if(~playInside.isNil) {
+					if(~instrument.isNil) {
+						"module 'sound': instrument not found: %".format(~s).postln
+					} {
+						// here, we just derive the arguments as necessary from the environment
+						dirtEvent.sendSynth(~instrument, ~argNames)
+					}
 				} {
-					// here, we just derive the arguments as necessary from the environment
-					dirtEvent.sendSynth(~instrument, ~argNames)
+					~playInside.(dirtEvent)
 				}
 			}
 		}

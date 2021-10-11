@@ -1,9 +1,9 @@
 /*
 
 You can define arbitrary functions to be called from Tidal
-This assumes you have stored dirt in a variable ~dirt, andyour first dirt bus in ~d1
+The examples below assume you have stored dirt in a variable ~dirt, andyour first dirt bus in ~d1
 
-NOTE: The interface for this may change!
+NOTE: The interface for ~diversion (see bottom) may change!
 
 
 */
@@ -11,14 +11,89 @@ NOTE: The interface for this may change!
 // d1 $ sound "tlalak bd*5 sn" |+| vowel "a e"
 
 
-// Note that you may want to first try
-// to simply use the addSynth(name, event) schema:
+
+// adding function via addSynth
+// the play function
 
 ~dirt.soundLibrary.addSynth(\test, (play: { "////////////// do whatever \\\\\\\\\\\\\\\\".postln }));
 
 // test it either with tidal
 // or from here:
+SuperDirt.default = ~dirt;
 (type:\dirt, dirt: ~dirt, s: \test).play;
+
+
+// the playInside function
+
+
+// example: start a synth explicitly
+
+
+(
+SynthDef(\plick, { |out, freq = 220, amp = 0.1, sustain = 1|
+	var sig, env;
+	env = EnvGen.ar(Env([0, amp, 0], [0.001, sustain]), doneAction:2);
+	sig = SinOsc.ar(freq, LFNoise2.ar(XLine.kr(39, 300, sustain), Line.kr(15, 0, sustain)));
+	Out.ar(out, sig * env);
+}).add;
+
+
+~dirt.soundLibrary.addSynth(\plack,
+	(playInside: { |e|
+		// make sure that you play it in the group and to the out
+		(instrument: \plick, out: ~out, freq: ~freq, amp: ~amp, group: ~group).play
+	})
+)
+
+)
+
+// in tidal
+d1 $ s "plack bd"
+   # freq "<677 1000 200 7000>"
+   # hcutoff "<3000 700 900>"
+   # hresonance "0.05"
+
+
+// example: trigger and route an Ndef from tidal
+
+(
+Ndef(\x, { Decay.kr(\trig.tr(0), 0.1) * PinkNoise.ar });
+
+~dirt.soundLibrary.addSynth(\myNdef, (playInside: { |e|
+		Ndef(\x).set(\trig, 1);
+	// make sure that you play it in the group and to the out
+		(instrument: \dirt_from, in: Ndef(\x).bus, out: ~out, amp: ~amp, group: ~group).play;
+})
+)
+)
+
+// in tidal
+d1 $ s "myNdef bd"
+   # hcutoff "<3000 700 900>"
+   # hresonance "0.4"
+
+
+// in sclang doesn't work yet.
+SuperDirt.default = ~dirt;
+(
+Tdef(\x, {
+	loop {
+		(type:\dirt, s: \myNdef, hcutoff: rrand(300.0, 6000), hresonance: 0.8).play;
+		0.2.wait
+	}
+}).play
+)
+
+// live code the Ndef
+Ndef(\x, { Decay.kr(\trig.tr(0), 0.3) * PinkNoise.ar(1 ! 2) });
+Ndef(\x, { Decay.kr(\trig.tr(0), 0.3) * Dust.ar(\trig.tr(0).lagud(0, 0.2) * 1000 ! 2) });
+
+
+
+
+
+
+
 
 
 /*
