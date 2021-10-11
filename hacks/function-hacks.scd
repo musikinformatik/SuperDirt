@@ -73,7 +73,6 @@ d1 $ s "myNdef bd"
    # hresonance "0.4"
 
 
-// in sclang doesn't work yet.
 SuperDirt.default = ~dirt;
 (
 Tdef(\x, {
