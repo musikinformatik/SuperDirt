@@ -35,11 +35,11 @@ this may be refacored later.
 
 ~dirt.addModule('sound',
 	{ |dirtEvent|
+		var instrument, args;
 		if(~diversion.value.isNil) {
 			if(~buffer.notNil) {
 				// arguments could be omitted using getMsgFunc, but for making it easier to understand, we write them out
-				var instrument;
-				var args = [
+				args = [
 					bufnum: ~buffer,
 					sustain: ~sustain,
 					speed: ~speed,
