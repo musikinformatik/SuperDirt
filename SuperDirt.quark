@@ -4,5 +4,5 @@
 	\author: 		"Alex McLean and Julian Rohrhuber",
 	\since: 		"2015",
 	\dependencies:  ["Vowel", "Dirt-Samples"],
-	\version:               "1.7.3-dev"
+	\version:               "1.7.3"
 )
