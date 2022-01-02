@@ -15,6 +15,7 @@ DirtSoundLibrary {
 	var <>verbose = false;
 	var <>defaultEvent;
 	var <>doNotReadYet = false;
+	var <>sortFilesInFolders = true;
 
 	*new { |server, numChannels|
 		^super.newCopyArgs(server, numChannels).init
@@ -180,6 +181,7 @@ DirtSoundLibrary {
 		};
 
 		files = pathMatch(folderPath.standardizePath +/+ "*"); // dependent on operating system
+		if(sortFilesInFolders) { files = files.sort };
 
 		if(files.notEmpty) {
 			name = name.asSymbol;
