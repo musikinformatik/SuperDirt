@@ -124,7 +124,7 @@ SuperDirt {
 		soundLibrary.loadOnly(names, path, appendToExisting )
 	}
 
-	loadSoundFileFolder { |folderPath, name, appendToExisting = false|
+	loadSoundFileFolder { |folderPath, name, appendToExisting = false, sortFiles = true|
 		soundLibrary.loadSoundFileFolder(folderPath, name, appendToExisting)
 	}
 
@@ -391,4 +391,3 @@ SuperDirt {
 
 
 }
-
