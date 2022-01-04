@@ -25,7 +25,7 @@ along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
 * SuperCollider >= v3.7 (3.6 possible, but see below): https://github.com/supercollider/supercollider
 * The Vowel Quark: https://github.com/supercollider-quarks/Vowel
-* optional, but recommended: sc3-plugins: https://github.com/supercollider/sc3-plugins/
+* optional, but recommended (many effect UGens need it): sc3-plugins: https://github.com/supercollider/sc3-plugins/
 * For proper usage you need https://github.com/tidalcycles/Tidal
 
 ## Installation from SuperCollider
