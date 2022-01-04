@@ -171,7 +171,7 @@ DirtSoundLibrary {
 		};
 	}
 
-	loadSoundFileFolder { |folderPath, name, appendToExisting = false|
+	loadSoundFileFolder { |folderPath, name, appendToExisting = false, sortFiles = true|
 		var files;
 
 		if(File.exists(folderPath).not) {
@@ -180,6 +180,7 @@ DirtSoundLibrary {
 		};
 
 		files = pathMatch(folderPath.standardizePath +/+ "*"); // dependent on operating system
+		if(sortFiles) { files.sort };
 
 		if(files.notEmpty) {
 			name = name.asSymbol;
