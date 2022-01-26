@@ -22,6 +22,12 @@ Document.open("function-hacks.scd".resolveRelative);
 
 ~dirt.soundLibrary.addSynth(\test, (play: { "////////////// do whatever \\\\\\\\\\\\\\\\".postln }));
 
+// if there are mor than one of those, they should be separated by semicolons.
+
+~dirt.soundLibrary.addSynth(\test, (play: { "////////////// do whatever \\\\\\\\\\\\\\\\".postln }));
+~dirt.soundLibrary.addSynth(\best, (play: { "////////////// do nothing whatsoever \\\\\\\\\\\\\\\\".postln }));
+
+
 // or you can copy it into a separate file, and load it from the startup file:
 "path/to/myfile.scd".load;
 
@@ -30,3 +36,25 @@ Document.open("function-hacks.scd".resolveRelative);
 
 // to make sure your dirt is running when the file is loaded
 // load it from inside the waitForBoot function in the superdirt_startup (see example startup)
+
+
+
+
+/*
+
+live coding tidal in SuperDirt
+
+*/
+
+// you can call most of the code in the hacks directory while running
+// while tidal is playing sound "test" # n "0 1 0 2", rewrite what it posts here
+~dirt.soundLibrary.addSynth(\test, (play: { "////// whatever \\\\\\\\".postln }));
+~dirt.soundLibrary.addSynth(\test, (play: { "////// whatever % \\\\\\\\".format(~n).postln }));
+
+// also use SynthDefs from these files and their names and parameters become accessible from tidal
+// (for new parameter names you may have to add them there)
+// see https://github.com/musikinformatik/SuperDirt/blob/develop/hacks/adding-global-effects.scd for accessing parameters of synthdefs.
+
+
+
+ 
