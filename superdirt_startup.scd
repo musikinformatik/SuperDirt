@@ -1,6 +1,14 @@
 /*
-This is an example startup file. You can load it from your startup file
-(to be found in Platform.userAppSupportDir +/+ "startup.scd")
+This is an example startup file.
+If you want to modify it, best copy it elsewhere to keep the git repository clean.
+
+You can then load it by calling
+"path/to/my/superdirt_startup.scd".load
+from the supercollider startup file
+
+The supercollider startup file is to be found in
+Platform.userAppSupportDir +/+ "startup.scd",
+or via the menu File > Open startup file
 */
 
 
@@ -30,8 +38,17 @@ s.reboot { // server options are only updated on reboot
 			~d7 = ~dirt.orbits[6]; ~d8 = ~dirt.orbits[7]; ~d9 = ~dirt.orbits[8];
 			~d10 = ~dirt.orbits[9]; ~d11 = ~dirt.orbits[10]; ~d12 = ~dirt.orbits[11];
 		);
+
+		// directly below here, in your own copy of this file, you could add further code that you want to call on startup
+		// this makes sure the server and ~dirt are running
+		// you can keep this separate and make it easier to switch between setups
+		// by using "path/to/my/file.scd".load and if necessary commenting out different load statements
+		// ...
+
 	};
 
 	s.latency = 0.3; // increase this if you get "late" messages
+
+
 };
 );
