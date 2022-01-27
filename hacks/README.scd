@@ -2,8 +2,8 @@
 
 
 The examples in the current hacks / folder can be used while you play already, and most of it can be live coded.
-If you want to include any code of it into your setup, it is recommendable to copy it
-and add it to your supercollider startup file. These files are not incoude files. How to do this is explained below.
+These files are not "include files". If you want to use any code of it into your setup, copy it and add it to
+your supercollider startup file.  How to do this is explained below.
 The startup file is to be found in the menu under: File>Open startup file
 
 */
@@ -22,7 +22,7 @@ Document.open("function-hacks.scd".resolveRelative);
 
 ~dirt.soundLibrary.addSynth(\test, (play: { "////////////// do whatever \\\\\\\\\\\\\\\\".postln }));
 
-// if there are mor than one of those, they should be separated by semicolons.
+// if there are more than one of those, they should be separated by semicolons.
 
 ~dirt.soundLibrary.addSynth(\test, (play: { "////////////// do whatever \\\\\\\\\\\\\\\\".postln }));
 ~dirt.soundLibrary.addSynth(\best, (play: { "////////////// do nothing whatsoever \\\\\\\\\\\\\\\\".postln }));
