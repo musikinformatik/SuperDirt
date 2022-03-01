@@ -27,9 +27,7 @@ var numChannels = ~dirt.numChannels;
 // then add the effect to the orbits
 (
 ~dirt.orbits.do { |x|
-	x.globalEffects = x.globalEffects
-		.addFirst(GlobalDirtEffect(\dirt_global_lpf, [\cutoffFreq]))
-
+	x.globalEffects = x.globalEffects.addFirst(GlobalDirtEffect(\dirt_global_lpf, [\cutoffFreq]));
 	x.initNodeTree;
 };
 )
