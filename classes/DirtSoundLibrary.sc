@@ -10,14 +10,14 @@ valid fileExtensions can be extended, currently they are ["wav", "aif", "aiff", 
 
 DirtSoundLibrary {
 
-	var <dirt, <server, <numChannels, <buffers, <bufferEvents, <synthEvents, <metaDataEvents;
+	var <server, <numChannels, <buffers, <bufferEvents, <synthEvents, <metaDataEvents;
 	var <>fileExtensions = #["wav", "aif", "aiff", "aifc"];
 	var <>verbose = false;
 	var <>defaultEvent;
 	var <>doNotReadYet = false;
 
-	*new { |dirt, numChannels|
-		^super.newCopyArgs(dirt, dirt.server, numChannels).init
+	*new { |server, numChannels|
+		^super.newCopyArgs(server, numChannels).init
 	}
 
 	init {

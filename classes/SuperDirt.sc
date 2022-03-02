@@ -51,7 +51,7 @@ SuperDirt {
 	}
 
 	init {
-		soundLibrary = DirtSoundLibrary(this, numChannels);
+		soundLibrary = DirtSoundLibrary(server, numChannels);
 		modules = [];
 		this.loadSynthDefs;
 		this.initVowels(\counterTenor);
