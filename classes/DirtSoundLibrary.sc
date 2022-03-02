@@ -79,8 +79,12 @@ DirtSoundLibrary {
 		var bridge = nil;
 		var bridgeName = (name.asString ++ "_bridge").asSymbol;
 		if(event.notNil) { midiEvent.putAll(event) };
+		bus = if (bus.isArray.not, { bus = [bus]; });
+		bus = if (bus.size < numChannels, {
+			(numChannels - (bus.size)).do { bus = bus.add(bus.last+1); };
+		});
 		SynthDef.new(bridgeName, { arg out = 0;
-			Out.ar(out, In.ar(bus, numChannels));
+			Out.ar(out, In.ar(bus));
 		}).add;
 		this.addSynth(name, (play: {
 			var orbit = (dirt.orbits @@ ~orbit);
