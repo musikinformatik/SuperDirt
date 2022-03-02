@@ -97,7 +97,7 @@ DirtSoundLibrary {
 			var orbit = (dirt.orbits @@ ~orbit);
 			~midiout = device;
 			// create a permanent bridge synth (has to be after the VST synth)
-			if (bridge.isNil, { bridge = Synth(bridgeName, addAction: \addToTail); });
+			if (bridge.isNil and: { bus >= 0 }, { bridge = Synth(bridgeName, addAction: \addToTail); });
 			midiEvent[\play].value;
 		}), appendToExisting, false, metaData);
 	}
