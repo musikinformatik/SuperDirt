@@ -87,6 +87,7 @@ DirtSoundLibrary {
 			~s = bridgeName;
 			// force some fadeInTime
 			~begin = if (~begin == 0, { ~begin = 0.001; });
+			// move midi synth before the orbit's synth
 			synth.group.moveNodeToHead(synth);
 			DirtEvent(orbit, ~dirt.modules, currentEnvironment).play;
 		}), appendToExisting, false, metaData);
