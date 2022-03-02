@@ -11,6 +11,10 @@ d1 $ s "labs" # distort 0.2 -- here the audio from VST is fed back into SuperDir
 d1 $ s "labs_midi" -- fallback to pure MIDI
 -- audio effects won't work and envelope is controlled by VST
 
+!!! this hack requires SC VSTPlugin extension installed:
+https://github.com/Spacechild1/vstplugin
+https://git.iem.at/pd/vstplugin
+
 */
 (
 ~labs_bus = Bus.audio(s, 2);
