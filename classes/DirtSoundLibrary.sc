@@ -91,9 +91,9 @@ DirtSoundLibrary {
 			}).add;
 		};
 		// clean up previous bridge
-		if (metaDataEvents[name].notNil and: { metaDataEvents[name][\bridge].notNil }) {
-			metaDataEvents[name][\bridge].free;
-			metaDataEvents[name].removeAt(\bridge);
+		if (metaDataEvents[name].notNil and: { metaDataEvents[name].last[\bridge].notNil }) {
+			metaDataEvents[name].last[\bridge].free;
+			metaDataEvents[name].last.removeAt(\bridge);
 		};
 		this.addSynth(name, (play: {
 			var orbit = (dirt.orbits @@ ~orbit);
