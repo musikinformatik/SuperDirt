@@ -96,7 +96,7 @@ DirtSoundLibrary {
 		this.addSynth((name.asString ++ "_midi").asSymbol, (play: {
 			var orbit = (dirt.orbits @@ ~orbit);
 			~midiout = device;
-			// create a permanent bridge synth
+			// create a permanent bridge synth (has to be after the VST synth)
 			if (bridge.isNil, { bridge = Synth(bridgeName, addAction: \addToTail); });
 			midiEvent[\play].value;
 		}), appendToExisting, false, metaData);
