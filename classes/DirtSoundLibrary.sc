@@ -74,7 +74,7 @@ DirtSoundLibrary {
 		this.addSynth(name, midiEvent, appendToExisting, false, metaData)
 	}
 
-	addMIDISynth { |name, midi, bus, event, appendToExisting = false, metaData|
+	addMIDISynth { |name, device, bus, event, appendToExisting = false, metaData|
 		var midiEvent = DirtEventTypes.midiEvent.copy;
 		var bridge = nil;
 		var bridgeName = (name.asString ++ "_bridge").asSymbol;
@@ -84,7 +84,7 @@ DirtSoundLibrary {
 		}).add;
 		this.addSynth(name, (play: {
 			var orbit = (dirt.orbits @@ ~orbit);
-			~midiout = midi;
+			~midiout = device;
 			// free the permanent bridge synth, and let each event create a temp bridge
 			if (bridge.notNil, { bridge.free; bridge = nil; });
 			midiEvent[\play].value;
@@ -95,7 +95,7 @@ DirtSoundLibrary {
 		}), appendToExisting, false, metaData);
 		this.addSynth((name.asString ++ "_midi").asSymbol, (play: {
 			var orbit = (dirt.orbits @@ ~orbit);
-			~midiout = midi;
+			~midiout = device;
 			// create a permanent bridge synth
 			if (bridge.isNil, { bridge = Synth(bridgeName, addAction: \addToTail); });
 			midiEvent[\play].value;
