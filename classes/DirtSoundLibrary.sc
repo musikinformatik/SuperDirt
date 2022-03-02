@@ -10,14 +10,14 @@ valid fileExtensions can be extended, currently they are ["wav", "aif", "aiff", 
 
 DirtSoundLibrary {
 
-	var <server, <numChannels, <buffers, <bufferEvents, <synthEvents, <metaDataEvents;
+	var <dirt, <server, <numChannels, <buffers, <bufferEvents, <synthEvents, <metaDataEvents;
 	var <>fileExtensions = #["wav", "aif", "aiff", "aifc"];
 	var <>verbose = false;
 	var <>defaultEvent;
 	var <>doNotReadYet = false;
 
-	*new { |server, numChannels|
-		^super.newCopyArgs(server, numChannels).init
+	*new { |dirt, numChannels|
+		^super.newCopyArgs(dirt, dirt.server, numChannels).init
 	}
 
 	init {
@@ -74,25 +74,26 @@ DirtSoundLibrary {
 		this.addSynth(name, midiEvent, appendToExisting, false, metaData)
 	}
 
-	addMIDISynth { |name, midi, synth, event, appendToExisting = false, metaData|
+	addMIDISynth { |name, midi, bus, event, appendToExisting = false, metaData|
 		var midiEvent = DirtEventTypes.midiEvent.copy;
 		var bridge = nil;
 		var bridgeName = (name.asString ++ "_bridge").asSymbol;
 		if(event.notNil) { midiEvent.putAll(event) };
+		SynthDef.new(bridgeName, { arg out = 0;
+			Out.ar(out, In.ar(bus, numChannels));
+		}).add;
 		this.addSynth(name, (play: {
-			var orbit = (~dirt.orbits @@ ~orbit);
+			var orbit = (dirt.orbits @@ ~orbit);
 			~midiout = midi;
 			if (bridge.notNil, { bridge.free; bridge = nil; });
 			midiEvent[\play].value;
 			~s = bridgeName;
 			// force some fadeInTime
 			~begin = if (~begin == 0, { ~begin = 0.001; });
-			// move midi synth before the orbit's synth
-			synth.group.moveNodeToHead(synth);
 			DirtEvent(orbit, ~dirt.modules, currentEnvironment).play;
 		}), appendToExisting, false, metaData);
 		this.addSynth((name.asString ++ "_midi").asSymbol, (play: {
-			var orbit = (~dirt.orbits @@ ~orbit);
+			var orbit = (dirt.orbits @@ ~orbit);
 			~midiout = midi;
 			if (bridge.isNil, { bridge = Synth(bridgeName, addAction: \addToTail); });
 			midiEvent[\play].value;
