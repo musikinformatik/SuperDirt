@@ -91,7 +91,7 @@ DirtSoundLibrary {
 			~s = bridgeName;
 			// force some fadeInTime
 			~begin = if (~begin == 0, { ~begin = 0.001; });
-			DirtEvent(orbit, ~dirt.modules, currentEnvironment).play;
+			DirtEvent(orbit, dirt.modules, currentEnvironment).play;
 		}), appendToExisting, false, metaData);
 		this.addSynth((name.asString ++ "_midi").asSymbol, (play: {
 			var orbit = (dirt.orbits @@ ~orbit);
