@@ -29,6 +29,7 @@ s.sync;
 ~labs = VSTPluginController(Synth(\labs));
 ~labs.open("/Library/Audio/Plug-Ins/VST/LABS.vst", editor: true, verbose: true);
 
+// uncomment, to forward all MIDI messages into Labs VST:
 // MIDIFunc.noteOn({ |vel, pitch|
 // 	~labs.midi.noteOn(0, pitch, vel);
 // });
