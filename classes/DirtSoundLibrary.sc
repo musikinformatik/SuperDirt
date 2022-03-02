@@ -74,6 +74,29 @@ DirtSoundLibrary {
 		this.addSynth(name, midiEvent, appendToExisting, false, metaData)
 	}
 
+	addMIDISynth { |name, midi, synth, event, appendToExisting = false, metaData|
+		var midiEvent = DirtEventTypes.midiEvent.copy;
+		var bridge = nil;
+		var bridgeName = (name.asString ++ "_bridge").asSymbol;
+		if(event.notNil) { midiEvent.putAll(event) };
+		this.addSynth(name, (play: {
+			var orbit = (~dirt.orbits @@ ~orbit);
+			~midiout = midi;
+			if (bridge.notNil, { bridge.free; bridge = nil; });
+			midiEvent[\play].value;
+			~s = bridgeName;
+			~begin = ~begin.max(0.001);
+			synth.group.moveNodeToHead(synth);
+			DirtEvent(orbit, ~dirt.modules, currentEnvironment).play;
+		}), appendToExisting, false, metaData);
+		this.addSynth((name.asString ++ "_midi").asSymbol, (play: {
+			var orbit = (~dirt.orbits @@ ~orbit);
+			~midiout = midi;
+			if (bridge.isNil, { bridge = Synth(bridgeName, addAction: \addToTail); });
+			midiEvent[\play].value;
+		}), appendToExisting, false, metaData);
+	}
+
 	useSynthDefSustain { |event|
 		event.use {
 			~unitDuration = {
