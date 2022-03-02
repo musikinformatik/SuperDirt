@@ -76,7 +76,6 @@ DirtSoundLibrary {
 
 	addMIDISynth { |name, device, bus, event, appendToExisting = false, metaData|
 		var midiEvent = DirtEventTypes.midiEvent.copy;
-		var bridgeSynth = (name.asString ++ "_bridge").asSymbol;
 		if (metaData.isNil) { metaData = (\bridge: nil); };
 		if (event.notNil) { midiEvent.putAll(event) };
 		if (bus.notNil) {
@@ -86,9 +85,6 @@ DirtSoundLibrary {
 					(numChannels - (bus.size)).do { bus = bus.add(bus.last+1); };
 				};
 			};
-			SynthDef.new(bridgeSynth, { arg out = 0;
-				Out.ar(out, In.ar(bus));
-			}).add;
 		};
 		// clean up previous bridge
 		if (metaDataEvents[name].notNil and: { metaDataEvents[name].last[\bridge].notNil }) {
@@ -104,7 +100,8 @@ DirtSoundLibrary {
 				metaData.removeAt(\bridge);
 			};
 			midiEvent[\play].value;
-			~s = bridgeSynth;
+			~s = ("dirt_bridge" ++ numChannels).asSymbol;
+			~from = bus;
 			// force some fadeInTime
 			~begin = if (~begin == 0, { ~begin = 0.001; });
 			DirtEvent(orbit, dirt.modules, currentEnvironment).play;
@@ -114,7 +111,7 @@ DirtSoundLibrary {
 			~midiout = device;
 			// create a permanent bridge synth (has to be after the VST synth)
 			if (metaData[\bridge].isNil and: { bus.notNil }) {
-				metaData[\bridge] = Synth(bridgeSynth, addAction: \addToTail);
+				metaData[\bridge] = Synth("dirt_bridge" ++ numChannels, [from: bus], addAction: \addToTail);
 			};
 			midiEvent[\play].value;
 		}), appendToExisting, false, metaData);
