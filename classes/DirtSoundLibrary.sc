@@ -76,28 +76,33 @@ DirtSoundLibrary {
 
 	addMIDISynth { |name, device, bus, event, appendToExisting = false, metaData|
 		var midiEvent = DirtEventTypes.midiEvent.copy;
-		var bridge = nil;
 		var bridgeName = (name.asString ++ "_bridge").asSymbol;
-		if(event.notNil) { midiEvent.putAll(event) };
+		if (metaData.isNil) { metaData = (\bridge: nil); };
+		if (event.notNil) { midiEvent.putAll(event) };
 		if (bus.notNil) {
-			if (bus.isArray.not, {
+			if (bus.isArray.not) {
 				bus = [bus];
-				if (bus.size < numChannels, {
+				if (bus.size < numChannels) {
 					(numChannels - (bus.size)).do { bus = bus.add(bus.last+1); };
-				});
-			});
+				};
+			};
 			SynthDef.new(bridgeName, { arg out = 0;
 				Out.ar(out, In.ar(bus));
 			}).add;
 		};
-		SynthDef.new(bridgeName, { arg out = 0;
-			Out.ar(out, In.ar(bus));
-		}).add;
+		// clean up previous bridge
+		if (metaDataEvents[name].notNil and: { metaDataEvents[name][\bridge].notNil }) {
+			metaDataEvents[name][\bridge].free;
+			metaDataEvents[name].removeAt(\bridge);
+		};
 		this.addSynth(name, (play: {
 			var orbit = (dirt.orbits @@ ~orbit);
 			~midiout = device;
 			// free the permanent bridge synth, and let each event create a temp bridge
-			if (bridge.notNil, { bridge.free; bridge = nil; });
+			if (metaData[\bridge].notNil) {
+				metaData[\bridge].free;
+				metaData.removeAt(\bridge);
+			};
 			midiEvent[\play].value;
 			~s = bridgeName;
 			// force some fadeInTime
@@ -108,7 +113,9 @@ DirtSoundLibrary {
 			var orbit = (dirt.orbits @@ ~orbit);
 			~midiout = device;
 			// create a permanent bridge synth (has to be after the VST synth)
-			if (bridge.isNil and: { bus.notNil }, { bridge = Synth(bridgeName, addAction: \addToTail); });
+			if (metaData[\bridge].isNil and: { bus.notNil }) {
+				metaData[\bridge] = Synth(bridgeName, addAction: \addToTail);
+			};
 			midiEvent[\play].value;
 		}), appendToExisting, false, metaData);
 	}
