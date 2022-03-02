@@ -200,11 +200,6 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		ReplaceOut.ar(out, signal * through);
 	}, [\ir, \ir, \ir, \ir, \ir, \ir, \kr]).add;  // amp can be modulated
 
-	SynthDef("dirt_bridge" ++ numChannels, { |out, from, amp = 1|
-		var signal = In.ar(from, numChannels);
-		Out.ar(out, signal * amp);
-	}, [\ir, \ir, \kr]).add;
-
 	/*
 
 	Effect SynthDefs
