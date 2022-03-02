@@ -85,7 +85,8 @@ DirtSoundLibrary {
 			if (bridge.notNil, { bridge.free; bridge = nil; });
 			midiEvent[\play].value;
 			~s = bridgeName;
-			~begin = ~begin.max(0.001);
+			// force some fadeInTime
+			~begin = if (~begin == 0, { ~begin = 0.001; });
 			synth.group.moveNodeToHead(synth);
 			DirtEvent(orbit, ~dirt.modules, currentEnvironment).play;
 		}), appendToExisting, false, metaData);
