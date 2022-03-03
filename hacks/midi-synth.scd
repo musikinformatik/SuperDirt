@@ -6,7 +6,7 @@ and feed audio back into the orbit, and be able to apply effects in TidalCycles.
 var midiOut, bus;
 var numChannels = ~dirt.numChannels;
 
-SynthDef("midi_synth_bridge" ++ numChannels, { |out, from, amp = 1|
+SynthDef("midi_synth_gate" ++ numChannels, { |out, from, amp = 1|
 	var signal = In.ar(from, numChannels);
 	Out.ar(out, signal * amp);
 }, [\ir, \ir, \kr]).add;
