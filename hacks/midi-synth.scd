@@ -16,7 +16,7 @@ SynthDef("midi_synth_bridge" ++ numChannels, { |out, from, amp = 1|
 	var midiEvent = DirtEventTypes.midiEvent.copy;
 	if (metaData.isNil) { metaData = (); };
 	if (event.notNil) { midiEvent.putAll(event) };
-	// clean up previous gate
+	// clean up previous synths
 	if (metaDataEvents.notNil) {
 		metaDataEvents.flat.do { |value|
 			if (value.isNumber) {
@@ -30,19 +30,22 @@ SynthDef("midi_synth_bridge" ++ numChannels, { |out, from, amp = 1|
 
 	dirt.soundLibrary.addSynth(name, (play: { |dirtEvent|
 		if (bus.notNil) {
-			var gate;
+			var gateSynth;
+			var gateArgs = [out: dirtEvent.orbit.dryBus.index, from: bus];
 			~synthGroup = dirtEvent.orbit.group;
 			~out = bus;
 			if (metaData[\midi_synth_gate].isNil) {
-				metaData[\midi_synth_gate] = Synth("midi_synth_gate" ++ dirt.numChannels, [out: dirtEvent.orbit.dryBus.index, from: bus], ~synthGroup);
+				metaData[\midi_synth_gate] = Synth("midi_synth_gate" ++ dirt.numChannels, gateArgs, ~synthGroup);
+			} {
+				metaData[\midi_synth_gate].set(*gateArgs);
 			};
-			gate = metaData[\midi_synth_gate];
+			gateSynth = metaData[\midi_synth_gate];
 			dirtEvent.modules.do {|module|
 				if (module.test.value and: {module.name != 'sound'}) {
 					if (metaData[module.name].isNil) {
 						metaData[module.name] = ~synthID = dirt.server.nextNodeID;
 						module.func.value(dirtEvent);
-						gate.group.moveNodeToTail(gate);
+						gateSynth.group.moveNodeToTail(gateSynth);
 					} {
 						module.func.value((sendSynth: { |self, instrument, args|
 							args.asControlInput.flop.do { |each|
