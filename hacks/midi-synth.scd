@@ -1,6 +1,6 @@
 /*
-Setting up SuperDirt to play a MIDI synth (1.) or VSTPlugin (2.) and feed audio
-back into the orbit, and be able to apply effects in TidalCycles.
+Setting up SuperDirt to play a hardware MIDI synth (Hack 1) or VSTPlugin (Hack 2)
+and feed audio back into the orbit, and be able to apply effects in TidalCycles.
 */
 (
 var midiOut, bus;
@@ -14,54 +14,69 @@ SynthDef("midi_synth_bridge" ++ numChannels, { |out, from, amp = 1|
 ~addMIDISynth = { |dirt, name, device, bus, event, appendToExisting = false, metaData|
 	var metaDataEvents = dirt.soundLibrary.metaDataEvents[name];
 	var midiEvent = DirtEventTypes.midiEvent.copy;
-	if (metaData.isNil) { metaData = (\bridge: nil); };
+	if (metaData.isNil) { metaData = (); };
 	if (event.notNil) { midiEvent.putAll(event) };
-	// clean up previous bridge
-	if (metaDataEvents.notNil and: { metaDataEvents.last[\bridge].notNil }) {
-		metaDataEvents.last[\bridge].free;
-		metaDataEvents.last.removeAt(\bridge);
+	// clean up previous gate
+	if (metaDataEvents.notNil) {
+		metaDataEvents.flat.do { |value|
+			if (value.isNumber) {
+				dirt.server.sendMsg(\n_free, value);
+			} {
+				value.free;
+			};
+		};
+		dirt.soundLibrary.metaDataEvents[name] = nil;
 	};
 
-	dirt.soundLibrary.addSynth(name, (play: {
-		var orbit = (dirt.orbits @@ ~orbit);
-		~midiout = device;
-		// free the permanent bridge synth, and let each event create a temp bridge
-		if (metaData[\bridge].notNil) {
-			metaData[\bridge].free;
-			metaData.removeAt(\bridge);
+	dirt.soundLibrary.addSynth(name, (play: { |dirtEvent|
+		if (bus.notNil) {
+			var gate;
+			~synthGroup = dirtEvent.orbit.group;
+			~out = bus;
+			if (metaData[\midi_synth_gate].isNil) {
+				metaData[\midi_synth_gate] = Synth("midi_synth_gate" ++ dirt.numChannels, [out: dirtEvent.orbit.dryBus.index, from: bus], ~synthGroup);
+			};
+			gate = metaData[\midi_synth_gate];
+			dirtEvent.modules.do {|module|
+				if (module.test.value and: {module.name != 'sound'}) {
+					if (metaData[module.name].isNil) {
+						metaData[module.name] = ~synthID = dirt.server.nextNodeID;
+						module.func.value(dirtEvent);
+						gate.group.moveNodeToTail(gate);
+					} {
+						module.func.value((sendSynth: { |self, instrument, args|
+							args.asControlInput.flop.do { |each|
+								dirt.server.sendMsg(\n_set, metaData[module.name], *each.asOSCArgArray);
+							};
+						}));
+					};
+				} {
+					if (metaData[module.name].notNil) {
+						dirt.server.sendMsg(\n_free, metaData[module.name]);
+						metaData.removeAt(module.name);
+					};
+				};
+			};
 		};
-		midiEvent[\play].value;
-		~s = ("midi_synth_bridge" ++ dirt.numChannels).asSymbol;
-		~from = bus;
-		// force some fadeInTime
-		~begin = if (~begin == 0, { ~begin = 0.001; });
-		DirtEvent(orbit, dirt.modules, currentEnvironment).play;
-	}), appendToExisting, false, metaData);
-
-	dirt.soundLibrary.addSynth((name.asString ++ "_midi").asSymbol, (play: {
-		var orbit = (dirt.orbits @@ ~orbit);
 		~midiout = device;
-		// create a permanent bridge synth (has to be after the VST synth)
-		if (metaData[\bridge].isNil and: { bus.notNil }) {
-			metaData[\bridge] = Synth("midi_synth_bridge" ++ dirt.numChannels, [from: bus], addAction: \addToTail);
-		};
 		midiEvent[\play].value;
+		dirt.server.makeBundle(~latency, {
+			dirtEvent.orbit.globalEffects.do { |x| x.set(currentEnvironment) };
+		});
+		true;
 	}), appendToExisting, false, metaData);
 };
 
 /*
-1. This hack shows a physical synth used in TidalCycles.
-- change midiOut
-- change the incoming channels (2)
+| Hack 1 | This hack shows a physical synth used in TidalCycles.
+- change midiOut port
+- change the incoming channel index (2)
 
 Usage:
 
-d1 $ s "blofeld" # distort 0.2 -- here the audio from Blofeld is fed back into SuperDirt
--- (via sound card incoming 2,3 channels)
--- the envelope is controlled by TidalCycles and it's possible to use all audio effects
-
-d1 $ s "blofeld_midi" -- fallback to pure MIDI
--- audio effects won't work and envelope is controlled by the physical synth
+d1 $ s "blofeld" # lpf 200 # distort 0.2 # room 0.5 # size 0.8
+-- here the audio from hardware MIDI synth is fed back into SuperDirt
+-- (via sound card channels 2,3) and it's possible to use all audio effects
 
 */
 
@@ -71,18 +86,15 @@ midiOut = MIDIClient.destinations[0];
 ~addMIDISynth.(~dirt, \blofeld, midiOut, 2);
 
 /*
-2. This hack shows SpitFire Audio Labs VST used in TidalCycles.
+| Hack 2 | This hack shows SpitFire Audio Labs VST used in TidalCycles.
 !!! This requires SC VSTPlugin extension installed:
 https://github.com/Spacechild1/vstplugin
 https://git.iem.at/pd/vstplugin
 
 Usage:
 
-d1 $ s "labs" # distort 0.2 -- here the audio from VST is fed back into SuperDirt
--- the envelope is controlled by TidalCycles and it's possible to use all audio effects
-
-d1 $ s "labs_midi" -- fallback to pure MIDI
--- audio effects won't work and envelope is controlled by VST
+d1 $ s "labs" # lpf 200 # distort 0.2 # room 0.5 # size 0.8
+-- here the audio from VST is fed back into SuperDirt and it's possible to use all audio effects
 
 once $ "labs_editor" -- show Labs VST GUI
 */

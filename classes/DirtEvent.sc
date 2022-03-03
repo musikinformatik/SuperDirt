@@ -140,7 +140,7 @@ DirtEvent {
 		args.asControlInput.flop.do { |each|
 			server.sendMsg(\s_new,
 				instrument,
-				-1, // no id
+				~synthID ? -1, // no id
 				1, // add action: addToTail
 				group, // send to group
 				*each.asOSCArgArray // append all other args
