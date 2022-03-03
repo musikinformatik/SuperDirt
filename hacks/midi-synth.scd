@@ -5,10 +5,11 @@ and feed audio back into the orbit, and be able to apply effects/panning/etc in 
 (
 var numChannels = ~dirt.numChannels;
 
-SynthDef("midi_synth_bridge" ++ numChannels, { |out, from, amp = 1, pan = 0, gate=1, fadeTime = 0.01|
+SynthDef("midi_synth_gate" ++ numChannels, { |out, from, pan = 0, gate=1, fadeTime = 0.01, amp = 1, gain = 1, overgain = 0|
 	var signal = In.ar(from, numChannels);
 	var env = EnvGen.kr(Env.asr(fadeTime, 1.0, fadeTime, \sin), gate, doneAction: Done.freeSelf);
-	Out.ar(out, DirtPan.ar(signal, numChannels, pan) * amp);
+	amp = amp * pow(gain.min(2) + overgain, 4);
+	Out.ar(out, DirtPan.ar(signal, numChannels, pan) * env * amp);
 }, [\ir, \ir, \kr]).add;
 
 ~addMIDISynth = { |dirt, name, device, bus, event, appendToExisting = false, metaData|
@@ -18,9 +19,9 @@ SynthDef("midi_synth_bridge" ++ numChannels, { |out, from, amp = 1, pan = 0, gat
 		var metaDataEvents = dirt.soundLibrary.metaDataEvents[name];
 		if (metaDataEvents.notNil) {
 			metaDataEvents.flat.do { |md|
-				if (md[\bridge].notNil) {
-					var group = md[\bridge].group;
-					md[\bridge].set(\gate, 0);
+				if (md[\gate].notNil) {
+					var group = md[\gate].group;
+					md[\gate].set(\gate, 0);
 					SystemClock.sched(fadeTime, {
 						group.freeAll;
 						nil;
@@ -42,13 +43,13 @@ SynthDef("midi_synth_bridge" ++ numChannels, { |out, from, amp = 1, pan = 0, gat
 		lastDelta = delta;
 		lastEventSecs = SystemClock.seconds;
 		if (bus.notNil) {
-			var bridgeArgs = [out: dirtEvent.orbit.dryBus.index, from: bus, pan: ~pan, fadeTime: fadeTime];
+			var gateArgs = [out: dirtEvent.orbit.dryBus.index, from: bus, pan: ~pan, fadeTime: fadeTime, amp: ~amp, gain: ~gain, overgain: ~overgain];
 			~synthGroup = dirtEvent.orbit.group;
 			~out = bus;
-			if (metaData[\bridge].isNil) {
-				metaData[\bridge] = Synth("midi_synth_bridge" ++ dirt.numChannels, bridgeArgs, ~synthGroup);
+			if (metaData[\gate].isNil) {
+				metaData[\gate] = Synth("midi_synth_gate" ++ dirt.numChannels, gateArgs, ~synthGroup);
 			} {
-				metaData[\bridge].set(*bridgeArgs);
+				metaData[\gate].set(*gateArgs);
 			};
 			dirtEvent.modules.do {|module|
 				if (module.test.value and: {module.name != 'sound'}) {
@@ -56,7 +57,7 @@ SynthDef("midi_synth_bridge" ++ numChannels, { |out, from, amp = 1, pan = 0, gat
 						~synthID = dirt.server.nextNodeID;
 						metaData.put(module.name, ~synthID);
 						module.func.value(dirtEvent);
-						metaData[\bridge].group.moveNodeToTail(metaData[\bridge]);
+						metaData[\gate].group.moveNodeToTail(metaData[\gate]);
 					} {
 						module.func.value((sendSynth: { |self, instrument, args|
 							args.asControlInput.flop.do { |each|
