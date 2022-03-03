@@ -1,11 +1,11 @@
 /*
 Setting up SuperDirt to play a hardware MIDI synth (Hack 1) or VSTPlugin (Hack 2)
-and feed audio back into the orbit, and be able to apply effects in TidalCycles.
+and feed audio back into the orbit, and be able to apply effects/panning/etc in TidalCycles.
 */
 (
 var numChannels = ~dirt.numChannels;
 
-SynthDef("midi_synth_gate" ++ numChannels, { |out, from, amp = 1, pan = 0|
+SynthDef("midi_synth_bridge" ++ numChannels, { |out, from, amp = 1, pan = 0|
 	var signal = In.ar(from, numChannels);
 	signal = DirtPan.ar(signal, numChannels, pan);
 	Out.ar(out, signal * amp);
@@ -14,22 +14,20 @@ SynthDef("midi_synth_gate" ++ numChannels, { |out, from, amp = 1, pan = 0|
 ~addMIDISynth = { |dirt, name, device, bus, event, appendToExisting = false, metaData|
 	var midiEvent = DirtEventTypes.midiEvent.copy;
 	var lastEventSecs = 0, lastDelta = 0;
-	var cleanup = {
+	var freeSynths = {
 		var metaDataEvents = dirt.soundLibrary.metaDataEvents[name];
 		if (metaDataEvents.notNil) {
 			metaDataEvents.flat.do { |md|
+				if (md[\bridge].notNil) {
+					md[\bridge].group.freeAll;
+				};
 				md.copy.keysValuesDo { |key, val|
-					if (val.isNumber) {
-						dirt.server.sendMsg(\n_free, val);
-					} {
-						if ( val.respondsTo(\free)) { val.free; };
-					};
 					md.removeAt(key);
 				};
 			};
 		};
 	};
-	cleanup.value;
+	freeSynths.value;
 	if (metaData.isNil) { metaData = (); };
 	if (event.notNil) { midiEvent.putAll(event) };
 
@@ -38,23 +36,21 @@ SynthDef("midi_synth_gate" ++ numChannels, { |out, from, amp = 1, pan = 0|
 		lastDelta = delta;
 		lastEventSecs = SystemClock.seconds;
 		if (bus.notNil) {
-			var gateSynth;
-			var gateArgs = [out: dirtEvent.orbit.dryBus.index, from: bus, pan: ~pan];
+			var bridgeArgs = [out: dirtEvent.orbit.dryBus.index, from: bus, pan: ~pan];
 			~synthGroup = dirtEvent.orbit.group;
 			~out = bus;
-			if (metaData[\midi_synth_gate].isNil) {
-				metaData[\midi_synth_gate] = Synth("midi_synth_gate" ++ dirt.numChannels, gateArgs, ~synthGroup);
+			if (metaData[\bridge].isNil) {
+				metaData[\bridge] = Synth("midi_synth_bridge" ++ dirt.numChannels, bridgeArgs, ~synthGroup);
 			} {
-				metaData[\midi_synth_gate].set(*gateArgs);
+				metaData[\bridge].set(*bridgeArgs);
 			};
-			gateSynth = metaData[\midi_synth_gate];
 			dirtEvent.modules.do {|module|
 				if (module.test.value and: {module.name != 'sound'}) {
 					if (metaData[module.name].isNil) {
 						~synthID = dirt.server.nextNodeID;
 						metaData.put(module.name, ~synthID);
 						module.func.value(dirtEvent);
-						gateSynth.group.moveNodeToTail(gateSynth);
+						metaData[\bridge].group.moveNodeToTail(metaData[\bridge]);
 					} {
 						module.func.value((sendSynth: { |self, instrument, args|
 							args.asControlInput.flop.do { |each|
@@ -78,7 +74,7 @@ SynthDef("midi_synth_gate" ++ numChannels, { |out, from, amp = 1, pan = 0|
 		// if we don't receive next event, free the synths
 		SystemClock.sched((delta + ~latency), {
 			if ((SystemClock.seconds - lastEventSecs) > delta and: { delta == lastDelta }) {
-				cleanup.value;
+				freeSynths.value;
 			};
 			nil;
 		});
