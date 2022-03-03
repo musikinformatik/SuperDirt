@@ -5,23 +5,28 @@ and feed audio back into the orbit, and be able to apply effects/panning/etc in 
 (
 var numChannels = ~dirt.numChannels;
 
-SynthDef("midi_synth_bridge" ++ numChannels, { |out, from, amp = 1, pan = 0|
+SynthDef("midi_synth_bridge" ++ numChannels, { |out, from, amp = 1, pan = 0, gate=1, fadeTime = 0.01|
 	var signal = In.ar(from, numChannels);
-	signal = DirtPan.ar(signal, numChannels, pan);
-	Out.ar(out, signal * amp);
+	var env = EnvGen.kr(Env.asr(fadeTime, 1.0, fadeTime, \sin), gate, doneAction: Done.freeSelf);
+	Out.ar(out, DirtPan.ar(signal, numChannels, pan) * amp);
 }, [\ir, \ir, \kr]).add;
 
 ~addMIDISynth = { |dirt, name, device, bus, event, appendToExisting = false, metaData|
 	var midiEvent = DirtEventTypes.midiEvent.copy;
 	var lastEventSecs = 0, lastDelta = 0;
-	var freeSynths = {
+	var freeSynths = { |fadeTime = 0.01|
 		var metaDataEvents = dirt.soundLibrary.metaDataEvents[name];
 		if (metaDataEvents.notNil) {
 			metaDataEvents.flat.do { |md|
 				if (md[\bridge].notNil) {
-					md[\bridge].group.freeAll;
+					var group = md[\bridge].group;
+					md[\bridge].set(\gate, 0);
+					SystemClock.sched(fadeTime, {
+						group.freeAll;
+						nil;
+					});
 				};
-				md.copy.keysValuesDo { |key, val|
+				md.copy.keysDo { |key|
 					md.removeAt(key);
 				};
 			};
@@ -33,10 +38,11 @@ SynthDef("midi_synth_bridge" ++ numChannels, { |out, from, amp = 1, pan = 0|
 
 	dirt.soundLibrary.addSynth(name, (play: { |dirtEvent|
 		var delta = ~delta;
+		var fadeTime = ~fadeTime;
 		lastDelta = delta;
 		lastEventSecs = SystemClock.seconds;
 		if (bus.notNil) {
-			var bridgeArgs = [out: dirtEvent.orbit.dryBus.index, from: bus, pan: ~pan];
+			var bridgeArgs = [out: dirtEvent.orbit.dryBus.index, from: bus, pan: ~pan, fadeTime: fadeTime];
 			~synthGroup = dirtEvent.orbit.group;
 			~out = bus;
 			if (metaData[\bridge].isNil) {
@@ -74,7 +80,7 @@ SynthDef("midi_synth_bridge" ++ numChannels, { |out, from, amp = 1, pan = 0|
 		// if we don't receive next event, free the synths
 		SystemClock.sched((delta + ~latency), {
 			if ((SystemClock.seconds - lastEventSecs) > delta and: { delta == lastDelta }) {
-				freeSynths.value;
+				freeSynths.value(fadeTime);
 			};
 			nil;
 		});
