@@ -3,7 +3,6 @@ Setting up SuperDirt to play a hardware MIDI synth (Hack 1) or VSTPlugin (Hack 2
 and feed audio back into the orbit, and be able to apply effects in TidalCycles.
 */
 (
-var midiOut, bus;
 var numChannels = ~dirt.numChannels;
 
 SynthDef("midi_synth_gate" ++ numChannels, { |out, from, amp = 1|
@@ -16,13 +15,12 @@ SynthDef("midi_synth_gate" ++ numChannels, { |out, from, amp = 1|
 	var midiEvent = DirtEventTypes.midiEvent.copy;
 	if (metaData.isNil) { metaData = (); };
 	if (event.notNil) { midiEvent.putAll(event) };
-	// clean up previous synths
 	if (metaDataEvents.notNil) {
 		metaDataEvents.flat.do { |value|
 			if (value.isNumber) {
 				dirt.server.sendMsg(\n_free, value);
 			} {
-				value.free;
+				if ( value.respondsTo(\free)) { value.free; };
 			};
 		};
 		dirt.soundLibrary.metaDataEvents[name] = nil;
@@ -69,25 +67,28 @@ SynthDef("midi_synth_gate" ++ numChannels, { |out, from, amp = 1|
 		true;
 	}), appendToExisting, false, metaData);
 };
-
+)
 /*
-| Hack 1 | This hack shows a physical synth used in TidalCycles.
-- change midiOut port
-- change the incoming channel index (2)
+| Hack 1 | This hack shows a hardware midi synth used in TidalCycles.
+- change inBus number
+- change "deviceName" and "portName" for MIDIOut.findPort
 
 Usage:
 
-d1 $ s "blofeld" # lpf 200 # distort 0.2 # room 0.5 # size 0.8
+d1 $ s "my_hardware_synth" # lpf 200 # distort 0.2 # room 0.5 # size 0.8
 -- here the audio from hardware MIDI synth is fed back into SuperDirt
 -- (via sound card channels 2,3) and it's possible to use all audio effects
 
 */
-
-// MIDIClient.init;
-midiOut = MIDIClient.destinations[0];
-// midiOut = MIDIOut.findPort("deviceName", "portName")
-~addMIDISynth.(~dirt, \blofeld, midiOut, 2);
-
+(
+var inBus = 2;
+var midiOut;
+if (MIDIClient.initialized.not) { MIDIClient.init; };
+midiOut = MIDIOut.findPort("deviceName", "portName");
+if (midiOut.notNil) {
+	~addMIDISynth.(~dirt, \my_hardware_synth, midiOut, inBus);
+}
+)
 /*
 | Hack 2 | This hack shows SpitFire Audio Labs VST used in TidalCycles.
 !!! This requires SC VSTPlugin extension installed:
@@ -101,25 +102,36 @@ d1 $ s "labs" # lpf 200 # distort 0.2 # room 0.5 # size 0.8
 
 once $ "labs_editor" -- show Labs VST GUI
 */
-bus = Bus.audio(s, numChannels);
-SynthDef.new(\labs, {
-	Out.ar(bus.index, VSTPlugin.ar(nil, numChannels));
-}).add;
+(
+s.waitForBoot {
+	var vstPaths = (
+		\mac: "/Library/Audio/Plug-Ins/VST/LABS.vst",
+	);
 
-s.sync;
+	if (vstPaths[thisProcess.platform.name].notNil) {
+		var vstPath = vstPaths[thisProcess.platform.name];
+		var vstBus = Bus.audio(s, 2);
 
-// create Synth with VST instrument
-~labs = VSTPluginController(Synth(\labs));
-~labs.open("/Library/Audio/Plug-Ins/VST/LABS.vst", editor: true, verbose: true);
+		SynthDef.new(\labs, {
+			Out.ar(vstBus.index, VSTPlugin.ar(nil, 2));
+		}).add;
 
-~addMIDISynth.(~dirt, \labs, ~labs.midi, bus.index);
-~dirt.soundLibrary.addSynth(\labs_editor, (play: {
-	topEnvironment[\labs].editor;
-}));
+		s.sync;
 
-// wait for SuperDirt to initialize routing, and move the Labs VST synth before the orbits
-AppClock.sched(0, {
-    ~labs.synth.group.moveNodeToHead(~labs.synth);
-	nil;
-});
+		// create Synth with VST instrument
+		~labs = VSTPluginController(Synth(\labs));
+		~labs.open(vstPath, editor: true, verbose: false);
+
+		~addMIDISynth.(~dirt, \labs, ~labs.midi, vstBus.index);
+		~dirt.soundLibrary.addSynth(\labs_editor, (play: {
+			topEnvironment[\labs].editor;
+		}));
+
+		// wait for SuperDirt to initialize routing, and move the Labs VST synth before the orbits
+		AppClock.sched(0, {
+		    ~labs.synth.group.moveNodeToHead(~labs.synth);
+			nil;
+		});
+	};
+};
 )
