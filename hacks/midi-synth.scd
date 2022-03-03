@@ -11,22 +11,31 @@ SynthDef("midi_synth_gate" ++ numChannels, { |out, from, amp = 1|
 }, [\ir, \ir, \kr]).add;
 
 ~addMIDISynth = { |dirt, name, device, bus, event, appendToExisting = false, metaData|
-	var metaDataEvents = dirt.soundLibrary.metaDataEvents[name];
 	var midiEvent = DirtEventTypes.midiEvent.copy;
-	if (metaData.isNil) { metaData = (); };
-	if (event.notNil) { midiEvent.putAll(event) };
-	if (metaDataEvents.notNil) {
-		metaDataEvents.flat.do { |value|
-			if (value.isNumber) {
-				dirt.server.sendMsg(\n_free, value);
-			} {
-				if ( value.respondsTo(\free)) { value.free; };
+	var lastEventSecs = 0, lastDelta = 0;
+	var cleanup = {
+		var metaDataEvents = dirt.soundLibrary.metaDataEvents[name];
+		if (metaDataEvents.notNil) {
+			metaDataEvents.flat.do { |md|
+				md.copy.keysValuesDo { |key, val|
+					if (val.isNumber) {
+						dirt.server.sendMsg(\n_free, val);
+					} {
+						if ( val.respondsTo(\free)) { val.free; };
+					};
+					md.removeAt(key);
+				};
 			};
 		};
-		dirt.soundLibrary.metaDataEvents[name] = nil;
 	};
+	cleanup.value;
+	if (metaData.isNil) { metaData = (); };
+	if (event.notNil) { midiEvent.putAll(event) };
 
 	dirt.soundLibrary.addSynth(name, (play: { |dirtEvent|
+		var delta = ~delta;
+		lastDelta = delta;
+		lastEventSecs = SystemClock.seconds;
 		if (bus.notNil) {
 			var gateSynth;
 			var gateArgs = [out: dirtEvent.orbit.dryBus.index, from: bus];
@@ -41,7 +50,8 @@ SynthDef("midi_synth_gate" ++ numChannels, { |out, from, amp = 1|
 			dirtEvent.modules.do {|module|
 				if (module.test.value and: {module.name != 'sound'}) {
 					if (metaData[module.name].isNil) {
-						metaData[module.name] = ~synthID = dirt.server.nextNodeID;
+						~synthID = dirt.server.nextNodeID;
+						metaData.put(module.name, ~synthID);
 						module.func.value(dirtEvent);
 						gateSynth.group.moveNodeToTail(gateSynth);
 					} {
@@ -63,6 +73,13 @@ SynthDef("midi_synth_gate" ++ numChannels, { |out, from, amp = 1|
 		midiEvent[\play].value;
 		dirt.server.makeBundle(~latency, {
 			dirtEvent.orbit.globalEffects.do { |x| x.set(currentEnvironment) };
+		});
+		// if we don't receive next event, free the synths
+		SystemClock.sched((delta + ~latency), {
+			if ((SystemClock.seconds - lastEventSecs) > delta and: { delta == lastDelta }) {
+				cleanup.value;
+			};
+			nil;
 		});
 		true;
 	}), appendToExisting, false, metaData);
