@@ -70,8 +70,8 @@ SynthDef("midi_synth_gate" ++ numChannels, { |out, from, amp = 1|
 )
 /*
 | Hack 1 | This hack shows a hardware midi synth used in TidalCycles.
-- change inBus number
-- change "deviceName" and "portName" for MIDIOut.findPort
+- change "deviceName" and "portName"
+- change inCh number
 
 Usage:
 
@@ -81,13 +81,34 @@ d1 $ s "my_hardware_synth" # lpf 200 # distort 0.2 # room 0.5 # size 0.8
 
 */
 (
-var inBus = 2;
-var midiOut;
-if (MIDIClient.initialized.not) { MIDIClient.init; };
-midiOut = MIDIOut.findPort("deviceName", "portName");
-if (midiOut.notNil) {
-	~addMIDISynth.(~dirt, \my_hardware_synth, midiOut, inBus);
-}
+fork {
+	var deviceName = "deviceName";
+	var portName = "portName";
+	var inCh = [0, 1];
+	if (MIDIClient.initialized.not) { MIDIClient.init; };
+	if (MIDIOut.findPort(deviceName, portName).notNil) {
+		var midiOut = MIDIOut.newByName(deviceName, portName);
+		var hwBus = Bus.audio(s, 2);
+		var hwSynth;
+
+		SynthDef(\midi_synth_in, {
+			Out.ar(hwBus.index, SoundIn.ar(inCh));
+		}).add;
+
+		// sync synthdef
+		s.sync;
+
+		hwSynth = Synth(\midi_synth_in);
+
+		~addMIDISynth.(~dirt, \my_hardware_synth, midiOut, hwBus.index);
+
+		// move to head after SuperDirt inits routing
+		SystemClock.sched(0.05, {
+			hwSynth.group.moveNodeToHead(hwSynth);
+			nil;
+		});
+	};
+};
 )
 /*
 | Hack 2 | This hack shows SpitFire Audio Labs VST used in TidalCycles.
@@ -103,7 +124,7 @@ d1 $ s "labs" # lpf 200 # distort 0.2 # room 0.5 # size 0.8
 once $ "labs_editor" -- show Labs VST GUI
 */
 (
-s.waitForBoot {
+fork {
 	var vstPaths = (
 		\mac: "/Library/Audio/Plug-Ins/VST/LABS.vst",
 	);
@@ -112,10 +133,11 @@ s.waitForBoot {
 		var vstPath = vstPaths[thisProcess.platform.name];
 		var vstBus = Bus.audio(s, 2);
 
-		SynthDef.new(\labs, {
+		SynthDef(\labs, {
 			Out.ar(vstBus.index, VSTPlugin.ar(nil, 2));
 		}).add;
 
+		// sync synthdef
 		s.sync;
 
 		// create Synth with VST instrument
@@ -127,9 +149,9 @@ s.waitForBoot {
 			topEnvironment[\labs].editor;
 		}));
 
-		// wait for SuperDirt to initialize routing, and move the Labs VST synth before the orbits
-		AppClock.sched(0, {
-		    ~labs.synth.group.moveNodeToHead(~labs.synth);
+		// move to head after SuperDirt inits routing
+		SystemClock.sched(0.05, {
+			~labs.synth.group.moveNodeToHead(~labs.synth);
 			nil;
 		});
 	};
