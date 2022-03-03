@@ -5,8 +5,9 @@ and feed audio back into the orbit, and be able to apply effects in TidalCycles.
 (
 var numChannels = ~dirt.numChannels;
 
-SynthDef("midi_synth_gate" ++ numChannels, { |out, from, amp = 1|
+SynthDef("midi_synth_gate" ++ numChannels, { |out, from, amp = 1, pan = 0|
 	var signal = In.ar(from, numChannels);
+	signal = DirtPan.ar(signal, numChannels, pan);
 	Out.ar(out, signal * amp);
 }, [\ir, \ir, \kr]).add;
 
@@ -38,7 +39,7 @@ SynthDef("midi_synth_gate" ++ numChannels, { |out, from, amp = 1|
 		lastEventSecs = SystemClock.seconds;
 		if (bus.notNil) {
 			var gateSynth;
-			var gateArgs = [out: dirtEvent.orbit.dryBus.index, from: bus];
+			var gateArgs = [out: dirtEvent.orbit.dryBus.index, from: bus, pan: ~pan];
 			~synthGroup = dirtEvent.orbit.group;
 			~out = bus;
 			if (metaData[\midi_synth_gate].isNil) {
