@@ -5,7 +5,7 @@ and feed audio back into the orbit, and be able to apply effects/panning/etc in 
 (
 var numChannels = ~dirt.numChannels;
 
-SynthDef("midi_synth_gate" ++ numChannels, { |out, from, pan = 0, gate=1, fadeTime = 0.01, amp = 1, gain = 1, overgain = 0|
+SynthDef("dirt_gate_cont" ++ numChannels, { |out, from, pan = 0, gate=1, fadeTime = 0.01, amp = 1, gain = 1, overgain = 0|
 	var signal = In.ar(from, numChannels);
 	var env = EnvGen.kr(Env.asr(fadeTime, 1.0, fadeTime, \sin), gate, doneAction: Done.freeSelf);
 	amp = amp * pow(gain.min(2) + overgain, 4);
@@ -15,20 +15,46 @@ SynthDef("midi_synth_gate" ++ numChannels, { |out, from, pan = 0, gate=1, fadeTi
 ~addMIDISynth = { |dirt, name, device, bus, event, appendToExisting = false, metaData|
 	var midiEvent = DirtEventTypes.midiEvent.copy;
 	var lastEventSecs = 0, lastDelta = 0;
+	var playModules = { |dirtEvent, metaData|
+		var orbit = dirtEvent.orbit;
+		dirtEvent.modules.do {|module|
+			if (module.test.value and: {module.name != 'sound'}) {
+				if (metaData[module.name].isNil) {
+					~synthID = orbit.server.nextNodeID;
+					metaData.put(module.name, ~synthID);
+					module.func.value(dirtEvent);
+					if (metaData[\gate].notNil) {
+						metaData[\gate].group.moveNodeToTail(metaData[\gate]);
+					};
+				} {
+					module.func.value((sendSynth: { |self, instrument, args|
+						args.asControlInput.flop.do { |each|
+							dirt.server.sendMsg(\n_set, metaData[module.name], *each.asOSCArgArray);
+						};
+					}));
+				};
+			} {
+				if (metaData[module.name].notNil) {
+					orbit.server.sendMsg(\n_free, metaData[module.name]);
+					metaData.removeAt(module.name);
+				};
+			};
+		};
+	};
 	var freeSynths = { |fadeTime = 0.01|
 		var metaDataEvents = dirt.soundLibrary.metaDataEvents[name];
 		if (metaDataEvents.notNil) {
-			metaDataEvents.flat.do { |md|
-				if (md[\gate].notNil) {
-					var group = md[\gate].group;
-					md[\gate].set(\gate, 0);
+			metaDataEvents.flat.do { |metaData|
+				if (metaData[\gate].notNil) {
+					var group = metaData[\gate].group;
+					metaData[\gate].set(\gate, 0);
 					SystemClock.sched(fadeTime, {
-						group.freeAll;
+						group.free;
 						nil;
 					});
 				};
-				md.copy.keysDo { |key|
-					md.removeAt(key);
+				metaData.copy.keysDo { |key|
+					metaData.removeAt(key);
 				};
 			};
 		};
@@ -44,34 +70,17 @@ SynthDef("midi_synth_gate" ++ numChannels, { |out, from, pan = 0, gate=1, fadeTi
 		lastEventSecs = SystemClock.seconds;
 		if (bus.notNil) {
 			var gateArgs = [out: dirtEvent.orbit.dryBus.index, from: bus, pan: ~pan, fadeTime: fadeTime, amp: ~amp, gain: ~gain, overgain: ~overgain];
-			~synthGroup = dirtEvent.orbit.group;
+			if (metaData[\group].isNil) {
+				dirtEvent.prepareSynthGroup;
+				metaData[\group] = ~synthGroup;
+			} { ~synthGroup = metaData[\group]; };
 			~out = bus;
 			if (metaData[\gate].isNil) {
-				metaData[\gate] = Synth("midi_synth_gate" ++ dirt.numChannels, gateArgs, ~synthGroup);
+				metaData[\gate] = Synth("dirt_gate_cont" ++ dirt.numChannels, gateArgs, ~synthGroup);
 			} {
 				metaData[\gate].set(*gateArgs);
 			};
-			dirtEvent.modules.do {|module|
-				if (module.test.value and: {module.name != 'sound'}) {
-					if (metaData[module.name].isNil) {
-						~synthID = dirt.server.nextNodeID;
-						metaData.put(module.name, ~synthID);
-						module.func.value(dirtEvent);
-						metaData[\gate].group.moveNodeToTail(metaData[\gate]);
-					} {
-						module.func.value((sendSynth: { |self, instrument, args|
-							args.asControlInput.flop.do { |each|
-								dirt.server.sendMsg(\n_set, metaData[module.name], *each.asOSCArgArray);
-							};
-						}));
-					};
-				} {
-					if (metaData[module.name].notNil) {
-						dirt.server.sendMsg(\n_free, metaData[module.name]);
-						metaData.removeAt(module.name);
-					};
-				};
-			};
+			playModules.value(dirtEvent, metaData);
 		};
 		~midiout = device;
 		midiEvent[\play].value;
