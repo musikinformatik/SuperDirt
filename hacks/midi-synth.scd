@@ -7,9 +7,11 @@ var numChannels = ~dirt.numChannels;
 
 SynthDef("dirt_gate_cont" ++ numChannels, { |out, from, pan = 0, gate=1, fadeTime = 0.01, amp = 1, gain = 1, overgain = 0|
 	var signal = In.ar(from, numChannels);
-	var env = EnvGen.kr(Env.asr(fadeTime, 1.0, fadeTime, \sin), gate, doneAction: Done.freeSelf);
+	var env = EnvGen.kr(Env.asr(fadeTime, 1.0, fadeTime, \sin), gate, doneAction: 14);
 	amp = amp * pow(gain.min(2) + overgain, 4);
-	Out.ar(out, DirtPan.ar(signal, numChannels, pan) * env * amp);
+	signal = DirtPan.ar(signal, numChannels, pan) * env * amp;
+	OffsetOut.ar(out, signal);
+	ReplaceOut.ar(in, Silent.ar(numChannels));
 }, [\ir, \ir, \kr]).add;
 
 ~addMIDISynth = { |dirt, name, device, bus, event, appendToExisting = false, metaData|
@@ -28,6 +30,7 @@ SynthDef("dirt_gate_cont" ++ numChannels, { |out, from, pan = 0, gate=1, fadeTim
 					};
 				} {
 					module.func.value((sendSynth: { |self, instrument, args|
+						args = args ?? { dirtEvent.getMsgFunc(instrument).valueEnvir };
 						args.asControlInput.flop.do { |each|
 							dirt.server.sendMsg(\n_set, metaData[module.name], *each.asOSCArgArray);
 						};
@@ -46,12 +49,7 @@ SynthDef("dirt_gate_cont" ++ numChannels, { |out, from, pan = 0, gate=1, fadeTim
 		if (metaDataEvents.notNil) {
 			metaDataEvents.flat.do { |metaData|
 				if (metaData[\gate].notNil) {
-					var group = metaData[\gate].group;
 					metaData[\gate].set(\gate, 0);
-					SystemClock.sched(fadeTime, {
-						group.free;
-						nil;
-					});
 				};
 				metaData.copy.keysDo { |key|
 					metaData.removeAt(key);
