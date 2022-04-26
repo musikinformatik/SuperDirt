@@ -17,12 +17,12 @@ DirtEvent {
 				this.mergeSoundEvent;
 				server = ~server.value; // as server is used a lot, make lookup more efficient
 				this.orderTimeSpan;
-				this.calcTimeSpan; // ~sustain is called here
-				this.finaliseParameters;
-				// unless event diversion returns something, we proceed
-				~play.(this) ?? {
-					if(~sustain >= orbit.minSustain) { this.playSynths }; // otherwise drop it.
-				}
+				this.calcTimeSpan; // ~sustain is calculated here
+				if(~sustain >= orbit.minSustain.value or: { ~play.notNil }) {
+					this.finaliseParameters;
+					// unless event diversion returns something, we proceed
+					~play.(this) ?? { this.playSynths };
+				} // otherwise drop the event.
 			}
 		}
 	}
