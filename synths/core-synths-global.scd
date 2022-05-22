@@ -89,10 +89,6 @@ CORE SYNTHDEFS FOR DIRT
 			// from sc3-plugins
 			signal = \SwitchDelay.asClass.ar(input, 1, 1, delaytime, delayfeedback, maxDelayTime);
 
-			DetectSilence.ar(signal, time:1, doneAction: 1);
-			// doesn't work properly. We don't really know when it's not used anymore.
-			// this would have to be an explicit signal from sclang
-
 			signal = signal * EnvGen.kr(Env.asr, gate, doneAction:2);
 			signal = signal * delayAmp.lag(0.01);
 
