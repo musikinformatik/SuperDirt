@@ -17,7 +17,7 @@
 			numChannels = file.numChannels;
 		});
 		failed = numFrames == 0;
-		if(failed) {
+		^if(failed) {
 			"\n".post; "File reading failed for path: '%'\n\n".format(path).warn;
 			this.free; // free buffer number
 			nil
