@@ -38,12 +38,23 @@ this may be refacored later.
 		var instrument, args;
 		if(~diversion.value.isNil) {
 			if(~buffer.notNil) {
+				var freq;
 				// arguments could be omitted using getMsgFunc, but for making it easier to understand, we write them out
+				freq = ~freq;
+				if((~tune ? 0) > 0) {
+					var meta;
+					meta = ~dirt.soundLibrary.metaDataEvents[~s] !? _[~n];
+					meta !? {
+						var ratio;
+						ratio = freq / meta.midinote.midicps;
+						freq = freq * ratio;
+					};
+				};
 				args = [
 					bufnum: ~buffer,
 					sustain: ~sustain,
 					speed: ~speed,
-					freq: ~freq,
+					freq: freq,
 					endSpeed: ~endSpeed,
 					begin: ~begin,
 					end: ~end,

@@ -47,7 +47,14 @@ DirtSoundLibrary {
 		event = this.makeEventForBuffer(buffer);
 		buffers[name] = buffers[name].add(buffer);
 		bufferEvents[name] = bufferEvents[name].add(event);
-		metaData !? { metaDataEvents[name] = metaDataEvents[name].add(metaData) };
+		metaData !? {
+			var index;
+			if(metaDataEvents[name].isNil) {
+				metaDataEvents[name] = Dictionary[];
+			};
+			index = buffers[name].size - 1;
+			metaDataEvents[name].put(index, metaData);
+		};
 		if(verbose) { "new sample buffer named '%':\n%\n\n".postf(name, event) };
 	}
 
@@ -198,7 +205,8 @@ DirtSoundLibrary {
 			try {
 				var buf = this.readSoundFile(filepath);
 				if(buf.notNil) {
-					this.addBuffer(name, buf, appendToExisting);
+					var metaData = this.readMetaData(filepath);
+					this.addBuffer(name, buf, appendToExisting, metaData);
 					appendToExisting = true; // append all others
 				};
 			} { |erreur|
@@ -210,7 +218,10 @@ DirtSoundLibrary {
 
 	loadSoundFile { |path, name, appendToExisting = false|
 		var buf = this.readSoundFile(path);
-		if(buf.notNil) { this.addBuffer(name, buf, appendToExisting) }
+		if(buf.notNil) {
+			var metaData = this.readMetaData(path);
+			this.addBuffer(name, buf, appendToExisting, metaData);
+		}
 	}
 
 	readSoundFile { |path|
@@ -222,6 +233,34 @@ DirtSoundLibrary {
 		^Buffer.readWithInfo(server, path, onlyHeader: doNotReadYet)
 	}
 
+	readMetaData { |path|
+		^this.readSmplMetaData(path);
+	}
+
+	readSmplMetaData { |path|
+		var midinote;
+		["readSmplMetaData", path].postln;
+		try {
+			var noteStr, fractStr, note, fract;
+			SoundFile.use(path, { |sf|
+				var headers, noteRe, fractRe;
+				headers = sf.readHeaderAsString;
+				noteRe = "  Midi Note\\s*:\\s*(.+?)\\s*\n";
+				fractRe = "  Pitch Fract.\\s*:\\s*(.+?)\\s*\n";
+				noteStr = headers.findRegexp(noteRe)[1][1];
+				fractStr = headers.findRegexp(fractRe)[1][1];
+			});
+			["noteStr", noteStr].postln;
+			["fractStr", fractStr].postln;
+			note = noteStr.asInteger;
+			fract = fractStr.asInteger/128.0;
+			["note", note].postln;
+			["fract", fract].postln;
+			midinote = note + fract;
+		} { |e| e.postln; nil; };
+		["midinote", midinote].postln;
+		^if(midinote.notNil) { (midinote: midinote) };
+	}
 
 	/* access */
 
