@@ -202,7 +202,7 @@ DirtSoundLibrary {
 					appendToExisting = true; // append all others
 				};
 			} { |erreur|
-				if(erreur.isException) { erreur.reportError };
+				erreur.reportError;
 			}
 		}
 
