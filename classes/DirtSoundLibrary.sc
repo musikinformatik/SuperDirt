@@ -44,7 +44,7 @@ DirtSoundLibrary {
 			"\nreplacing '%' (%)\n".postf(name, buffers[name].size);
 			this.freeSoundFiles(name);
 		};
-		event = this.makeEventForBuffer(buffer);
+		event = this.makeEventForBuffer(buffer, metaData);
 		buffers[name] = buffers[name].add(buffer);
 		bufferEvents[name] = bufferEvents[name].add(event);
 		metaData !? {
@@ -250,15 +250,18 @@ DirtSoundLibrary {
 				noteStr = headers.findRegexp(noteRe)[1][1];
 				fractStr = headers.findRegexp(fractRe)[1][1];
 			});
-			["noteStr", noteStr].postln;
-			["fractStr", fractStr].postln;
 			note = noteStr.asInteger;
-			fract = fractStr.asInteger/128.0;
-			["note", note].postln;
-			["fract", fract].postln;
+			fract = fractStr.asFloat;
+			// as of 2022-06-24, the libsndfile calculation that gives the pitch fraction seems to be wrong...
+			// https://github.com/libsndfile/libsndfile/blob/33e765ccba9a0eb225694fdbf9e299683a8338ee/src/wav.c#L1399
+			// basically, all values other than 0 are inverted and scaled incorrectly.
+			// here we assume this is the case and correct the math.
+			// TODO: maybe have a flag to skip this, to support a potential fixed libsndfile?
+			if(fract > 0) {
+				fract = fract.reciprocal * 0.5;
+			};
 			midinote = note + fract;
-		} { |e| e.postln; nil; };
-		["midinote", midinote].postln;
+		} { |e| e.reportError; nil; };
 		^if(midinote.notNil) { (midinote: midinote) };
 	}
 
@@ -313,7 +316,7 @@ DirtSoundLibrary {
 		}
 	}
 
-	makeEventForBuffer { |buffer|
+	makeEventForBuffer { |buffer, meta|
 		var baseFreq = 60.midicps;
 		^(
 			buffer: buffer.bufnum,
@@ -323,7 +326,14 @@ DirtSoundLibrary {
 			stretchInstrument: this.stretchInstrumentForBuffer(buffer),
 			bufNumFrames: buffer.numFrames,
 			bufNumChannels: buffer.numChannels,
-			unitDuration: { buffer.duration * baseFreq / ~freq.value },
+			baseFreq: {
+				if(~tune > 0) {
+					meta !? _.midinote !? _.midicps
+				} ? baseFreq
+			},
+			unitDuration: {
+				buffer.duration * baseFreq / ~freq.value
+			},
 			hash: buffer.identityHash,
 			note: 0
 		)
