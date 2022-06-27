@@ -195,13 +195,14 @@ DirtSoundLibrary {
 	loadSoundFilePaths { |filePaths, name, appendToExisting = false|
 
 		filePaths.do { |filepath|
-			try { |erreur|
+			try {
 				var buf = this.readSoundFile(filepath);
 				if(buf.notNil) {
 					this.addBuffer(name, buf, appendToExisting);
 					appendToExisting = true; // append all others
 				};
-				if(erreur.isException) { erreur.reportError };
+			} { |erreur|
+				erreur.reportError;
 			}
 		}
 
