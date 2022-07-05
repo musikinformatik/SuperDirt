@@ -239,7 +239,6 @@ DirtSoundLibrary {
 
 	readSmplMetaData { |path|
 		var midinote;
-		["readSmplMetaData", path].postln;
 		try {
 			var noteStr, fractStr, note, fract;
 			SoundFile.use(path, { |sf|
@@ -247,22 +246,29 @@ DirtSoundLibrary {
 				headers = sf.readHeaderAsString;
 				noteRe = "  Midi Note\\s*:\\s*(.+?)\\s*\n";
 				fractRe = "  Pitch Fract.\\s*:\\s*(.+?)\\s*\n";
-				noteStr = headers.findRegexp(noteRe)[1][1];
-				fractStr = headers.findRegexp(fractRe)[1][1];
+				noteStr = headers.findRegexp(noteRe) !? _[1] !? _[1];
+				fractStr = headers.findRegexp(fractRe) !? _[1] !? _[1];
 			});
-			note = noteStr.asInteger;
-			fract = fractStr.asFloat;
-			// as of 2022-06-24, the libsndfile calculation that gives the pitch fraction seems to be wrong...
-			// https://github.com/libsndfile/libsndfile/blob/33e765ccba9a0eb225694fdbf9e299683a8338ee/src/wav.c#L1399
-			// basically, all values other than 0 are inverted and scaled incorrectly.
-			// here we assume this is the case and correct the math.
-			// TODO: maybe have a flag to skip this, to support a potential fixed libsndfile?
-			if(fract > 0) {
-				fract = fract.reciprocal * 0.5;
+			note = noteStr !? _.asInteger;
+			fract = fractStr !? _.asFloat;
+			if(note.notNil && fract.notNil) {
+				// as of 2022-06-24, the libsndfile calculation that gives the pitch fraction seems to be wrong...
+				// https://github.com/libsndfile/libsndfile/blob/33e765ccba9a0eb225694fdbf9e299683a8338ee/src/wav.c#L1399
+				// basically, all values other than 0 are inverted and scaled incorrectly.
+				// here we assume this is the case and correct the math.
+				// TODO: maybe have a flag to skip this, to support a potential fixed libsndfile?
+				if(fract > 0) {
+					fract = fract.reciprocal * 0.5;
+				};
+				midinote = note + fract;
 			};
-			midinote = note + fract;
 		} { |e| e.reportError; nil; };
-		^if(midinote.notNil) { (midinote: midinote) };
+		^if(midinote.notNil) {
+			(
+				midinote: midinote,
+				baseFreqToFreqRatio: (60 - midinote).midiratio
+			)
+		};
 	}
 
 	/* access */
@@ -326,14 +332,12 @@ DirtSoundLibrary {
 			stretchInstrument: this.stretchInstrumentForBuffer(buffer),
 			bufNumFrames: buffer.numFrames,
 			bufNumChannels: buffer.numChannels,
-			baseFreq: {
-				if(~tune > 0) {
-					meta !? _.midinote !? _.midicps
-				} ? baseFreq
+			baseFreqToFreqRatio: {
+				if(~tune.notNil && { ~tune > 0 }) {
+					meta !? _.baseFreqToFreqRatio
+				} ? 1.0
 			},
-			unitDuration: {
-				buffer.duration * baseFreq / ~freq.value
-			},
+			unitDuration: { buffer.duration * baseFreq / ~freq.value },
 			hash: buffer.identityHash,
 			note: 0
 		)

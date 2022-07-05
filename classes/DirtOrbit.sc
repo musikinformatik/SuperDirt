@@ -176,8 +176,8 @@ DirtOrbit {
 			~n = \none; // sample number or note
 			~octave = 5;
 			~midinote = #{ ~note ? ~n + (~octave * 12) };
-			~baseFreq = #{ 60.midicps };
-			~freq = #{ ~midinote.value.midicps * 60.midicps / ~baseFreq.value };
+			~baseFreqToFreqRatio = #{ 1.0 };
+			~freq = #{ ~midinote.value.midicps * ~baseFreqToFreqRatio.value };
 			~dur = 1.0;
 			~delta = #{ ~dur.value };
 
