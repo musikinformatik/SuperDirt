@@ -263,7 +263,7 @@ DirtSoundLibrary {
 				};
 				midinote = note + fract;
 			};
-		} { |e| e.reportError; nil; };
+		} { |e| e.reportError };
 		^if(midinote.notNil) {
 			(
 				midinote: midinote,
@@ -323,7 +323,7 @@ DirtSoundLibrary {
 		}
 	}
 
-	makeEventForBuffer { |buffer, meta|
+	makeEventForBuffer { |buffer, metaData|
 		var baseFreq = 60.midicps;
 		^(
 			buffer: buffer.bufnum,
@@ -333,11 +333,7 @@ DirtSoundLibrary {
 			stretchInstrument: this.stretchInstrumentForBuffer(buffer),
 			bufNumFrames: buffer.numFrames,
 			bufNumChannels: buffer.numChannels,
-			baseFreqToFreqRatio: {
-				if(~tune.notNil && { ~tune > 0 }) {
-					meta !? _.baseFreqToFreqRatio
-				} ? 1.0
-			},
+			metaData: metaData,
 			unitDuration: { buffer.duration * baseFreq / ~freq.value },
 			hash: buffer.identityHash,
 			note: 0

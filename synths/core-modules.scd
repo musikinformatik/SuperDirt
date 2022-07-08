@@ -35,15 +35,19 @@ this may be refacored later.
 
 ~dirt.addModule('sound',
 	{ |dirtEvent|
-		var instrument, args;
+		var instrument, freq, args;
 		if(~diversion.value.isNil) {
 			if(~buffer.notNil) {
+				freq = ~freq;
+				if(~tune.notNil and: { ~tune != 0 }) {
+					freq = freq * (~metaData !? _.baseFreqToFreqRatio ? 1.0);
+				};
 				// arguments could be omitted using getMsgFunc, but for making it easier to understand, we write them out
 				args = [
 					bufnum: ~buffer,
 					sustain: ~sustain,
 					speed: ~speed,
-					freq: ~freq,
+					freq: freq,
 					endSpeed: ~endSpeed,
 					begin: ~begin,
 					end: ~end,
