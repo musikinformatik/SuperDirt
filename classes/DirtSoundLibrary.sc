@@ -33,7 +33,7 @@ DirtSoundLibrary {
 	}
 
 	addBuffer { |name, buffer, appendToExisting = false, metaData|
-		var event;
+		var event, index;
 		if(buffer.isNil) { Error("tried to add Nil to buffer library").throw };
 		if(synthEvents[name].notNil) {
 			"a synth event with that name already exists: %\nSkipping...".format(name).warn;
@@ -48,7 +48,6 @@ DirtSoundLibrary {
 		buffers[name] = buffers[name].add(buffer);
 		bufferEvents[name] = bufferEvents[name].add(event);
 		metaData !? {
-			var index;
 			if(metaDataEvents[name].isNil) {
 				metaDataEvents[name] = Dictionary[];
 			};
@@ -203,9 +202,10 @@ DirtSoundLibrary {
 
 		filePaths.do { |filepath|
 			try {
-				var buf = this.readSoundFile(filepath);
+				var buf, metaData;
+				buf = this.readSoundFile(filepath);
 				if(buf.notNil) {
-					var metaData = this.readMetaData(filepath);
+					metaData = this.readMetaData(filepath);
 					this.addBuffer(name, buf, appendToExisting, metaData);
 					appendToExisting = true; // append all others
 				};
@@ -217,9 +217,10 @@ DirtSoundLibrary {
 	}
 
 	loadSoundFile { |path, name, appendToExisting = false|
-		var buf = this.readSoundFile(path);
+		var buf, metaData;
+		buf = this.readSoundFile(path);
 		if(buf.notNil) {
-			var metaData = this.readMetaData(path);
+			metaData = this.readMetaData(path);
 			this.addBuffer(name, buf, appendToExisting, metaData);
 		}
 	}
