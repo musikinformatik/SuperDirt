@@ -193,9 +193,9 @@ DirtGateCutGroup {
 
 DirtPause {
 
-	*ar { | signal, graceTime = 1 |
+	*ar { | signal, graceTime = 1, pauseImmediately = 0 |
 		// immediately pause when started
-		PauseSelf.kr(Impulse.kr(0));
+		PauseSelf.kr(Impulse.kr(0) * pauseImmediately);
 		// when resumed and no sound is coming in, wait a while before ending again
 		signal = signal.abs + Trig1.ar(\resumed.tr(0), graceTime);
 		DetectSilence.ar(signal, time:graceTime, doneAction:1);
