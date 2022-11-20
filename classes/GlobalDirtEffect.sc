@@ -23,10 +23,13 @@ GlobalDirtEffect {
 
 	play { |group, outBus, dryBus, effectBus, orbitIndex|
 		this.release;
-		synth = Synth.after(group, name.asString ++ numChannels,
-			[\outBus, outBus, \dryBus, dryBus, \effectBus, effectBus, \orbitIndex, orbitIndex] ++ state.asPairs
+		synth = Synth.newPaused(name.asString ++ numChannels,
+			[\outBus, outBus, \dryBus, dryBus, \effectBus, effectBus, \orbitIndex, orbitIndex] ++ state.asPairs,
+			group,
+			\addAfter
 		)
 	}
+
 
 	release { |releaseTime = 0.2|
 		if(synth.notNil) {
