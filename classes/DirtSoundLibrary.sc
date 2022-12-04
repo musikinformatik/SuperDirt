@@ -238,6 +238,9 @@ DirtSoundLibrary {
 		^this.readSmplMetaData(path);
 	}
 
+	// read the `smpl` chunk of a wave file, containing metadata such as pitch
+	// https://www.recordingblogs.com/wiki/sample-chunk-of-a-wave-file
+	// currently, there seems to be no direct way to read arbitrary wave chunks, so instead this function parses the data from the log written by libsndfile
 	readSmplMetaData { |path|
 		var midinote;
 		try {
