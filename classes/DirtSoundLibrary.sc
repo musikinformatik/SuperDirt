@@ -270,7 +270,7 @@ DirtSoundLibrary {
 		^if(midinote.notNil) {
 			(
 				midinote: midinote,
-				baseFreqToFreqRatio: (60 - midinote).midiratio
+				baseFreqToMetaFreqRatio: (60 - midinote).midiratio
 			)
 		};
 	}
@@ -328,6 +328,7 @@ DirtSoundLibrary {
 
 	makeEventForBuffer { |buffer, metaData|
 		var baseFreq = 60.midicps;
+		var baseFreqToMetaFreqRatio = metaData !? _[\baseFreqToMetaFreqRatio] ? 1.0;
 		^(
 			buffer: buffer.bufnum,
 			bufferObject: buffer,
@@ -336,8 +337,15 @@ DirtSoundLibrary {
 			stretchInstrument: this.stretchInstrumentForBuffer(buffer),
 			bufNumFrames: buffer.numFrames,
 			bufNumChannels: buffer.numChannels,
-			metaData: metaData,
-			unitDuration: { buffer.duration * baseFreq / ~freq.value },
+			baseFreqToMetaFreqRatio: baseFreqToMetaFreqRatio,
+			metaTuneRatio: {
+				if(~metatune.notNil) {
+					~metatune.linexp(0.0, 1.0, 1.0, ~baseFreqToMetaFreqRatio)
+				} {
+					1.0
+				}
+			},
+			unitDuration: { buffer.duration * baseFreq / (~freq.value * ~metaTuneRatio.value) },
 			hash: buffer.identityHash,
 			note: 0
 		)
