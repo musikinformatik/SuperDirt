@@ -6,7 +6,7 @@ environment. SuperDirt is a general purpose framework for playing
 samples and synths, controllable over the Open Sound Control protocol,
 and locally from the SuperCollider language.
 
-(C) 2015-2020 Julian Rohrhuber, Alex McLean and contributors
+(C) 2015-2023 Julian Rohrhuber, Alex McLean and contributors
 
 SuperDirt is free software: you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the
