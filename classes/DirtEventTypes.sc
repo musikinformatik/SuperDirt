@@ -97,6 +97,8 @@ DirtEventTypes {
 						midiout.control(chan, 98, nrpnLSB);
 						midiout.control(chan, 6,  valMSB);
 						midiout.control(chan, 38, valLSB);
+						midiout.control(chan, 101, 127);
+						midiout.control(chan, 100, 127);
 					});
 				};
 
