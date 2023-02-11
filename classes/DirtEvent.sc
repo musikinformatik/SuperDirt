@@ -174,20 +174,31 @@ DirtEvent {
 		server.sendMsg(\g_new, ~synthGroup, 1, outerGroup ? orbit.group);
 	}
 
+	cutAllCuts {
+		// two cuts can't be done in the same block, so we
+		// cut a little early as to spread each cut group to a different block
+		var earlyCut = ~cut.abs * server.options.blockSize / server.sampleRate;
+		if(earlyCut > server.latency) {
+			"For high cut groups, increase ~dirt.server.latency. Current: %".format(server.latency).warn;
+		};
+		server.makeBundle(~latency - earlyCut, {
+			server.sendMsg(\n_set,
+				if(~cutAll.notNil) { orbit.dirt.group } { orbit.group },
+				\gateSample, ~hash,
+				\gateCut, ~cut.abs,
+				\cutAllSamples, if(~cut > 0) { 1 } { 0 }
+			)
+		});
+
+	}
+
 	playSynths {
+
+		if(~cut != 0) { this.cutAllCuts };
+
 		server.makeBundle(~latency, { // use this to build a bundle
 
 			orbit.globalEffects.do { |x| x.set(currentEnvironment) };
-
-			if(~cut != 0) {
-				server.sendMsg(\n_set,
-					if(~cutAll.notNil) { orbit.dirt.group } { orbit.group },
-					\gateSample, ~hash,
-					\gateCut, ~cut.abs,
-					\cutAllSamples, if(~cut > 0) { 1 } { 0 }
-				)
-			};
-
 			this.prepareSynthGroup(orbit.group);
 			modules.do(_.value(this));
 			this.sendGateSynth; // this one needs to be last
