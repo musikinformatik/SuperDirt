@@ -179,7 +179,7 @@ DirtEvent {
 		// cut a little early as to spread each cut group to a different block
 		var earlyCut = ~cut.abs * server.options.blockSize / server.sampleRate;
 		if(earlyCut > server.latency) {
-			"For high cut groups, increase server.latency. Current: %".format(server.latency).warn;
+			"For high cut groups, increase ~dirt.server.latency. Current: %".format(server.latency).warn;
 		};
 		server.makeBundle(~latency - earlyCut, {
 			server.sendMsg(\n_set,
