@@ -172,29 +172,38 @@ DirtEvent {
 	prepareSynthGroup { |outerGroup|
 		~synthGroup = server.nextNodeID;
 		server.sendMsg(\g_new, ~synthGroup, 1, outerGroup ? orbit.group);
+		if(~cut != 0) { this.addFlotsam };
+	}
+
+	addFlotsam {
+		orbit.dirt.flotsam.put(~synthGroup, Flotsam(~synthGroup, ~cut.abs, orbit, ~hash))
 	}
 
 	cutAllCuts {
-		// two cuts can't be done in the same block, so we
-		// cut a little early as to spread each cut group to a different block
-		var earlyCut = ~cut.abs * server.options.blockSize / server.sampleRate;
-		if(earlyCut > server.latency) {
-			"For high cut groups, increase ~dirt.server.latency. Current: %".format(server.latency).warn;
+		var cut = ~cut.abs;
+		var cutAllSamples = ~cut > 0;
+		var cutAllOrbits = ~cutAll ? false;
+		var cutFadeOutTime = ~cutTime ? 0;
+
+		orbit.dirt.flotsam.do { |flotsam|
+			if(
+				flotsam.cutGroup == cut
+				and: { cutAllOrbits or: { flotsam.orbit === orbit }}
+				and: { cutAllSamples or: { ~hash == flotsam.hash }}
+			) {
+				server.sendMsg("/n_set", flotsam.nodeID, "cut_gate", cutFadeOutTime.neg)
+			}
 		};
-		server.makeBundle(~latency - earlyCut, {
-			server.sendMsg(\n_set,
-				if(~cutAll.notNil) { orbit.dirt.group } { orbit.group },
-				\gateSample, ~hash,
-				\gateCut, ~cut.abs,
-				\cutAllSamples, if(~cut > 0) { 1 } { 0 }
-			)
-		});
 
 	}
 
 	playSynths {
-
-		if(~cut != 0) { this.cutAllCuts };
+		if(~cut != 0) {
+			server.makeBundle(~latency, {
+				server.sendMsg("/error", -1);
+				this.cutAllCuts
+			});
+		};
 
 		server.makeBundle(~latency, { // use this to build a bundle
 
