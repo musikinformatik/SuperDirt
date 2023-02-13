@@ -183,7 +183,6 @@ DirtEvent {
 		var cut = ~cut.abs;
 		var cutAllSamples = ~cut > 0;
 		var cutAllOrbits = ~cutAll ? false;
-		var cutFadeOutTime = ~cutTime ? 0;
 
 		orbit.dirt.flotsam.do { |flotsam|
 			if(
@@ -191,7 +190,7 @@ DirtEvent {
 				and: { cutAllOrbits or: { flotsam.orbit === orbit }}
 				and: { cutAllSamples or: { ~hash == flotsam.hash }}
 			) {
-				server.sendMsg("/n_set", flotsam.nodeID, "cut_gate", cutFadeOutTime.neg)
+				server.sendMsg("/n_set", flotsam.nodeID, "cut_gate", 0)
 			}
 		};
 
