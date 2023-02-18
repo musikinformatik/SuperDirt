@@ -8,9 +8,8 @@ How to have pitch glide between notes with Tidal
 (
 
 var synth;
-var instance = 0;
 
-SynthDef(\glideExample, {|note=0, drive=1, filter=1, glide=0.2, wrate=1, gain=1|
+SynthDef(\glideExample, {|note=0, drive=1, filter=1, glide=0.2, wrate=1, gain=1, out|
 
 	var freqlag = Lag.kr(note+30, glide);
 	var sig = Lag.ar( VarSaw.ar( freqlag.midicps*[0.99,1.01], [0,0.01*SinOsc.kr(1)]), [0.1,0.11], 100);
@@ -19,16 +18,16 @@ SynthDef(\glideExample, {|note=0, drive=1, filter=1, glide=0.2, wrate=1, gain=1|
 	sig = RLPF.ar(sig, ([1300, 1100, 800, 300]*filter+  SinOsc.ar(wrate).range(100,500)).clip(20,8000), 0.3, [0.2, 0.3, 0.7]);
    sig = LeakDC.ar(Mix.ar(sig));
 
-	Out.ar(0, DirtPan.ar( sig*gain*0.3, ~dirt.numChannels, 0));
+	Out.ar(out, DirtPan.ar( sig*gain*0.3, ~dirt.numChannels, 0));
 }).add;
 
 
 
 ~dirt.soundLibrary.addSynth(\glideExample, (play: {
 
-	if ( (instance ==0),
+	if ( (synth.isNil), 
 
-		{ synth = Synth(\glideExample); instance=1},//if instance synth is not active we instance a new synth
+		{ synth = Synth(\glideExample)}, // if synth is nil, create new synht
 
 		{ synth.set(\note, ~n, \glide, ~glide, \gain, ~gain)} //if synth is active we set its paramameters
 	);
@@ -55,6 +54,3 @@ d2 $ slow 2 $ stack [
 , striate ( range 5 15 $ irand 5) $ s " sn(3,11,1)" ]
 
 */
-
-
-
