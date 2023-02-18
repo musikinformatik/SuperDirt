@@ -1,6 +1,6 @@
 /*
 
-This kind of object drifts amoung the orbits.
+This kind of object drifts amoungst the orbits.
 SuperDirt makes them to track synths that are in a cut group
 
 */
