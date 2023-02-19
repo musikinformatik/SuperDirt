@@ -25,11 +25,11 @@ SynthDef(\glideExample, {|note=0, drive=1, filter=1, glide=0.2, wrate=1, gain=1,
 
 ~dirt.soundLibrary.addSynth(\glideExample, (play: {
 
-	if ( (synth.isNil), 
+	if ( synth.isNil, 
 
-		{ synth = Synth(\glideExample)}, // if synth is nil, create new synht
+		{ synth = Synth(\glideExample)},
 
-		{ synth.set(\note, ~n, \glide, ~glide, \gain, ~gain)} //if synth is active we set its paramameters
+		{ synth.set(\note, ~n, \glide, ~glide, \gain, ~gain)}
 	);
 
 }));
