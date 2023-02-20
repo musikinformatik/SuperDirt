@@ -71,6 +71,7 @@ SuperDirt {
 	stop {
 		orbits.do(_.free);
 		orbits = nil;
+		this.clearFlotsam;
 		this.closeNetworkConnection;
 	}
 
@@ -239,6 +240,10 @@ SuperDirt {
 		};
 	}
 
+	clearFlotsam {
+		flotsam.clear
+	}
+
 	// parameter names are prefixed by an &
 
 	handshakeReplyData {
@@ -353,7 +358,7 @@ SuperDirt {
 	}
 
 	cmdPeriod {
-		flotsam.clear
+		this.clearFlotsam
 	}
 
 	closeNetworkConnection {
