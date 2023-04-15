@@ -233,6 +233,11 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		ReplaceOut.ar(out, signal)
 	}, [\ir, \kr]).add;
 
+	SynthDef("dirt_tanh" ++ numChannels, { |out, ratio = 1|
+		var signal = In.ar(out, numChannels);
+		signal = (signal * ratio).tanh / ratio;
+		ReplaceOut.ar(out, signal)
+	}, [\ir, \kr]).add;
 
 	SynthDef("dirt_coarse" ++ numChannels, { |out, coarse = 0, bandq = 10|
 		var signal = In.ar(out, numChannels);
