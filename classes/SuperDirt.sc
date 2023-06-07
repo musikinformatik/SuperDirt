@@ -339,7 +339,7 @@ SuperDirt {
 
 
 
-		"SuperDirt: listening to Tidal on port %".format(port).postln;
+		"SuperDirt: listening on port %".format(port).postln;
 	}
 
 	closeNetworkConnection {
