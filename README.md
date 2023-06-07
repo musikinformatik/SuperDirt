@@ -4,7 +4,9 @@ SuperCollider implementation of the Dirt sampler, originally designed
 for the [TidalCycles](https://github.com/tidalcycles/tidal)
 environment. SuperDirt is a general purpose framework for playing
 samples and synths, controllable over the Open Sound Control protocol,
-and locally from the SuperCollider language.
+and locally from the SuperCollider language. SuperDirt is also
+used by [Sardine](https://sardine.raphaelforment.fr), a live coding
+environment for Python 3.10+. 
 
 (C) 2015-2023 Julian Rohrhuber, Alex McLean and contributors
 
