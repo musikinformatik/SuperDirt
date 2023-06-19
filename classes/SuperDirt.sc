@@ -381,7 +381,7 @@ SuperDirt {
 	}
 
 	*tidalParameterString { |keys|
-		^keys.collect { |x| format("(%, %_p) = pF \"%\" (Nothing)", x, x, x) }.join("\n    ");
+		^keys.collect { |x| format("% = pF \"%\"", x, x, x) }.join("\n    ");
 	}
 
 	*predefinedSynthParameters {
