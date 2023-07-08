@@ -27,8 +27,7 @@
 				this.allocRead(path, startFrame, numFrames, completionMessage: { |b|
 					onComplete.value(b)
 				});
-
-			}
+			} { this; }
 		}
 	}
 
