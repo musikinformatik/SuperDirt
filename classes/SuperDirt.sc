@@ -32,6 +32,7 @@ SuperDirt {
 	var <>audioRoutingBusses;
 	var <>controlBusses;
 	var <group;
+	var <flotsam;
 
 	var <port, <senderAddr, <replyAddr, netResponders;
 	var <>receiveAction, <>warnOutOfOrbit = true, <>maxLatency = 42;
@@ -57,6 +58,7 @@ SuperDirt {
 		this.initVowels(\counterTenor);
 		this.initRoutingBusses;
 		group = server.nextPermNodeID;
+		flotsam = IdentityDictionary.new;
 	}
 
 
@@ -69,6 +71,7 @@ SuperDirt {
 	stop {
 		orbits.do(_.free);
 		orbits = nil;
+		this.clearFlotsam;
 		this.closeNetworkConnection;
 	}
 
@@ -237,6 +240,10 @@ SuperDirt {
 		};
 	}
 
+	clearFlotsam {
+		flotsam.clear
+	}
+
 	// parameter names are prefixed by an &
 
 	handshakeReplyData {
@@ -329,6 +336,14 @@ SuperDirt {
 				this.setControlBus(*args);
 			}, "dirt/setControlBus", senderAddr, recvPort: port).fix
 		);
+		netResponders.add(
+			OSCFunc({ |msg|
+				var nodeID = msg[1];
+				flotsam.removeAt(nodeID);
+			}, "/n_end", server.addr, recvPort: NetAddr.langPort).fix
+		);
+
+		CmdPeriod.add(this);
 
 		// backward compatibility
 
@@ -340,6 +355,10 @@ SuperDirt {
 
 
 		"SuperDirt: listening on port %".format(port).postln;
+	}
+
+	cmdPeriod {
+		this.clearFlotsam
 	}
 
 	closeNetworkConnection {
