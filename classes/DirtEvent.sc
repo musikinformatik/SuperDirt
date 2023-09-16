@@ -14,15 +14,17 @@ DirtEvent {
 			~s ?? { this.splitName };
 			// unless orbit wide diversion returns something, we proceed
 			~diversion.(this) ?? {
-				this.mergeSoundEvent;
-				server = ~server.value; // as server is used a lot, make lookup more efficient
-				this.orderTimeSpan;
-				this.calcTimeSpan; // ~sustain is calculated here
-				if(~sustain >= orbit.minSustain.value or: { ~play.notNil }) {
-					this.finaliseParameters;
-					// unless event diversion returns something, we proceed
-					~play.(this) ?? { this.playSynths };
-				} // otherwise drop the event.
+				if(~s != \) {
+					this.mergeSoundEvent;
+					server = ~server.value; // as server is used a lot, make lookup more efficient
+					this.orderTimeSpan;
+					this.calcTimeSpan; // ~sustain is calculated here
+					if(~sustain >= orbit.minSustain.value or: { ~play.notNil }) {
+						this.finaliseParameters;
+						// unless event diversion returns something, we proceed
+						~play.(this) ?? { this.playSynths };
+					} // otherwise drop the event.
+				}
 			}
 		}
 	}
