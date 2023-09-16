@@ -15,7 +15,7 @@ GlobalDirtEffect {
 
 	var <>name, <>paramNames, <>numChannels, <state;
 	var <>alwaysRun = false;
-	var <>synth, defName;
+	var <synth, defName;
 
 	*new { |name, paramNames, numChannels|
 		^super.newCopyArgs(name, paramNames, numChannels, ())
