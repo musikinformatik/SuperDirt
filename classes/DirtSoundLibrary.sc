@@ -235,7 +235,7 @@ DirtSoundLibrary {
 	}
 
 	readMetaData { |path|
-		^this.readSmplMetaData(path);
+		^this.readSmplMetaData(path)
 	}
 
 	// read the `smpl` chunk of a wave file, containing metadata such as pitch
@@ -272,7 +272,7 @@ DirtSoundLibrary {
 				midinote: midinote,
 				baseFreqToMetaFreqRatio: (60 - midinote).midiratio
 			)
-		};
+		}
 	}
 
 	/* access */
