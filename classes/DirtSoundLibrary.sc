@@ -338,14 +338,14 @@ DirtSoundLibrary {
 			bufNumFrames: buffer.numFrames,
 			bufNumChannels: buffer.numChannels,
 			baseFreqToMetaFreqRatio: baseFreqToMetaFreqRatio,
-			metaTuneRatio: {
+			metaDataTuneRatio: {
 				if(~metatune.notNil) {
 					~metatune.linexp(0.0, 1.0, 1.0, ~baseFreqToMetaFreqRatio)
 				} {
 					1.0
 				}
 			},
-			unitDuration: { buffer.duration * baseFreq / (~freq.value * ~metaTuneRatio.value) },
+			unitDuration: { buffer.duration * baseFreq / (~freq.value * ~metaDataTuneRatio.value) },
 			hash: buffer.identityHash,
 			note: 0
 		)

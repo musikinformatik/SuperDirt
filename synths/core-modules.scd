@@ -43,7 +43,7 @@ this may be refacored later.
 					bufnum: ~buffer,
 					sustain: ~sustain,
 					speed: ~speed,
-					freq: ~freq * ~metaTuneRatio.value,
+					freq: ~freq * ~metaDataTuneRatio.value,
 					endSpeed: ~endSpeed,
 					begin: ~begin,
 					end: ~end,
