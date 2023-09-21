@@ -14,7 +14,7 @@ DirtEvent {
 			~s ?? { this.splitName };
 			// unless orbit wide diversion returns something, we proceed
 			~diversion.(this) ?? {
-				if(~s != \) {
+				if(~s != \) { // backslash stands for do nothing
 					this.mergeSoundEvent;
 					server = ~server.value; // as server is used a lot, make lookup more efficient
 					this.orderTimeSpan;
@@ -37,6 +37,7 @@ DirtEvent {
 	splitName {
 		var s, n;
 		#s, n = ~sound.asString.split($:);
+		if(~bank.notNil) { s = ~bank ++ s };
 		~s = s.asSymbol;
 		~n = if(n.notNil) { n.asFloat } { 0.0 };
 	}
