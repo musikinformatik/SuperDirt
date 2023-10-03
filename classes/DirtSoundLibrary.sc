@@ -47,14 +47,7 @@ DirtSoundLibrary {
 		event = this.makeEventForBuffer(buffer, metaData);
 		buffers[name] = buffers[name].add(buffer);
 		bufferEvents[name] = bufferEvents[name].add(event);
-		metaData !? {
-			if(metaDataEvents[name].isNil) {
-				metaDataEvents[name] = Dictionary[];
-			};
-			index = buffers[name].size - 1;
-			metaDataEvents[name].put(index, metaData);
-		};
-		if(verbose) { "new sample buffer named '%':\n%\n\n".postf(name, event) };
+		metaData !? { this.prPutMetaData(name, buffers[name].size - 1, metaData) };
 	}
 
 	addSynth { |name, event, appendToExisting = false, useSynthDefSustain = false, metaData|
@@ -70,7 +63,7 @@ DirtSoundLibrary {
 		if(event[\hash].isNil) { event[\hash] = name.identityHash };
 		if(useSynthDefSustain) { this.useSynthDefSustain(event) };
 		synthEvents[name] = synthEvents[name].add(event);
-		metaData !? { metaDataEvents[name] = metaDataEvents[name].add(metaData) };
+		metaData !? { this.prPutMetaData(name, synthEvents[name].size - 1, metaData) };
 		if(verbose) { "new synth named '%':\n%\n\n".postf(name, event) };
 	}
 
@@ -427,6 +420,10 @@ DirtSoundLibrary {
 		synthEvents = synthEvents.copy;
 	}
 
-
-
+	prPutMetaData { |name, index, metaData|
+		if(metaDataEvents[name].isNil) {
+			metaDataEvents[name] = Dictionary[];
+		};
+		metaDataEvents[name].put(index, metaData);
+	}
 }
