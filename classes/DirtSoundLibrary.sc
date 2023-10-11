@@ -33,7 +33,7 @@ DirtSoundLibrary {
 	}
 
 	addBuffer { |name, buffer, appendToExisting = false, metaData|
-		var event;
+		var event, index;
 		if(buffer.isNil) { Error("tried to add Nil to buffer library").throw };
 		if(synthEvents[name].notNil) {
 			"a synth event with that name already exists: %\nSkipping...".format(name).warn;
@@ -44,11 +44,10 @@ DirtSoundLibrary {
 			"\nreplacing '%' (%)\n".postf(name, buffers[name].size);
 			this.freeSoundFiles(name);
 		};
-		event = this.makeEventForBuffer(buffer);
+		event = this.makeEventForBuffer(buffer, metaData);
 		buffers[name] = buffers[name].add(buffer);
 		bufferEvents[name] = bufferEvents[name].add(event);
-		metaData !? { metaDataEvents[name] = metaDataEvents[name].add(metaData) };
-		if(verbose) { "new sample buffer named '%':\n%\n\n".postf(name, event) };
+		metaData !? { this.prPutMetaData(name, buffers[name].size - 1, metaData) };
 	}
 
 	addSynth { |name, event, appendToExisting = false, useSynthDefSustain = false, metaData|
@@ -64,7 +63,7 @@ DirtSoundLibrary {
 		if(event[\hash].isNil) { event[\hash] = name.identityHash };
 		if(useSynthDefSustain) { this.useSynthDefSustain(event) };
 		synthEvents[name] = synthEvents[name].add(event);
-		metaData !? { metaDataEvents[name] = metaDataEvents[name].add(metaData) };
+		metaData !? { this.prPutMetaData(name, synthEvents[name].size - 1, metaData) };
 		if(verbose) { "new synth named '%':\n%\n\n".postf(name, event) };
 	}
 
@@ -196,9 +195,11 @@ DirtSoundLibrary {
 
 		filePaths.do { |filepath|
 			try {
-				var buf = this.readSoundFile(filepath);
+				var buf, metaData;
+				buf = this.readSoundFile(filepath);
 				if(buf.notNil) {
-					this.addBuffer(name, buf, appendToExisting);
+					metaData = this.readMetaData(filepath);
+					this.addBuffer(name, buf, appendToExisting, metaData);
 					appendToExisting = true; // append all others
 				};
 			} { |erreur|
@@ -209,8 +210,12 @@ DirtSoundLibrary {
 	}
 
 	loadSoundFile { |path, name, appendToExisting = false|
-		var buf = this.readSoundFile(path);
-		if(buf.notNil) { this.addBuffer(name, buf, appendToExisting) }
+		var buf, metaData;
+		buf = this.readSoundFile(path);
+		if(buf.notNil) {
+			metaData = this.readMetaData(path);
+			this.addBuffer(name, buf, appendToExisting, metaData);
+		}
 	}
 
 	readSoundFile { |path|
@@ -222,6 +227,46 @@ DirtSoundLibrary {
 		^Buffer.readWithInfo(server, path, onlyHeader: doNotReadYet)
 	}
 
+	readMetaData { |path|
+		^this.readSmplMetaData(path)
+	}
+
+	// read the `smpl` chunk of a wave file, containing metadata such as pitch
+	// https://www.recordingblogs.com/wiki/sample-chunk-of-a-wave-file
+	// currently, there seems to be no direct way to read arbitrary wave chunks, so instead this function parses the data from the log written by libsndfile
+	readSmplMetaData { |path|
+		var midinote;
+		try {
+			var noteStr, fractStr, note, fract;
+			SoundFile.use(path, { |sf|
+				var headers, noteRe, fractRe;
+				headers = sf.readHeaderAsString;
+				noteRe = "  Midi Note\\s*:\\s*(.+?)\\s*\n";
+				fractRe = "  Pitch Fract.\\s*:\\s*(.+?)\\s*\n";
+				noteStr = headers.findRegexp(noteRe) !? _[1] !? _[1];
+				fractStr = headers.findRegexp(fractRe) !? _[1] !? _[1];
+			});
+			note = noteStr !? _.asInteger;
+			fract = fractStr !? _.asFloat;
+			if(note.notNil && fract.notNil) {
+				// as of 2022-06-24, the libsndfile calculation that gives the pitch fraction seems to be wrong...
+				// https://github.com/libsndfile/libsndfile/blob/33e765ccba9a0eb225694fdbf9e299683a8338ee/src/wav.c#L1399
+				// basically, all values other than 0 are inverted and scaled incorrectly.
+				// here we assume this is the case and correct the math.
+				// TODO: maybe have a flag to skip this, to support a potential fixed libsndfile?
+				if(fract > 0) {
+					fract = fract.reciprocal * 0.5;
+				};
+				midinote = note + fract;
+			};
+		} { |e| e.reportError };
+		^if(midinote.notNil) {
+			(
+				midinote: midinote,
+				baseFreqToMetaFreqRatio: (60 - midinote).midiratio
+			)
+		}
+	}
 
 	/* access */
 
@@ -274,8 +319,9 @@ DirtSoundLibrary {
 		}
 	}
 
-	makeEventForBuffer { |buffer|
+	makeEventForBuffer { |buffer, metaData|
 		var baseFreq = 60.midicps;
+		var baseFreqToMetaFreqRatio = metaData !? _[\baseFreqToMetaFreqRatio] ? 1.0;
 		^(
 			buffer: buffer.bufnum,
 			bufferObject: buffer,
@@ -284,7 +330,15 @@ DirtSoundLibrary {
 			stretchInstrument: this.stretchInstrumentForBuffer(buffer),
 			bufNumFrames: buffer.numFrames,
 			bufNumChannels: buffer.numChannels,
-			unitDuration: { buffer.duration * baseFreq / ~freq.value },
+			baseFreqToMetaFreqRatio: baseFreqToMetaFreqRatio,
+			metaDataTuneRatio: {
+				if(~metatune.notNil) {
+					~metatune.linexp(0.0, 1.0, 1.0, ~baseFreqToMetaFreqRatio)
+				} {
+					1.0
+				}
+			},
+			unitDuration: { buffer.duration * baseFreq / (~freq.value * ~metaDataTuneRatio.value) },
 			hash: buffer.identityHash,
 			note: 0
 		)
@@ -366,6 +420,10 @@ DirtSoundLibrary {
 		synthEvents = synthEvents.copy;
 	}
 
-
-
+	prPutMetaData { |name, index, metaData|
+		if(metaDataEvents[name].isNil) {
+			metaDataEvents[name] = Dictionary[];
+		};
+		metaDataEvents[name].put(index, metaData);
+	}
 }
