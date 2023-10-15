@@ -161,7 +161,7 @@ DirtFreqScale : UGen {
 	*kr { |speed = 1, accelerate = 0, sustain = 1, speedFreq|
 		var speedTerm;
 		speed = speed.abs;
-		speedFreq = speedFreq ?? { \speedFreq.ir(0) };
+		speedFreq = speedFreq ?? { \speedFreq.ir(1) };
 		speedTerm = Line.kr(speed, speed * (accelerate + 1), sustain);
 		// linear interpolation between a factor of 1 (speedFreq = 0) and of speedTerm (speedFreq = 1)
 		^speedFreq * (speedTerm - 1) + 1
