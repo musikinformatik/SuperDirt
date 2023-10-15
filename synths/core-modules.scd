@@ -204,7 +204,6 @@ this may be refacored later.
 		])
 }, { ~tremolorate.notNil });
 
-// Phaser audio DSP effect declaration
 ~dirt.addModule('phaser',
 	{ |dirtEvent|
 		dirtEvent.sendSynth('dirt_phaser' ++ ~numChannels,
@@ -214,5 +213,14 @@ this may be refacored later.
 				out: ~out
 		])
 }, { ~phaserrate.notNil });
+
+~dirt.addModule('tanh',
+	{ |dirtEvent|
+		dirtEvent.sendSynth('dirt_tanh' ++ ~numChannels,
+			[
+				ratio: ~tanh,
+				out: ~out
+		])
+}, { ~tanh.notNil });
 
 );
