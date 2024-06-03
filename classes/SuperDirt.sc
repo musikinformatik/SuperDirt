@@ -289,6 +289,7 @@ SuperDirt {
 				};
 				replyAddr = tidalAddr; // collect tidal reply address
 				event[\latency] = latency;
+				event[\timeStamp] = time;
 				event.putPairs(msg[1..]);
 				receiveAction.value(event);
 				index = event[\orbit] ? 0;

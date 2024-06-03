@@ -179,7 +179,7 @@ DirtEvent {
 	}
 
 	addFlotsam {
-		orbit.dirt.flotsam.put(~synthGroup, Flotsam(~synthGroup, ~cut.abs, orbit, ~hash))
+		orbit.dirt.flotsam.put(~synthGroup, Flotsam(~synthGroup, ~cut.abs, orbit, ~hash, ~timeStamp))
 	}
 
 	cutAllCuts {
@@ -190,7 +190,7 @@ DirtEvent {
 		orbit.dirt.flotsam.do { |flotsam|
 			if(
 				flotsam.cutGroup == cut
-				and: { cutAllOrbits or: { flotsam.orbit === orbit }}
+				and: { cutAllOrbits or: { flotsam.orbit === orbit and: { ~timeStamp != flotsam.timeStamp } }}
 				and: { cutAllSamples or: { ~hash == flotsam.hash }}
 			) {
 				server.sendMsg("/n_set", flotsam.nodeID, "cut_gate", 0)
