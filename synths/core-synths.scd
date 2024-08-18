@@ -178,7 +178,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		var signal = In.ar(in, numChannels);
 		 //  doneAction: 14: free surrounding group and all nodes
 		var env = EnvGen.ar(Env([0, 1, 1, 0], [fadeInTime, sustain, fadeTime], \sin), doneAction: 14);
-		amp = amp * pow(gain.min(2) + overgain, 4);
+		amp = amp * (gain + overgain);
 		signal = signal * env * amp * DirtGateCutGroup.ar(fadeTime, doneAction: 14);
 		// this takes the signal and offsets it so it matches precisely onto the sample
 		// as scheduled within one block (a synth is always started on the block bondary)
