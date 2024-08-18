@@ -30,7 +30,7 @@ cps
 unit
 loop
 delta
-legato
+clip
 sustain
 amp
 gain

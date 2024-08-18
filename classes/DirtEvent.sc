@@ -104,8 +104,8 @@ DirtEvent {
 		sustain = ~sustain.value;
 		sustain = sustain ?? {
 			delta = ~delta.value;
-			if(~legato.notNil) {
-				delta * ~legato.value
+			if(~clip.notNil) {
+				(delta / ~cps) * ~clip.value
 			} {
 				unitDuration = unitDuration ? delta;
 				loop !? { unitDuration = unitDuration * loop.abs };
@@ -120,6 +120,7 @@ DirtEvent {
 		~fadeInTime = if(~begin != 0) { ~fadeTime } { 0.0 };
 		if (~timescale.notNil) {sustain = sustain * ~timescale };
 		~sustain = sustain - (~fadeTime + ~fadeInTime);
+		// ~sustain = (~delta.value / ~cps) * ~clip.value ? 1;
 		~speed = speed;
 		~endSpeed = endSpeed;
 
