@@ -67,6 +67,7 @@ DirtEvent {
 		var accelerate = ~accelerate.value;
 		var avgSpeed, endSpeed;
 		var useUnit;
+		var release = ~release.value ? 0.0;
 
 		~freq = ~freq.value;
 		unitDuration = ~unitDuration.value;
@@ -102,6 +103,7 @@ DirtEvent {
 		};
 
 		sustain = ~sustain.value;
+	
 		sustain = sustain ?? {
 			delta = ~delta.value;
 			if(~clip.notNil) {
@@ -111,6 +113,8 @@ DirtEvent {
 				loop !? { unitDuration = unitDuration * loop.abs };
 			}
 		};
+		sustain = sustain + release;
+		
 
 		// end samples if sustain exceeds buffer duration
 		// for every buffer, unitDuration is (and should be) defined.

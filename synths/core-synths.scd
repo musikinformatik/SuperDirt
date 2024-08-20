@@ -270,9 +270,32 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		ReplaceOut.ar(out, signal)
 	}, [\ir, \kr, \kr]).add;
 
-	SynthDef("dirt_envelope" ++ numChannels, { |out, attack = 0, hold = 0, release = inf, curve = -3 |
+	SynthDef("dirt_envelope" ++ numChannels, { |out, attack, decay, hold, holdtime = 0, release, curve = -3 |
+		var envmin = 0.0;
+		var envmax = 1.0;
 		var signal = In.ar(out, numChannels);
-		signal = signal * EnvGen.ar(Env.linen(attack, hold, release, 1, curve: curve));
+	
+		if (hold.isNil) {
+			if (decay.isNil) {
+                hold = envmax;
+			} {
+				hold = envmin;
+			};
+		};
+
+		attack = attack ? envmin;
+		decay = decay ? envmin;
+		release = release ? envmin;
+        holdtime = holdtime - attack - decay;
+
+		signal = signal * EnvGen.ar(
+			Env.new(
+				levels: [0, 1, hold, 0],
+				times: [attack, decay, holdtime, release],
+				curve: curve
+			),
+			// doneAction: 2
+		);
 		ReplaceOut.ar(out, signal);
 	}, [\ir, \ir, \ir, \ir, \ir]).add;
 

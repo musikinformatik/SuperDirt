@@ -159,7 +159,7 @@ DirtOrbit {
 		globalEffectBus.free;
 	}
 
-
+// if(~note.isNil) { if (~n.isNil) { 57 } { ~n } } { ~note }
 	makeDefaultParentEvent {
 		defaultParentEvent = Event.make {
 
@@ -174,9 +174,9 @@ DirtOrbit {
 			~cut = 0.0;
 			~unit = \r;
 			~n = \none; // sample number or note
-			~octave = 5;
-			~midinote = #{ ~note ? ~n + (~octave * 12) };
-			~freq = #{ ~midinote.value.midicps };
+			~octave = 0;
+			~midinote = #{ (~note ? ~n) + (~octave * 12) };
+			~freq = #{ ~midinote.value.midicps  };
 			~dur = 1.0;
 			~delta = #{ ~dur.value };
 

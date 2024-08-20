@@ -174,12 +174,14 @@ this may be refacored later.
 		dirtEvent.sendSynth('dirt_envelope' ++ ~numChannels,
 			[
 				attack: ~attack,
+				decay: ~decay,
 				hold: ~hold,
+				holdtime: ~sustain,
 				release: ~release,
 				curve: ~curve,
 				out: ~out
 		])
-}, { ~attack.notNil or: { ~release.notNil }});
+}, { ~attack.notNil or: { ~release.notNil } or: { ~decay.notNil } or: { ~hold.notNil }});
 
 ~dirt.addModule('grenvelo',
 	{ |dirtEvent|

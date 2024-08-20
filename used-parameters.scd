@@ -82,6 +82,7 @@ crush
 coarse
 cutoff
 attack
+decay
 release
 hold
 tremolorate
