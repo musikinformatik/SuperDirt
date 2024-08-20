@@ -153,6 +153,12 @@ this may be refacored later.
 			[
 				cutoff: ~cutoff,
 				resonance: ~resonance,
+				lpenv: ~lpenv,
+				lpattack: ~lpattack,
+				lpdecay: ~lpdecay,
+				lpsustain: ~lpsustain,
+				lprelease: ~lprelease,
+				lpholdtime: ~sustain,
 				out: ~out
 		])
 

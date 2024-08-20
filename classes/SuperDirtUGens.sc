@@ -196,4 +196,27 @@ DirtPause {
 
 }
 
+DirtEnvelope {
+	*adsr { |attack, decay, holdtime = 0, release, hold, envmin = 0, envmax = 1, curve = -3 |
+		if (hold.isNil) {
+			if (decay.isNil) {
+                hold = envmax;
+			} {
+				hold = envmin;
+			};
+		};
+
+		attack = attack ? envmin;
+		decay = decay ? envmin;
+		release = release ? envmin;
+        holdtime = holdtime - attack - decay;
+
+		^Env.new(
+			levels: [envmin, envmax, hold, envmin],
+			times: [attack, decay, holdtime, release],
+			curve: curve
+		)
+	}
+}
+
 

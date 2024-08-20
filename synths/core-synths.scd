@@ -11,11 +11,11 @@ Their name and parameter names shouldn't be changed. Parameter names can be adde
 live coding them requires that you have your SuperDirt instance in an environment variable called ~dirt.
 
 */
+	
 
 (
 {
 	var numChannels = ~dirt.numChannels;
-
 
 
 	// write variants for different sample buffer sizes
@@ -264,38 +264,26 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		ReplaceOut.ar(out, signal * amp)
 	}, [\ir, \kr]).add;
 
-	SynthDef("dirt_lpf" ++ numChannels, { |out, cutoff = 440, resonance = 0|
+	SynthDef("dirt_lpf" ++ numChannels, { |out, cutoff = 440, resonance = 0, lpattack, lpsustain, lpdecay, lpenv = 400, lprelease, lpholdtime |
 		var signal = In.ar(out, numChannels);
-		signal = RLPF.ar(signal, cutoff.abs.clip(20, SampleRate.ir / 2), resonance.linexp(0, 1, 1, 0.001));
+		var envmax = SampleRate.ir / 2;
+		var envmin = 20;
+
+		cutoff = cutoff + EnvGen.ar(
+		  DirtEnvelope.adsr(lpattack, lpdecay, lpholdtime, lprelease, lpsustain, 0, lpenv, -4);
+	    );
+
+		 cutoff = cutoff.abs.clip(envmin, envmax);
+
+		signal = RLPF.ar(signal, cutoff, resonance.linexp(0, 1, 1, 0.001));
 		ReplaceOut.ar(out, signal)
 	}, [\ir, \kr, \kr]).add;
 
 	SynthDef("dirt_envelope" ++ numChannels, { |out, attack, decay, hold, holdtime = 0, release, curve = -3 |
-		var envmin = 0.0;
-		var envmax = 1.0;
-		var signal = In.ar(out, numChannels);
-	
-		if (hold.isNil) {
-			if (decay.isNil) {
-                hold = envmax;
-			} {
-				hold = envmin;
-			};
-		};
-
-		attack = attack ? envmin;
-		decay = decay ? envmin;
-		release = release ? envmin;
-        holdtime = holdtime - attack - decay;
-
-		signal = signal * EnvGen.ar(
-			Env.new(
-				levels: [0, 1, hold, 0],
-				times: [attack, decay, holdtime, release],
-				curve: curve
-			),
-			// doneAction: 2
-		);
+	    var signal = In.ar(out, numChannels);
+        signal = signal * EnvGen.ar(
+		  DirtEnvelope.adsr(attack, decay, holdtime, release, hold, 0, 1, curve);
+	    );
 		ReplaceOut.ar(out, signal);
 	}, [\ir, \ir, \ir, \ir, \ir]).add;
 

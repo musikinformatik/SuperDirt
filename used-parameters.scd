@@ -81,6 +81,11 @@ bandq
 crush
 coarse
 cutoff
+lpattack
+lpdecay
+lpsustain
+lprelease
+lpenv
 attack
 decay
 release
