@@ -197,25 +197,45 @@ DirtPause {
 }
 
 DirtEnvelope {
-	*adsr { |attack, decay, holdtime = 0, release, hold, envmin = 0, envmax = 1, curve = -3 |
+	*adsr { 
+	    |attack, decay, holdtime, hold, release, envmin = 0, envmax = 1, curve = -4|
 		if (hold.isNil) {
 			if (decay.isNil) {
                 hold = envmax;
 			} {
 				hold = envmin;
 			};
+		} {
+			hold = envmin + ((envmax - envmin) * hold).clip(envmin, envmax);
 		};
+		
 
-		attack = attack ? envmin;
-		decay = decay ? envmin;
-		release = release ? envmin;
-        holdtime = holdtime - attack - decay;
+		
+		// decay = decay + attack;
+		// release = holdtime + release;
 
-		^Env.new(
-			levels: [envmin, envmax, hold, envmin],
-			times: [attack, decay, holdtime, release],
-			curve: curve
-		)
+	    // ^Env.pairs(
+		// 	[[0, envmin],
+		// 	[attack, envmax],
+		// 	[decay, hold],
+		// 	[holdtime, hold],
+		// 	[release, envmin]],
+		// 	curve: curve
+		// )
+        ^Env.adsr(
+			attackTime: attack,
+			decayTime:decay,
+			sustainLevel: hold,
+			releaseTime: release,
+			peakLevel: envmax,
+			curve: curve,
+			bias: envmin
+        )
+		// ^Env.new(
+		// 	levels: [envmin, envmax, hold, envmin],
+		// 	times: [attack, decay, holdtime],
+		// 	curve: curve
+		// )
 	}
 }
 

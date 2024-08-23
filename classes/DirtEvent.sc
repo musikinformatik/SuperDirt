@@ -113,18 +113,17 @@ DirtEvent {
 				loop !? { unitDuration = unitDuration * loop.abs };
 			}
 		};
-		sustain = sustain + release;
+		// sustain = sustain + release;
 		
 
 		// end samples if sustain exceeds buffer duration
 		// for every buffer, unitDuration is (and should be) defined.
 		if(useUnit) { sustain = min(unitDuration, sustain) };
-
+	
 		~fadeTime = min(~fadeTime.value, sustain * 0.19098);
 		~fadeInTime = if(~begin != 0) { ~fadeTime } { 0.0 };
 		if (~timescale.notNil) {sustain = sustain * ~timescale };
 		~sustain = sustain - (~fadeTime + ~fadeInTime);
-		// ~sustain = (~delta.value / ~cps) * ~clip.value ? 1;
 		~speed = speed;
 		~endSpeed = endSpeed;
 
@@ -170,6 +169,7 @@ DirtEvent {
 				overgain: ~overgain,
 				sample: ~hash, // required for the cutgroup mechanism
 				cut: ~cut.abs,
+				release: ~release,
 				sustain: ~sustain, // after sustain, free all synths and group
 				fadeInTime: ~fadeInTime, // fade in
 				fadeTime: ~fadeTime // fade out

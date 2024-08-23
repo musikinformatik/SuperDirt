@@ -153,12 +153,12 @@ this may be refacored later.
 			[
 				cutoff: ~cutoff,
 				resonance: ~resonance,
-				lpenv: ~lpenv,
-				lpattack: ~lpattack,
-				lpdecay: ~lpdecay,
-				lpsustain: ~lpsustain,
-				lprelease: ~lprelease,
-				lpholdtime: ~sustain,
+				envamt: ~lpenv,
+				attack: {~lpattack.value ? ~attack.value},
+				decay: {~lpdecay.value ? ~decay.value},
+				hold: { ~lpsustain.value ? ~hold.value ? ~lpdecay.isNil},
+				release: {~lprelease.value ? ~release.value},
+				holdtime: ~sustain,
 				out: ~out
 		])
 
@@ -181,10 +181,10 @@ this may be refacored later.
 			[
 				attack: ~attack,
 				decay: ~decay,
-				hold: ~hold,
+				hold: { ~hold.value ? ~decay.isNil },
 				holdtime: ~sustain,
 				release: ~release,
-				curve: ~curve,
+				curve: {~curve.value ? -2},
 				out: ~out
 		])
 }, { ~attack.notNil or: { ~release.notNil } or: { ~decay.notNil } or: { ~hold.notNil }});

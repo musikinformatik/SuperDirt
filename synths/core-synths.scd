@@ -174,10 +174,10 @@ live coding them requires that you have your SuperDirt instance in an environmen
 	// the monitor does the mixing and zeroing of the busses for each sample grain
 	// so that they can all play in one bus
 
-	SynthDef("dirt_gate" ++ numChannels, { |out, in, sustain = 1, fadeInTime = 0.001, fadeTime = 0.001, amp = 1, gain = 1, overgain = 0|
+	SynthDef("dirt_gate" ++ numChannels, { |out, in, sustain = 1, release = 0, fadeInTime = 0.001, fadeTime = 0.001, amp = 1, gain = 1, overgain = 0|
 		var signal = In.ar(in, numChannels);
 		 //  doneAction: 14: free surrounding group and all nodes
-		var env = EnvGen.ar(Env([0, 1, 1, 0], [fadeInTime, sustain, fadeTime], \sin), doneAction: 14);
+		var env = EnvGen.ar(Env([0, 1, 1, 0], [fadeInTime, sustain + release, fadeTime], \sin), doneAction: 14);
 		amp = amp * (gain + overgain);
 		signal = signal * env * amp * DirtGateCutGroup.ar(fadeTime, doneAction: 14);
 		// this takes the signal and offsets it so it matches precisely onto the sample
@@ -196,6 +196,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 	SynthDef("dirt_out" ++ numChannels, { |out, to, sustain = 1, fadeInTime = 0.001, fadeTime = 0.001, through = 0, amp = 1|
 		var signal = In.ar(out, numChannels);
 		var env = EnvGen.ar(Env([0, 1, 1, 0], [fadeInTime, sustain, fadeTime], \sin));
+		
 		Out.ar(to, signal * env * amp);
 		ReplaceOut.ar(out, signal * through);
 	}, [\ir, \ir, \ir, \ir, \ir, \ir, \kr]).add;  // amp can be modulated
@@ -264,26 +265,46 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		ReplaceOut.ar(out, signal * amp)
 	}, [\ir, \kr]).add;
 
-	SynthDef("dirt_lpf" ++ numChannels, { |out, cutoff = 440, resonance = 0, lpattack, lpsustain, lpdecay, lpenv = 400, lprelease, lpholdtime |
+	SynthDef("dirt_lpf" ++ numChannels, { |out, cutoff = 440, resonance = 0, attack, hold, decay, envamt = 0, anchor = 0, release, holdtime |
 		var signal = In.ar(out, numChannels);
-		var envmax = SampleRate.ir / 2;
-		var envmin = 20;
+		var cutmax = SampleRate.ir / 2;
+		var cutmin = 20;
+		var offset = envamt.abs * anchor;
 
-		cutoff = cutoff + EnvGen.ar(
-		  DirtEnvelope.adsr(lpattack, lpdecay, lpholdtime, lprelease, lpsustain, 0, lpenv, -4);
+		var envmin = clip(2 ** (offset * -1) * cutoff, cutmin, cutmax); 
+		var envmax = clip(2 ** (envamt.abs - offset) * cutoff, cutmin, cutmax);
+      
+		cutoff =  EnvGen.ar(
+		   Env.adsr(
+			attackTime: attack, 
+			decayTime: decay, 
+			releaseTime: release, 
+			sustainLevel: hold,
+			peakLevel:  envmax - envmin, 
+			bias: envmin,
+			curve: -4
+		   ),
+		   gate: Trig.ar(1, holdtime)
 	    );
-
-		 cutoff = cutoff.abs.clip(envmin, envmax);
 
 		signal = RLPF.ar(signal, cutoff, resonance.linexp(0, 1, 1, 0.001));
 		ReplaceOut.ar(out, signal)
 	}, [\ir, \kr, \kr]).add;
 
-	SynthDef("dirt_envelope" ++ numChannels, { |out, attack, decay, hold, holdtime = 0, release, curve = -3 |
-	    var signal = In.ar(out, numChannels);
-        signal = signal * EnvGen.ar(
-		  DirtEnvelope.adsr(attack, decay, holdtime, release, hold, 0, 1, curve);
+	SynthDef("dirt_envelope" ++ numChannels, { |out, attack, decay, hold, holdtime = 0, release, curve | 
+		var signal = In.ar(out, numChannels);
+        var volenv = EnvGen.ar(
+		   Env.adsr(
+			attackTime: attack, 
+			decayTime: decay, 
+			releaseTime: release, 
+			sustainLevel: hold,
+			peakLevel:  1, 
+			curve: curve
+		   ),
+		   gate: Trig.ar(1, holdtime)
 	    );
+		signal = signal * volenv;
 		ReplaceOut.ar(out, signal);
 	}, [\ir, \ir, \ir, \ir, \ir]).add;
 
