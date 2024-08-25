@@ -187,7 +187,7 @@
 // a moog-inspired sawtooth synth; slightly detuned saws with triangle harmonics, filter frequency modulated by LFO
 // "voice" controls a relative phase and detune amount
 (
-	SynthDef(\supersaw, {|out, rate=1, decay=0, sustain=1, pan, accelerate, freq,
+	SynthDef(\supersawold, {|out, rate=1, decay=0, sustain=1, pan, accelerate, freq,
 		voice=0.5, semitone=12, resonance=0.2, lfo=1, pitch1=1, speed=1|
 		var env = EnvGen.ar(Env.pairs([[0,0],[0.05,1],[0.2,1-decay],[0.95,1-decay],[1,0]], -3), timeScale:sustain, doneAction:2);
 		var basefreq = freq * DirtFreqScale.kr(speed, accelerate, sustain);
