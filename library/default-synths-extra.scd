@@ -194,10 +194,12 @@
 		var basefreq2 = basefreq * (2**(semitone/12));
 		var lfof1 = min(basefreq*10*pitch1, 22000);
 		var lfof2 = min(lfof1 * (lfo + 1), 22000);
-		var sound = MoogFF.ar(
-			(0.5 * Mix.arFill(3, {|i|  SawDPW.ar(basefreq * ((i-1)*voice/50+1), 0)})) + (0.5 * LFTri.ar(basefreq2, voice)),
-			LFTri.ar(basefreq/64*rate, 0.5).range(lfof1,lfof2),
-			resonance*4);
+		var sound = Mix.arFill(3, {|n|  SawDPW.ar(basefreq * ((n-1)*voice/50+1), 0)});
+		// var sound = MoogFF.ar(
+		// 	(0.5 * Mix.arFill(3, {|i|  SawDPW.ar(basefreq * ((i-1)*voice/50+1), 0)})) + (0.5 * LFTri.ar(basefreq2, voice)),
+		// 	LFTri.ar(basefreq/64*rate, 0.5).range(lfof1,lfof2),
+		// 	resonance*4);
+
 		sound = sound.tanh*2;
 		Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
 	}).add

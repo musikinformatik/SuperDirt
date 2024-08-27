@@ -90,6 +90,9 @@ attack
 decay
 release
 hold
+spread
+unison
+detune
 tremolorate
 tremolodepth
 phaserrate

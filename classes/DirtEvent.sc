@@ -144,7 +144,14 @@ DirtEvent {
 	sendSynth { |instrument, args|
 		var group = ~synthGroup;
 		args = args ?? { this.getMsgFunc(instrument).valueEnvir };
+	
 		args.asControlInput.flop.do { |each|
+		// instrument.value.postln;
+		//     if (instrument.value == "supersaw") {
+		// 		"HI".postln;
+		// 	};
+	
+		
 			server.sendMsg(\s_new,
 				instrument,
 				-1, // no id
