@@ -63,6 +63,7 @@ Event.addEventType(\dirt, {
 	~latency = s.latency;
 	~delta = ~dur.value;
 	~s = ~s ? ~instrument;
+
 	d.value(currentEnvironment)
 })
 )

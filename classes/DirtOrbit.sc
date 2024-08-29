@@ -189,6 +189,12 @@ DirtOrbit {
 
 			~amp = 0.4;
 			~fadeTime = 0.001;
+			// ~s = {if (~unison.notNil) {
+		 	// 	 ~s ++ ~unison;		
+	 		//  } {
+			// 	~s;
+			//  }
+			// };
 
 
 			// values from the dirt bus

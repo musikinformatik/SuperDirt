@@ -8,10 +8,19 @@ DirtEvent {
 	}
 
 	play {
+	
+	
 		event.parent = orbit.defaultParentEvent;
 		event.use {
+
+		
 			// s and n stand for synth/sample and note/number
 			~s ?? { this.splitName };
+
+		// if (~unison.notNil) {
+		// 		~s = ~s ++ ~unison;		
+		// };
+			
 			// unless orbit wide diversion returns something, we proceed
 			~diversion.(this) ?? {
 				if(~s != \) { // backslash stands for do nothing
@@ -35,15 +44,27 @@ DirtEvent {
 	}
 
 	splitName {
+	
 		var s, n;
+
+
+
 		#s, n = ~sound.asString.split($:);
 		if(~bank.notNil) { s = ~bank ++ s };
 		~s = s.asSymbol;
+
+	
+
+	
 		~n = if(n.notNil) { n.asFloat } { 0.0 };
 	}
 
 	mergeSoundEvent {
-		var soundEvent = orbit.dirt.soundLibrary.getEvent(~s, ~n);
+		var soundEvent;
+
+
+		soundEvent = orbit.dirt.soundLibrary.getEvent(~s, ~n);
+			
 		if(soundEvent.isNil) {
 			// only call ~notFound if no ~diversion is given that anyhow redirects control
 			if(~diversion.isNil) { ~notFound.value }
@@ -146,19 +167,32 @@ DirtEvent {
 		args = args ?? { this.getMsgFunc(instrument).valueEnvir };
 	
 		args.asControlInput.flop.do { |each|
-		// instrument.value.postln;
-		//     if (instrument.value == "supersaw") {
-		// 		"HI".postln;
-		// 	};
-	
+              
 		
-			server.sendMsg(\s_new,
+		// if (~unison.notNil) {
+		// 		instrument = instrument ++ ~unison;
+			
+		// };
+		    // if (instrument.asString == "supersaw") {
+			// 		server.sendMsg(\s_new ,
+			// 	instrument ++ ~unison.value ? 2,
+			// 	-1, // no id
+			// 	1, // add action: addToTail
+			// 	group, // send to group
+			// 	*each.asOSCArgArray // append all other args
+			// 	)
+			// } {
+				server.sendMsg(\s_new,
 				instrument,
 				-1, // no id
 				1, // add action: addToTail
 				group, // send to group
 				*each.asOSCArgArray // append all other args
-			)
+				)
+			// }
+	
+		
+			
 		}
 	}
 

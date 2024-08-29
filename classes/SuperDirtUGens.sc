@@ -183,9 +183,7 @@ DirtGateCutGroup {
 	}
 }
 
-
 DirtPause {
-
 	*ar { | signal, graceTime = 1, pauseImmediately = 0 |
 		// immediately pause when started
 		PauseSelf.kr(Impulse.kr(0) * pauseImmediately);
@@ -193,19 +191,6 @@ DirtPause {
 		signal = signal.abs + Trig1.ar(\resumed.tr(0), graceTime);
 		DetectSilence.ar(signal, time:graceTime, doneAction:1);
 	}
-
-}
-
-StrudelUtils {
-    *lerp {|a, b, n|
-        var result = n * (b - a) + a;
-        ^result;
-    }
-	*getUnisonDetune { | unison, detune, voiceIndex |
-        var amount = StrudelUtils.lerp(detune * -0.5, detune * 0.5, voiceIndex / (unison - 1));
-		^amount;
-	}
-	
 }
 
 DirtEnvelope {
@@ -220,20 +205,7 @@ DirtEnvelope {
 		} {
 			hold = envmin + ((envmax - envmin) * hold).clip(envmin, envmax);
 		};
-		
 
-		
-		// decay = decay + attack;
-		// release = holdtime + release;
-
-	    // ^Env.pairs(
-		// 	[[0, envmin],
-		// 	[attack, envmax],
-		// 	[decay, hold],
-		// 	[holdtime, hold],
-		// 	[release, envmin]],
-		// 	curve: curve
-		// )
         ^Env.adsr(
 			attackTime: attack,
 			decayTime:decay,
@@ -243,11 +215,6 @@ DirtEnvelope {
 			curve: curve,
 			bias: envmin
         )
-		// ^Env.new(
-		// 	levels: [envmin, envmax, hold, envmin],
-		// 	times: [attack, decay, holdtime],
-		// 	curve: curve
-		// )
 	}
 }
 

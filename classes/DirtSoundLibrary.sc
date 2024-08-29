@@ -51,6 +51,7 @@ DirtSoundLibrary {
 	}
 
 	addSynth { |name, event, appendToExisting = false, useSynthDefSustain = false, metaData|
+
 		if(bufferEvents[name].notNil) {
 			"a sample buffer with that name already exists: %\nSkipping...".format(name).warn;
 			^this
@@ -107,6 +108,8 @@ DirtSoundLibrary {
 
 	set { |name, indices ... pairs|
 		var allEvents = this.at(name);
+		
+
 		if(allEvents.isNil) {
 			"set: no events found with this name: %\n".format(name).warn
 		} {
@@ -283,6 +286,7 @@ DirtSoundLibrary {
 
 		var allEvents = this.at(name);
 		var event;
+		
 
 		if(allEvents.isNil) {
 			// first look up buffers, then synths
