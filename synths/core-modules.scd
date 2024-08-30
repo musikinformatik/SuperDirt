@@ -147,22 +147,22 @@ this may be refacored later.
 
 }, { ~coarse.notNil and: { ~coarse > 1 } }); // coarse == 1 => full rate
 
-~dirt.addModule('lpf',
-	{ |dirtEvent|
-		dirtEvent.sendSynth("dirt_lpf" ++ ~numChannels,
-			[
-				cutoff: ~cutoff,
-				resonance: ~resonance,
-				envamt: ~lpenv,
-				attack: {~lpattack.value ? ~attack.value},
-				decay: {~lpdecay.value ? ~decay.value},
-				hold: { ~lpsustain.value ? ~hold.value ? ~lpdecay.isNil},
-				release: {~lprelease.value ? ~release.value},
-				holdtime: ~sustain,
-				out: ~out
-		])
+// ~dirt.addModule('lpf',
+// 	{ |dirtEvent|
+// 		dirtEvent.sendSynth("dirt_lpf" ++ ~numChannels,
+// 			[
+// 				cutoff: ~cutoff,
+// 				resonance: ~resonance,
+// 				envamt: ~lpenv,
+// 				attack: {~lpattack.value ? ~attack.value},
+// 				decay: {~lpdecay.value ? ~decay.value},
+// 				hold: { ~lpsustain.value ? ~hold.value ? ~lpdecay.isNil},
+// 				release: {~lprelease.value ? ~release.value},
+// 				holdtime: ~sustain,
+// 				out: ~out
+// 		])
 
-}, { ~cutoff.notNil });
+// }, { ~cutoff.notNil });
 
 ~dirt.addModule('pshift',
 	{ |dirtEvent|
@@ -175,19 +175,19 @@ this may be refacored later.
 		])
 }, { ~psrate.notNil });
 
-~dirt.addModule('envelope',
-	{ |dirtEvent|
-		dirtEvent.sendSynth('dirt_envelope' ++ ~numChannels,
-			[
-				attack: ~attack,
-				decay: ~decay,
-				hold: { ~hold.value ? ~decay.isNil },
-				holdtime: ~sustain,
-				release: ~release,
-				curve: {~curve.value ? -2},
-				out: ~out
-		])
-}, { ~attack.notNil or: { ~release.notNil } or: { ~decay.notNil } or: { ~hold.notNil }});
+// ~dirt.addModule('envelope',
+// 	{ |dirtEvent|
+// 		dirtEvent.sendSynth('dirt_envelope' ++ ~numChannels,
+// 			[
+// 				attack: ~attack,
+// 				decay: ~decay,
+// 				hold: { ~hold.value ? ~decay.isNil },
+// 				holdtime: ~sustain,
+// 				release: ~release,
+// 				curve: {~curve.value ? -2},
+// 				out: ~out
+// 		])
+// }, { ~attack.notNil or: { ~release.notNil } or: { ~decay.notNil } or: { ~hold.notNil }});
 
 ~dirt.addModule('grenvelo',
 	{ |dirtEvent|

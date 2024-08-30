@@ -34,6 +34,7 @@ clip
 sustain
 amp
 gain
+postgain
 channel
 pan
 note

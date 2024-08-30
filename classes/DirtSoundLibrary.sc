@@ -351,6 +351,7 @@ DirtSoundLibrary {
 	makeEventForBuffer { |buffer, metaData|
 		var baseFreq = 60.midicps;
 		var baseFreqToMetaFreqRatio = metaData !? _[\baseFreqToMetaFreqRatio] ? 1.0;
+		
 		^(
 			buffer: buffer.bufnum,
 			bufferObject: buffer,
@@ -369,7 +370,7 @@ DirtSoundLibrary {
 			},
 			unitDuration: { buffer.duration * baseFreq / (~freq.value * ~metaDataTuneRatio.value) },
 			hash: buffer.identityHash,
-			note: 0
+			note: 36
 		)
 	}
 

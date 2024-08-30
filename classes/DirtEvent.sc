@@ -13,14 +13,9 @@ DirtEvent {
 		event.parent = orbit.defaultParentEvent;
 		event.use {
 
-		
 			// s and n stand for synth/sample and note/number
 			~s ?? { this.splitName };
 
-		// if (~unison.notNil) {
-		// 		~s = ~s ++ ~unison;		
-		// };
-			
 			// unless orbit wide diversion returns something, we proceed
 			~diversion.(this) ?? {
 				if(~s != \) { // backslash stands for do nothing

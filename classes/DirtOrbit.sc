@@ -159,7 +159,7 @@ DirtOrbit {
 		globalEffectBus.free;
 	}
 
-// if(~note.isNil) { if (~n.isNil) { 57 } { ~n } } { ~note }
+
 	makeDefaultParentEvent {
 		defaultParentEvent = Event.make {
 
@@ -175,11 +175,10 @@ DirtOrbit {
 			~unit = \r;
 			~n = \none; // sample number or note
 			~octave = 0;
-			~midinote = #{ (~note ? ~n) + (~octave * 12) };
-			~freq = #{ ~midinote.value.midicps  };
+			~midinote = #{ ~note ? ~n + (~octave * 12) };
+			~freq = #{ ~midinote.value.midicps };
 			~dur = 1.0;
 			~delta = #{ ~dur.value };
-
 			~latency = 0.0;
 			~lag = 0.0;
 			~length = 1.0;
@@ -189,12 +188,6 @@ DirtOrbit {
 
 			~amp = 0.4;
 			~fadeTime = 0.001;
-			// ~s = {if (~unison.notNil) {
-		 	// 	 ~s ++ ~unison;		
-	 		//  } {
-			// 	~s;
-			//  }
-			// };
 
 
 			// values from the dirt bus

@@ -1,6 +1,6 @@
 (
         var sawfunc, supersawfunc;
-
+        var numChannels = ~dirt.numChannels;
         supersawfunc = {|voices|
             {|out = 0, rate=1, decay=0, sustain=1, pan= 0, accelerate=0, freq =130.8, speed=1, spread = 0.5, detune = 0.15|
                 var basefreq = freq * DirtFreqScale.kr(speed, accelerate, sustain);
@@ -65,6 +65,82 @@
             var sound = LFTri.ar(basefreq);
             Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan));
         }).add;
+
+
+    //EFFECTS
+
+    SynthDef("gain" ++ numChannels, { |out, gain=1.0 |
+		var signal = In.ar(out, numChannels) * gain;
+		ReplaceOut.ar(out, signal)
+	}, [\ir, \kr, \kr]).add;
+
+    ~dirt.addModule('postgain',
+        { |dirtEvent|
+            dirtEvent.sendSynth("gain" ++ ~numChannels,
+                [
+                    gain: ~postgain,
+                    out: ~out
+            ])
+
+    }, { ~cutoff.notNil });
+
+    SynthDef("strudel_lpf" ++ numChannels, { |out, cutoff = 440, resonance = 0, attack, hold, decay, envamt = 0, anchor = 0, release, holdtime |
+		var signal = In.ar(out, numChannels);
+		cutoff = StrudelUtils.calculateCutoff(cutoff,anchor, envamt, hold, holdtime, attack, decay, release, cutmax: SampleRate.ir / 2);
+        resonance = StrudelUtils.calculateResonance(resonance);
+		signal = IIRFilter.ar(signal, cutoff, resonance);
+		ReplaceOut.ar(out, signal)
+	}, [\ir, \kr, \kr]).add;
+
+    ~dirt.addModule('lpf',
+        { |dirtEvent|
+            dirtEvent.sendSynth("strudel_lpf" ++ ~numChannels,
+                [
+                    cutoff: ~cutoff,
+                    resonance: ~resonance,
+                    envamt: ~lpenv,
+                    attack: {~lpattack.value ? ~attack.value},
+                    decay: {~lpdecay.value ? ~decay.value},
+                    hold: { ~lpsustain.value ? ~hold.value ? ~lpdecay.isNil},
+                    release: {~lprelease.value ? ~release.value},
+                    holdtime: ~sustain,
+                    out: ~out
+            ])
+
+    }, { ~cutoff.notNil });
+
+	SynthDef("strudel_envelope" ++ numChannels, { |out, attack, decay, hold, holdtime = 0, release, curve | 
+		var signal = In.ar(out, numChannels);
+        var volenv = EnvGen.ar(
+		   Env.adsr(
+			attackTime: attack, 
+			decayTime: decay, 
+			releaseTime: release, 
+			sustainLevel: hold,
+			peakLevel:  1, 
+			curve: curve
+		   ),
+		   gate: Trig.ar(1, holdtime)
+	    );
+		signal = signal * volenv;
+		ReplaceOut.ar(out, signal);
+	}, [\ir, \ir, \ir, \ir, \ir]).add;
+
+    ~dirt.addModule('envelope',
+	{ |dirtEvent|
+		dirtEvent.sendSynth('strudel_envelope' ++ ~numChannels,
+			[
+				attack: ~attack,
+				decay: ~decay,
+				hold: { ~hold.value ? ~decay.isNil },
+				holdtime: ~sustain,
+				release: ~release,
+				curve: {~curve.value ? -2},
+				out: ~out
+		])
+    }, { ~attack.notNil or: { ~release.notNil } or: { ~decay.notNil } or: { ~hold.notNil }});
+
+   ~dirt.orderModules(['dirt_gate','lpf','bpf','hpf','phaser','shape','crush','course','envelope']);
 
 )
 
