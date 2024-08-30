@@ -1,4 +1,5 @@
-# SuperDirt
+# SuperTweak
+This is a fork of superdirt that is intended to play well with Strudel.cc
 
 SuperCollider implementation of the Dirt sampler, originally designed
 for the [TidalCycles](https://github.com/tidalcycles/tidal)
@@ -32,7 +33,7 @@ along with this library.  If not, see <http://www.gnu.org/licenses/>.
 
 ## Installation from SuperCollider
 ```
-include("SuperDirt");
+in interpreter options in supercollider, include the path to this repo
 ```
 Note: this also automatically installs the DirtSamples quark, which contains a large collection of sound files. It downloads them as a zip file. Sometimes, git fails to unpack these samples and they don't get listed. In this case, you have to unpack them "manually".
 
