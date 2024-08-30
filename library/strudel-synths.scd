@@ -82,7 +82,7 @@
                     out: ~out
             ])
 
-    }, { ~cutoff.notNil });
+    }, { ~postgain.notNil });
 
     SynthDef("strudel_lpf" ++ numChannels, { |out, cutoff = 440, resonance = 0, attack, hold, decay, envamt = 0, anchor = 0, release, holdtime |
 		var signal = In.ar(out, numChannels);
@@ -140,7 +140,7 @@
 		])
     }, { ~attack.notNil or: { ~release.notNil } or: { ~decay.notNil } or: { ~hold.notNil }});
 
-   ~dirt.orderModules(['dirt_gate','lpf','bpf','hpf','phaser','shape','crush','course','envelope']);
+   ~dirt.orderModules(['dirt_gate','lpf','bpf','hpf','phaser','shape','crush','coarse','envelope','postgain']);
 
 )
 

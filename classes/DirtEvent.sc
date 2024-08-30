@@ -122,16 +122,15 @@ DirtEvent {
 	
 		sustain = sustain ?? {
 			delta = ~delta.value;
-			if(~clip.notNil) {
-				(delta / ~cps) * ~clip.value
-			} {
-				unitDuration = unitDuration ? delta;
-				loop !? { unitDuration = unitDuration * loop.abs };
-			}
+			(delta / ~cps) * (~clip.value ? 1)
+			// if(~clip.notNil) {
+			// 	(delta / ~cps) * ~clip.value
+			// } {
+			// 	unitDuration = unitDuration ? delta;
+			// 	loop !? { unitDuration = unitDuration * loop.abs };
+			// }
 		};
-		// sustain = sustain + release;
 		
-
 		// end samples if sustain exceeds buffer duration
 		// for every buffer, unitDuration is (and should be) defined.
 		if(useUnit) { sustain = min(unitDuration, sustain) };
@@ -162,32 +161,13 @@ DirtEvent {
 		args = args ?? { this.getMsgFunc(instrument).valueEnvir };
 	
 		args.asControlInput.flop.do { |each|
-              
-		
-		// if (~unison.notNil) {
-		// 		instrument = instrument ++ ~unison;
-			
-		// };
-		    // if (instrument.asString == "supersaw") {
-			// 		server.sendMsg(\s_new ,
-			// 	instrument ++ ~unison.value ? 2,
-			// 	-1, // no id
-			// 	1, // add action: addToTail
-			// 	group, // send to group
-			// 	*each.asOSCArgArray // append all other args
-			// 	)
-			// } {
 				server.sendMsg(\s_new,
 				instrument,
 				-1, // no id
 				1, // add action: addToTail
 				group, // send to group
 				*each.asOSCArgArray // append all other args
-				)
-			// }
-	
-		
-			
+				)	
 		}
 	}
 
