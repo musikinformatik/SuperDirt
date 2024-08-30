@@ -31,6 +31,27 @@ DirtSoundLibrary {
 		synthEvents.clear;
 		this.freeAllSoundFiles;
 	}
+	// extractParts { |str|
+    // // Regex to split the string into numeric and non-numeric parts
+    //   str.collect { |part|
+    //     part.isNumber ifTrue: { part.asInteger } ifFalse: { part }
+    // 	};
+	// }
+
+	// sortStringsAlphanumerically  { |stringArray|
+	// 	stringArray.sort { |a, b|
+	// 		var partsA = this.extractParts.(a);
+	// 		var partsB = this.extractParts.(b);
+			
+	// 		partsA.zip(partsB).detect { |pair|
+	// 			var (partA, partB) = pair;
+	// 			partA < partB ifTrue: { ^-1 };
+	// 			partA > partB ifTrue: { ^1 };
+	// 		};
+			
+	// 		0 // They are equal
+	// 	};
+	// }
 
 	addBuffer { |name, buffer, appendToExisting = false, metaData|
 		var event, index;
@@ -182,7 +203,9 @@ DirtSoundLibrary {
 		};
 
 		files = pathMatch(folderPath.standardizePath +/+ "*"); // dependent on operating system
-		if(sortFiles) { files.sort };
+		if(sortFiles) { 
+			 files.sort;	
+		 };
 
 		if(files.notEmpty) {
 			name = name.asSymbol;
@@ -198,7 +221,9 @@ DirtSoundLibrary {
 
 		filePaths.do { |filepath|
 			try {
+			
 				var buf, metaData;
+			
 				buf = this.readSoundFile(filepath);
 				if(buf.notNil) {
 					metaData = this.readMetaData(filepath);

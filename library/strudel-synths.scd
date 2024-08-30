@@ -30,12 +30,14 @@
         ~dirt.soundLibrary.addSynth(\supersaw,
             (playInside: { |e|
                 (
-                    instrument: "supersaw" ++ clip(~unison.value, 1, 10),
+                    instrument: "supersaw" ++ clip(~unison.value ? 5, 1, 10),
                     out: ~out,
                     freq: ~freq,
+                    speed: ~speed,
+                    accelerate: ~accelerate,
                     amp: ~amp,
-                    detune: ~detune,
-                    spread: ~spread,
+                    detune: ~detune ? ~n ? 0.18,
+                    spread: ~spread ? 0.6,
                     group: ~synthGroup
                 ).play
             })
