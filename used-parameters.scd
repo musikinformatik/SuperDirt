@@ -98,6 +98,8 @@ tremolorate
 tremolodepth
 phaserrate
 phaserdepth
+distort
+distortvol
 tilt
 plat
 

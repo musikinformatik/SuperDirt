@@ -109,6 +109,29 @@
 
     }, { ~cutoff.notNil });
 
+
+    SynthDef("strudel_distort" ++ numChannels, { |out, shape = 0, postgain = 1|
+		
+        var signal = In.ar(out, numChannels), amp = 1;
+        
+		shape = exp(shape) - 1;
+        // shape = min(shape, 1.0 - 4e-10); // avoid division by zero
+        postgain = clip(postgain, 0.001, 1);
+
+		signal = ((1 + shape) * signal / (1 + (shape * abs(signal)))) * postgain;
+		ReplaceOut.ar(out, signal * amp)
+	}, [\ir, \kr]).add;
+
+    ~dirt.addModule('distort',
+	{ |dirtEvent|
+		dirtEvent.sendSynth('strudel_distort' ++ ~numChannels,
+			[
+				shape: ~distort,
+                postgain: ~distortvol ? 1,
+				out: ~out
+		])
+    }, { ~distort.notNil });
+
 	SynthDef("strudel_envelope" ++ numChannels, { |out, attack, decay, hold, holdtime = 0, release, curve | 
 		var signal = In.ar(out, numChannels);
         var volenv = EnvGen.ar(
