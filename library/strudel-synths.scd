@@ -36,7 +36,7 @@
                     speed: ~speed,
                     accelerate: ~accelerate,
                     amp: ~amp,
-                    detune: ~detune ? ~n ? 0.18,
+                    detune: ~detune.value ? ~n.value ? 0.18,
                     spread: ~spread ? 0.6,
                     group: ~synthGroup
                 ).play

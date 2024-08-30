@@ -173,7 +173,8 @@ DirtOrbit {
 			~overgain = 0.0;
 			~cut = 0.0;
 			~unit = \r;
-			~n = \none; // sample number or note
+			~n = nil;
+			// ~n = \none; // sample number or note
 			~octave = 0;
 			~midinote = #{ ~note ? ~n + (~octave * 12) };
 			~freq = #{ ~midinote.value.midicps };

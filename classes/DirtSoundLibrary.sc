@@ -327,8 +327,7 @@ DirtSoundLibrary {
 			^event
 
 		} {
-			// the index may be \none (a Symbol), but this converts it to 0
-			event = allEvents.wrapAt(index.asInteger);
+			event = allEvents.wrapAt((index ? 0).asInteger);
 		};
 
 		if(doNotReadYet and: { event.notNil and: { event[\notYetRead] ? false } }) {
