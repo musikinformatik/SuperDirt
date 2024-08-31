@@ -98,6 +98,7 @@
             dirtEvent.sendSynth("strudel_lpf" ++ ~numChannels,
                 [
                     cutoff: ~cutoff,
+                    anchor: ~anchor,
                     resonance: ~resonance,
                     envamt: ~lpenv,
                     attack: {~lpattack.value ? ~attack.value},
@@ -110,6 +111,57 @@
 
     }, { ~cutoff.notNil });
 
+    SynthDef("strudel_hpf" ++ numChannels, { |out, cutoff = 440, resonance = 0, attack, hold, decay, envamt = 0, anchor = 0, release, holdtime|
+		var signal = In.ar(out, numChannels);
+        cutoff = StrudelUtils.calculateCutoff(cutoff,anchor, envamt, hold, holdtime, attack, decay, release, cutmax: SampleRate.ir / 2);
+        resonance = StrudelUtils.calculateResonance(resonance);
+		signal = RHPF.ar(signal, cutoff.abs.clip(20, SampleRate.ir / 2), resonance);
+		ReplaceOut.ar(out, signal)
+	}, [\ir, \kr, \kr]).add;
+
+	~dirt.addModule('hpf',
+	{ |dirtEvent|
+		dirtEvent.sendSynth("strudel_hpf" ++ ~numChannels,
+			[
+				cutoff: ~hcutoff,
+                anchor: ~anchor,
+				resonance: ~hresonance,
+                envamt: ~hpenv,
+                attack: {~hpattack.value ? ~attack.value},
+                decay: {~hpdecay.value ? ~decay.value},
+                hold: { ~hpsustain.value ? ~hold.value ? ~hpdecay.isNil},
+                release: {~hprelease.value ? ~release.value},
+                holdtime: ~sustain,
+				out: ~out
+		])
+
+    }, { ~hcutoff.notNil });
+
+    SynthDef("strudel_bpf" ++ numChannels, { |out, cutoff=440, resonance=0, attack, hold, decay, envamt=0, anchor=0, release, holdtime|
+		var signal = In.ar(out, numChannels);
+	    cutoff = StrudelUtils.calculateCutoff(cutoff,anchor, envamt, hold, holdtime, attack, decay, release, cutmax: SampleRate.ir / 2);
+        resonance = StrudelUtils.calculateResonance(resonance);
+		signal = BPF.ar(signal, cutoff, 1/resonance) * max(resonance, 1.0);
+		ReplaceOut.ar(out, signal)
+	}, [\ir, \kr, \kr]).add;
+
+    ~dirt.addModule('bpf',
+        { |dirtEvent|
+            dirtEvent.sendSynth("strudel_bpf" ++ ~numChannels,
+                [
+                    cutoff: ~bandf,
+                    anchor: ~anchor,
+                    resonance: ~bandq,
+                    envamt: ~bpenv,
+                    attack: {~bpattack.value ? ~attack.value},
+                    decay: {~bpdecay.value ? ~decay.value},
+                    hold: { ~bpsustain.value ? ~hold.value ? ~bpdecay.isNil},
+                    release: {~bprelease.value ? ~release.value},
+                    holdtime: ~sustain,
+                    out: ~out
+            ])
+
+    }, { ~bandf.notNil });
 
     SynthDef("strudel_distort" ++ numChannels, { |out, shape = 0, postgain = 1|
 		

@@ -105,27 +105,27 @@ this may be refacored later.
 
 }, { ~shape.notNil });
 
-~dirt.addModule('hpf',
-	{ |dirtEvent|
-		dirtEvent.sendSynth("dirt_hpf" ++ ~numChannels,
-			[
-				hcutoff: ~hcutoff,
-				hresonance: ~hresonance,
-				out: ~out
-		])
+// ~dirt.addModule('hpf',
+// 	{ |dirtEvent|
+// 		dirtEvent.sendSynth("dirt_hpf" ++ ~numChannels,
+// 			[
+// 				hcutoff: ~hcutoff,
+// 				hresonance: ~hresonance,
+// 				out: ~out
+// 		])
 
-}, { ~hcutoff.notNil });
+// }, { ~hcutoff.notNil });
 
-~dirt.addModule('bpf',
-	{ |dirtEvent|
-		dirtEvent.sendSynth("dirt_bpf" ++ ~numChannels,
-			[
-				bandqf: ~bandf,
-				bandq: ~bandq,
-				out: ~out
-		])
+// ~dirt.addModule('bpf',
+// 	{ |dirtEvent|
+// 		dirtEvent.sendSynth("dirt_bpf" ++ ~numChannels,
+// 			[
+// 				bandqf: ~bandf,
+// 				bandq: ~bandq,
+// 				out: ~out
+// 		])
 
-}, { ~bandf.notNil });
+// }, { ~bandf.notNil });
 
 ~dirt.addModule('crush',
 	{ |dirtEvent|

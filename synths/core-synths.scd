@@ -16,13 +16,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 (
 {
 	var numChannels = ~dirt.numChannels;
-	// var getPlaybackSpeed;
-	// getPlaybackSpeed = {|sustain, |
-		
-	// }
-
 	
-
 	// write variants for different sample buffer sizes
 	(1..SuperDirt.maxSampleNumChannels).do { |sampleNumChannels|
 
@@ -34,6 +28,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 	        
 
 			// playback speed
+		
 			rate = Line.kr(speed, endSpeed, totalDuration) * (freq / StrudelUtils.baseNote().midicps);
 
         
@@ -70,12 +65,13 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 		var name = format("dirt_sample_long_%_%", sampleNumChannels, numChannels);
 
-		SynthDef(name, { |out, bufnum, sustain = 1, begin = 0, end = 1, speed = 1, endSpeed = 1, freq = 440, pan = 0|
+		SynthDef(name, { |out, bufnum, totalDuration = 1, begin = 0, end = 1, speed = 1, endSpeed = 1, freq = 440, pan = 0|
 
 			var sound, rate,  env, startPos, numFrames;
 
 			// playback speed
-			rate = Line.kr(speed, endSpeed, sustain) * (freq / 60.midicps);
+			rate = Line.kr(speed, endSpeed, totalDuration) * (freq / StrudelUtils.baseNote().midicps);
+
 
 				
 			// sample phase
@@ -97,7 +93,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 				loop: 0
 			);
 
-			env = EnvGen.kr(Env.linen(0, sustain, 0)); // todo: check if control rate smoothens (shouldn't)
+			env = EnvGen.kr(Env.linen(0, totalDuration, 0)); // todo: check if control rate smoothens (shouldn't)
 
 			sound = sound * env;
 			sound = sound * StrudelUtils.sampleGain();
@@ -115,13 +111,14 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 		var name = format("dirt_stretchsample_%_%", sampleNumChannels, numChannels);
 
-		SynthDef(name, { |out, bufnum, sustain = 1, begin = 0, end = 1, speed = 1, endSpeed = 1, freq = 440, pan = 0, timescale = 1, timescalewin = 1|
+		SynthDef(name, { |out, bufnum, totalDuration, begin = 0, end = 1, speed = 1, endSpeed = 1, freq = 440, pan = 0, timescale = 1, timescalewin = 1|
 
 			var sound, rate, phase, sawrate, numFrames, index, windowIndex, window, timescaleStep;
 			var sound0, sound1, windowSize, nSteps;
 
 			// playback speed
-			rate = Line.kr(speed, endSpeed, sustain) * (freq / 60.midicps);
+			rate = Line.kr(speed, endSpeed, totalDuration) * (freq / StrudelUtils.baseNote().midicps);
+
 
 
 			// sample phase
@@ -209,10 +206,9 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 	*/
 
-	SynthDef("dirt_out" ++ numChannels, { |out, to, sustain = 1, fadeInTime = 0.001, fadeTime = 0.001, through = 0, amp = 1|
+	SynthDef("dirt_out" ++ numChannels, { |out, to, totalDuration, fadeInTime = 0.001, fadeTime = 0.001, through = 0, amp = 1|
 		var signal = In.ar(out, numChannels);
-		var env = EnvGen.ar(Env([0, 1, 1, 0], [fadeInTime, sustain, fadeTime], \sin));
-		
+		var env = EnvGen.ar(Env([0, 1, 1, 0], [fadeInTime, totalDuration - (fadeInTime + fadeTime), fadeTime], \sin));
 		Out.ar(to, signal * env * amp);
 		ReplaceOut.ar(out, signal * through);
 	}, [\ir, \ir, \ir, \ir, \ir, \ir, \kr]).add;  // amp can be modulated
