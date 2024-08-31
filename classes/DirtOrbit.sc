@@ -176,7 +176,7 @@ DirtOrbit {
 			~n = nil;
 			// ~n = \none; // sample number or note
 			~octave = 0;
-			~midinote = #{ ~note ? ~n + (~octave * 12) };
+			~midinote = #{ (~note ? ~n ? StrudelUtils.baseNote()) + (~octave * 12) };
 			~freq = #{ ~midinote.value.midicps };
 			~dur = 1.0;
 			~delta = #{ ~dur.value };

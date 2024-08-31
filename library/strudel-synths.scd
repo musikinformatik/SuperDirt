@@ -163,7 +163,7 @@
 		])
     }, { ~attack.notNil or: { ~release.notNil } or: { ~decay.notNil } or: { ~hold.notNil }});
 
-   ~dirt.orderModules(['dirt_gate','lpf','bpf','hpf','phaser','shape','crush','coarse','envelope','postgain']);
+   ~dirt.orderModules(['sound','supersaw','dirt_gate','lpf','bpf','hpf','phaser','shape','crush','coarse','envelope','postgain']);
 
 )
 
