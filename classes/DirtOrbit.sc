@@ -174,6 +174,9 @@ DirtOrbit {
 			~cut = 0.0;
 			~unit = \r;
 			~n = nil;
+			// ~release = 0.001;
+			// ~totalDuration = #{~sustain.value + ~release.value};
+			// ~sustain = #{~sustain.value + ~release.value};
 			// ~n = \none; // sample number or note
 			~octave = 0;
 			~midinote = #{ (~note ? ~n ? StrudelUtils.baseNote()) + (~octave * 12) };
@@ -187,7 +190,7 @@ DirtOrbit {
 			~dry = 0.0;
 			~lock = 0; // if set to 1, syncs delay times with cps
 
-			~amp = 0.4;
+			~amp = 0.6;
 			~fadeTime = 0.001;
 
 

@@ -45,6 +45,7 @@ this may be refacored later.
 					speed: ~speed,
 					freq: ~freq * ~metaDataTuneRatio.value,
 					endSpeed: ~endSpeed,
+					totalDuration: ~totalDuration,
 					begin: ~begin,
 					end: ~end,
 					pan: ~pan,

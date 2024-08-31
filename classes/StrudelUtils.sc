@@ -35,6 +35,10 @@ StrudelUtils {
     *baseNote {
         ^36;
     }
+    //makeup gain for sample buffer
+    *sampleGain {
+        ^1.7;
+    }
     
 }
 

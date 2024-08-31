@@ -17,6 +17,7 @@
                         iphase:  TRand.kr(-1, 1, Impulse.kr(0))
                     )
                 },spread: panspread, level: 1, center: 0);
+                sound = sound * 1.2;
 
                 Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan));
             }

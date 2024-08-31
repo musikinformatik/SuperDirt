@@ -83,7 +83,7 @@ DirtEvent {
 		var accelerate = ~accelerate.value;
 		var avgSpeed, endSpeed;
 		var useUnit;
-		var release = ~release.value ? 0.0;
+		~release = ~release.value ? 0.01;
 
 		~freq = ~freq.value;
 		unitDuration = ~unitDuration.value;
@@ -122,7 +122,13 @@ DirtEvent {
 	
 		sustain = sustain ?? {
 			delta = ~delta.value;
-			(delta / ~cps) * (~clip.value ? 1)
+			if (useUnit and: ~clip.isNil) {
+				unitDuration = unitDuration ? delta;
+				loop !? { unitDuration = unitDuration * loop.abs };
+			} {
+				(delta / ~cps) * (~clip.value ? 1)
+			};
+		
 			// if(~clip.notNil) {
 			// 	(delta / ~cps) * ~clip.value
 			// } {
@@ -130,15 +136,21 @@ DirtEvent {
 			// 	loop !? { unitDuration = unitDuration * loop.abs };
 			// }
 		};
+	
 		
 		// end samples if sustain exceeds buffer duration
 		// for every buffer, unitDuration is (and should be) defined.
-		if(useUnit) { sustain = min(unitDuration, sustain) };
+		// if(useUnit) { sustain = min(unitDuration, sustain) };
 	
-		~fadeTime = min(~fadeTime.value, sustain * 0.19098);
-		~fadeInTime = if(~begin != 0) { ~fadeTime } { 0.0 };
+	
+		// ~fadeTime = min(~fadeTime.value, sustain * 0.19098);
+		// ~fadeTime = ~fadeTime.value ? .001;
+		// ~fadeInTime = if(~begin != 0) { ~fadeTime } { 0.0 };
 		if (~timescale.notNil) {sustain = sustain * ~timescale };
-		~sustain = sustain - (~fadeTime + ~fadeInTime);
+		~totalDuration = if (useUnit) {min(unitDuration, sustain + ~release)} {sustain + ~release};
+		// ~sustain = sustain - (~fadeTime + ~fadeInTime);
+		~sustain = sustain;
+		
 		~speed = speed;
 		~endSpeed = endSpeed;
 
@@ -186,6 +198,7 @@ DirtEvent {
 				sample: ~hash, // required for the cutgroup mechanism
 				cut: ~cut.abs,
 				release: ~release,
+				totalDuration: ~totalDuration,
 				sustain: ~sustain, // after sustain, free all synths and group
 				fadeInTime: ~fadeInTime, // fade in
 				fadeTime: ~fadeTime // fade out
