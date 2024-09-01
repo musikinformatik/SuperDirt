@@ -282,6 +282,7 @@ SuperDirt {
 		playFunc = { |msg, time, tidalAddr|
 			var latency = time - thisThread.seconds;
 			var event = (), orbit, index;
+			 	
 			if(dropWhen.value.not) {
 				if(latency > maxLatency) {
 					"The scheduling delay is too long. Your networks clocks may not be in sync".warn;
@@ -292,6 +293,7 @@ SuperDirt {
 				event.putPairs(msg[1..]);
 				receiveAction.value(event);
 				index = event[\orbit] ? 0;
+				// msg.postln;
 
 				if(warnOutOfOrbit and: { index >= orbits.size } or: { index < 0 }) {
 					"SuperDirt: event falls out of existing orbits, index (%)".format(index).warn
