@@ -214,14 +214,14 @@ this may be refacored later.
 }, { ~tremolorate.notNil });
 
 // Phaser audio DSP effect declaration
-~dirt.addModule('phaser',
-	{ |dirtEvent|
-		dirtEvent.sendSynth('dirt_phaser' ++ ~numChannels,
-			[
-				phaserrate: ~phaserrate,
-				phaserdepth: ~phaserdepth,
-				out: ~out
-		])
-}, { ~phaserrate.notNil });
+// ~dirt.addModule('phaser',
+// 	{ |dirtEvent|
+// 		dirtEvent.sendSynth('dirt_phaser' ++ ~numChannels,
+// 			[
+// 				phaserrate: ~phaserrate,
+// 				phaserdepth: ~phaserdepth,
+// 				out: ~out
+// 		])
+// }, { ~phaserrate.notNil });
 
 );

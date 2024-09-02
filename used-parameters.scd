@@ -100,6 +100,11 @@ phaserrate
 phaserdepth
 distort
 distortvol
+compressor
+compressorRatio
+compressorKnee
+compressorAttack
+compressorRelease
 tilt
 plat
 

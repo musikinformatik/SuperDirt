@@ -185,6 +185,75 @@
 		])
     }, { ~distort.notNil });
 
+    SynthDef("strudel_phaser" ++ numChannels, { |out, phaserrate, phaserdepth, phasercenter, phasersweep, phaserstages, phaseoffset|	
+    	var signal, phaserwave;    
+        var modgain = phasersweep;
+        var fOffset = 0;
+        var cutoff;
+        var mod = LFTri.kr(phaserrate, iphase: phaseoffset).range(-1, 1);
+        mod = (mod * modgain) + phasercenter;
+      
+		signal = In.ar(out, numChannels);
+        (1..10).do{|i|
+          if (i <= numChannels){
+            cutoff = clip(mod + fOffset, 20, SampleRate.ir / 2 );
+            signal = SVF.ar(
+                signal,
+                cutoff: cutoff, 
+                res: phaserdepth, 
+                notch: 0.25, 
+            );
+            fOffset = fOffset + 282;
+          };
+
+        };
+
+		ReplaceOut.ar(out, signal);
+	}, [\ir, \kr]).add;
+
+
+
+    ~dirt.addModule('phaser',
+	{ |dirtEvent|
+		dirtEvent.sendSynth('strudel_phaser' ++ ~numChannels,
+			[
+				phaserrate: ~phaserrate,
+                phaserdepth: ~phaserdepth ? 0.0,
+                phasercenter: ~phasercenter ? 2800,
+                phasersweep: ~phasersweep ? 2000,
+                phaserstages: ~phaserstages ? 2,
+                phaseoffset: (((~cycle ? 1 / ~cps ? 0.5) * ~phaserrate) % 1) * 4,
+				out: ~out
+		])
+    }, { ~phaserrate.notNil });
+
+        SynthDef("strudel_compressor" ++ numChannels, { |out, threshold = 0, ratio = 0.25, knee = 8, attack = 0.1, release = 0.1|
+        var signal = In.ar(out, numChannels), amp = 1;
+        threshold = clip(threshold, 0.01, 100);
+
+		signal =   Compander.ar(signal, signal,
+        thresh: threshold,
+        slopeBelow: knee,
+        slopeAbove:  ratio,
+        clampTime:   attack,
+        relaxTime:   release
+        );
+		ReplaceOut.ar(out, signal * amp)
+	}, [\ir, \kr]).add;
+
+    ~dirt.addModule('compressor',
+	{ |dirtEvent|
+		dirtEvent.sendSynth('strudel_compressor' ++ ~numChannels,
+			[
+				threshold: ~compressor ? -3,
+                ratio: ~compressorRatio ? 0.25,
+                knee: ~compressorKnee ? 0.8,
+                attack: ~compressorAttack ? 0.01,
+                release: ~compressorRelease ? 0.01,
+				out: ~out
+		    ])
+    }, { ~compressor.notNil });
+
 	SynthDef("strudel_envelope" ++ numChannels, { |out, attack, decay, hold, holdtime = 0, release, curve | 
 		var signal = In.ar(out, numChannels);
         var volenv = EnvGen.ar(
@@ -216,7 +285,7 @@
 		])
     }, { ~attack.notNil or: { ~release.notNil } or: { ~decay.notNil } or: { ~hold.notNil }});
 
-   ~dirt.orderModules(['sound','supersaw','dirt_gate','lpf','bpf','hpf','phaser','shape','crush','coarse','envelope','postgain']);
+   ~dirt.orderModules(['sound','supersaw','dirt_gate','lpf','bpf','hpf','phaser','shape','crush','coarse','compressor','distort','envelope','postgain']);
 
 )
 
