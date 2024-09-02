@@ -185,30 +185,35 @@
 		])
     }, { ~distort.notNil });
 
-    SynthDef("strudel_phaser" ++ numChannels, { |out, phaserrate, phaserdepth, phasercenter, phasersweep, phaserstages, phaseoffset|	
-    	var signal, phaserwave;    
+    SynthDef("strudel_phaser" ++ numChannels, { |out, phaserrate, phaserdepth = 0.5, phasercenter, phasersweep, phaserstages, phaseoffset|	
+    	var signal = In.ar(out, numChannels); 
         var modgain = phasersweep;
         var fOffset = 0;
         var cutoff;
         var mod = LFTri.kr(phaserrate, iphase: phaseoffset).range(-1, 1);
+        var modsignal = signal;
+        // var fade = (2 * phaserdepth) -1;
+
         mod = (mod * modgain) + phasercenter;
+        
       
-		signal = In.ar(out, numChannels);
-        (1..10).do{|i|
-          if (i <= numChannels){
+
+        (1..3).do{|i|
+        //   if (i <= phaserstages){
             cutoff = clip(mod + fOffset, 20, SampleRate.ir / 2 );
-            signal = SVF.ar(
-                signal,
+            modsignal = SVF.ar(
+                modsignal,
                 cutoff: cutoff, 
-                res: phaserdepth, 
-                notch: 0.25, 
+                lowpass:0,
+                res: 1 - phaserdepth,
+                notch: 1, 
             );
             fOffset = fOffset + 282;
-          };
+        //   };
 
         };
-
-		ReplaceOut.ar(out, signal);
+     
+		ReplaceOut.ar(out, modsignal);
 	}, [\ir, \kr]).add;
 
 
@@ -219,7 +224,7 @@
 			[
 				phaserrate: ~phaserrate,
                 phaserdepth: ~phaserdepth ? 0.0,
-                phasercenter: ~phasercenter ? 2800,
+                phasercenter: ~phasercenter ? 2700,
                 phasersweep: ~phasersweep ? 2000,
                 phaserstages: ~phaserstages ? 2,
                 phaseoffset: (((~cycle ? 1 / ~cps ? 0.5) * ~phaserrate) % 1) * 4,
