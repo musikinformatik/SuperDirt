@@ -223,7 +223,7 @@
 		dirtEvent.sendSynth('strudel_phaser' ++ ~numChannels,
 			[
 				phaserrate: ~phaserrate,
-                phaserdepth: ~phaserdepth ? 0.0,
+                phaserdepth: ~phaserdepth ? 0.75,
                 phasercenter: ~phasercenter ? 2700,
                 phasersweep: ~phasersweep ? 2000,
                 phaserstages: ~phaserstages ? 2,
@@ -290,7 +290,7 @@
 		])
     }, { ~attack.notNil or: { ~release.notNil } or: { ~decay.notNil } or: { ~hold.notNil }});
 
-   ~dirt.orderModules(['sound','supersaw','dirt_gate','lpf','bpf','hpf','phaser','shape','crush','coarse','compressor','distort','envelope','postgain']);
+   ~dirt.orderModules(['sound','supersaw','dirt_gate','lpf','bpf','hpf','shape','crush','coarse','phaser','compressor','distort','envelope','postgain']);
 
 )
 
