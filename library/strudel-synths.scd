@@ -67,6 +67,19 @@
             Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan));
         }).add;
 
+        SynthDef(\white, {|out, pan|
+            var sound = WhiteNoise.ar(mul:0.5);
+            Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan));
+        }).add;
+        SynthDef(\brown, {|out, pan|
+            var sound = BrownNoise.ar(mul:0.5);
+            Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan));
+        }).add;
+        SynthDef(\pink, {|out, pan|
+            var sound = PinkNoise.ar(mul:0.5);
+            Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan));
+        }).add;
+
 
     //EFFECTS
 
