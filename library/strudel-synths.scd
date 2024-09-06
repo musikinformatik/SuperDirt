@@ -61,6 +61,19 @@
             Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan));
         }).add;
 
+        SynthDef(\pulse, {|out, sustain=1, pan, accelerate, freq=130.8, speed=1, z1=0.5, z2=0, z3=0.65, cycle, cps|
+            var basefreq = freq * DirtFreqScale.kr(speed, accelerate, sustain);
+            var width = z1;
+            var modspeed = z2;
+            var moddepth = z3;
+            var phaseoffset = (((cycle / cps) * modspeed) % 1) * 4;
+
+            var mod = LFTri.ar(modspeed, iphase: phaseoffset).range(-0.5,0.5) * moddepth;
+            var sound = Pulse.ar(basefreq, width: clip(mod + width,0.01, 0.99));
+
+            Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan));
+        }).add;
+
         SynthDef(\triangle, {|out, rate=1, decay=0, sustain=1, pan, accelerate, freq = 	130.8, speed=1|
             var basefreq = freq * DirtFreqScale.kr(speed, accelerate, sustain);
             var sound = LFTri.ar(basefreq);
