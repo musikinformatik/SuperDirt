@@ -1,5 +1,5 @@
 (
-        var sawfunc, supersawfunc;
+        var sawfunc, supersawfunc, pulsefunc, superpulsefunc;
         var numChannels = ~dirt.numChannels;
         supersawfunc = {|voices|
             {|out = 0, rate=1, decay=0, sustain=1, pan= 0, accelerate=0, freq =130.8, speed=1, spread = 0.5, detune = 0.15|
@@ -31,7 +31,7 @@
         ~dirt.soundLibrary.addSynth(\supersaw,
             (playInside: { |e|
                 (
-                    instrument: "supersaw" ++ clip(~unison.value ? 5, 1, 10),
+                    instrument: "supersaw" ++ clip(~unison.value ? 3, 1, 10),
                     out: ~out,
                     freq: ~freq,
                     speed: ~speed,
@@ -44,16 +44,93 @@
             })
         );
 
-        sawfunc = {
-           {|out, rate=1, decay=0, sustain=1, pan, accelerate, freq = 	130.8, speed=1|
-            var basefreq = freq * DirtFreqScale.kr(speed, accelerate, sustain);
-            var sound = SawDPW.ar(freq: basefreq);
-            Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan));
-          }
+        superpulsefunc = {|voices|
+            {|out = 0, rate=1, decay=0, sustain=1, pan= 0, accelerate=0, freq =130.8, speed=1, spread = 0.5, detune = 0.15, z1=0.5, z2=0, z3=0.65, cycle, cps|
+                var basefreq = freq * DirtFreqScale.kr(speed, accelerate, sustain);
+                var sound;
+                var panspread = spread;
+                var freqspread = detune;
+                var width = z1;
+                var modspeed = z2;
+                var moddepth = z3;
+                var phaseoffset = (((cycle / cps) * modspeed) % 1);
+                var mod = LFTri.ar(modspeed, iphase: phaseoffset).range(-0.5,0.5) * moddepth;
+                width =  clip(mod + width,0.01, 0.99);
+        
+                if (voices < 2) {
+                    panspread = 0;
+                };
+                sound = Splay.arFill(voices, {|i|
+                    LFPulse.ar(
+                        basefreq * pow(2, StrudelUtils.getUnisonDetune(voices, freqspread, i) / 12),
+                        iphase:  TRand.kr(0, 1, Impulse.kr(0)),
+                        // width: width,
+                        width:width;
+                    )
+                },spread: panspread, level: 1, center: 0);
+                sound = sound * 1.2;
+                Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan));
+            }
         };
 
-        SynthDef.new(\supersaw1, sawfunc.value()).add;
+
+        (2..10).do{|voices|
+            var name = "superpulse" ++ voices;
+            SynthDef.new(name, superpulsefunc.value(voices)).add;
+        };
+
+        ~dirt.soundLibrary.addSynth(\superpulse,
+            (playInside: { |e|
+                (
+                    instrument: "superpulse" ++ clip(~unison.value ? 5, 1, 10),
+                    out: ~out,
+                    freq: ~freq,
+                    speed: ~speed,
+                    accelerate: ~accelerate,
+                    amp: ~amp,
+                    cycle: ~cycle,
+                    cps: ~cps, 
+                    z1: ~z1 ? ~n ? 0.5,
+                    z2: ~z2,
+                    z3: ~z3 ? 0.65,
+                    detune: ~detune.value ? ~n.value ? 0.12,
+                    spread: ~spread ? 1,
+                    group: ~synthGroup
+                ).play
+            })
+        );
+
+        sawfunc = {
+            {|out, rate=1, decay=0, sustain=1, pan, accelerate, freq = 	130.8, speed=1|
+                var basefreq = freq * DirtFreqScale.kr(speed, accelerate, sustain);
+                var sound = SawDPW.ar(freq: basefreq);
+                Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan));
+            }
+        };
+
+        SynthDef(\supersaw1, sawfunc.value()).add;
         SynthDef(\sawtooth, sawfunc.value()).add;
+
+        pulsefunc = {
+            {|out, sustain=1, pan, accelerate, freq=130.8, speed=1, z1=0.5, z2=0, z3=0.65, cycle, cps|
+                var basefreq = freq * DirtFreqScale.kr(speed, accelerate, sustain);
+                var width = z1;
+                var modspeed = z2;
+                var moddepth = z3;
+                var phaseoffset = (((cycle / cps) * modspeed) % 1) * 4;
+
+                var mod = LFTri.ar(modspeed, iphase: phaseoffset).range(-0.5,0.5) * moddepth;
+                var sound = Pulse.ar(basefreq, width: clip(mod + width,0.01, 0.99));
+
+                Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan));
+            }
+        };
+
+        SynthDef(\superpulse1, pulsefunc.value()).add;
+        SynthDef(\pulse, pulsefunc.value()).add;
+
+  
+
 
         SynthDef(\sine, {|out, rate=1, decay=0, sustain=1, pan, accelerate, freq=130.8, speed=1|
             var basefreq = freq * DirtFreqScale.kr(speed, accelerate, sustain);
@@ -114,8 +191,7 @@
     SynthDef("strudel_lpf" ++ numChannels, { |out, cutoff = 440, resonance = 0, attack, hold, decay, envamt = 0, anchor = 0, release, holdtime |
 		var signal = In.ar(out, numChannels);
 		cutoff = StrudelUtils.calculateCutoff(cutoff,anchor, envamt, hold, holdtime, attack, decay, release, cutmax: SampleRate.ir / 2);
-        resonance = StrudelUtils.calculateResonance(resonance);
-		signal = IIRFilter.ar(signal, cutoff, resonance);
+		signal = SVF.ar(signal, cutoff: cutoff, res: resonance);
 		ReplaceOut.ar(out, signal)
 	}, [\ir, \kr, \kr]).add;
 
@@ -140,7 +216,6 @@
     SynthDef("strudel_hpf" ++ numChannels, { |out, cutoff = 440, resonance = 0, attack, hold, decay, envamt = 0, anchor = 0, release, holdtime|
 		var signal = In.ar(out, numChannels);
         cutoff = StrudelUtils.calculateCutoff(cutoff,anchor, envamt, hold, holdtime, attack, decay, release, cutmax: SampleRate.ir / 2);
-        resonance = StrudelUtils.calculateResonance(resonance);
 		signal = RHPF.ar(signal, cutoff.abs.clip(20, SampleRate.ir / 2), resonance);
 		ReplaceOut.ar(out, signal)
 	}, [\ir, \kr, \kr]).add;
@@ -166,7 +241,6 @@
     SynthDef("strudel_bpf" ++ numChannels, { |out, cutoff=440, resonance=0, attack, hold, decay, envamt=0, anchor=0, release, holdtime|
 		var signal = In.ar(out, numChannels);
 	    cutoff = StrudelUtils.calculateCutoff(cutoff,anchor, envamt, hold, holdtime, attack, decay, release, cutmax: SampleRate.ir / 2);
-        resonance = StrudelUtils.calculateResonance(resonance);
 		signal = BPF.ar(signal, cutoff, 1/resonance) * max(resonance, 1.0);
 		ReplaceOut.ar(out, signal)
 	}, [\ir, \kr, \kr]).add;

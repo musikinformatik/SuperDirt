@@ -28,10 +28,6 @@ StrudelUtils {
 	    );
         ^cutoff;
     }
-    *calculateResonance {|resonance=0|
-        // resonance = resonance * 0.05;
-      	^resonance.linexp(0, 1, 1, 0.001);
-    }
     *baseNote {
         ^36;
     }

@@ -280,7 +280,6 @@ live coding them requires that you have your SuperDirt instance in an environmen
 	SynthDef("dirt_lpf" ++ numChannels, { |out, cutoff = 440, resonance = 0, attack, hold, decay, envamt = 0, anchor = 0, release, holdtime |
 		var signal = In.ar(out, numChannels);
 		cutoff = StrudelUtils.calculateCutoff(cutoff,anchor, envamt, hold, holdtime, attack, decay, release, cutmax: SampleRate.ir / 2);
-        resonance = StrudelUtils.calculateResonance(resonance);
 		signal = IIRFilter.ar(signal, cutoff, resonance);
 		ReplaceOut.ar(out, signal)
 	}, [\ir, \kr, \kr]).add;
