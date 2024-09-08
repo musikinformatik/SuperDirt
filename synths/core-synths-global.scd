@@ -31,11 +31,13 @@ CORE SYNTHDEFS FOR DIRT
 		var post = if(SuperDirt.postBadValues) { 2 } { 0 };
 
 		signal = Select.ar(CheckBadValues.ar(signal, post: post) > 0, [signal, DC.ar(0)]);
+		//remove any low frequency artifacts that can slam the limiter
+		signal =  HPF.ar(signal, 16);
 
 		signal = Select.ar(limitertype,
 			[
 				signal,
-				Limiter.ar(signal),
+				Limiter.ar(signal, 1.0, 0.05),
 				softclip(signal * 0.5) * 2
 			]
 		);
@@ -43,6 +45,7 @@ CORE SYNTHDEFS FOR DIRT
 		DirtPause.ar(signal, graceTime:4);
 
 		signal = signal * EnvGen.kr(Env.asr, gate, doneAction:2);
+
 		Out.ar(outBus, signal)
 	}, [\ir, \ir, \kr, \kr, \kr]).add;
 

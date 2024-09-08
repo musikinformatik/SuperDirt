@@ -183,7 +183,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 	// the monitor does the mixing and zeroing of the busses for each sample grain
 	// so that they can all play in one bus
 
-	SynthDef("dirt_gate" ++ numChannels, { |out, in, totalDuration = 0, fadeInTime = 0.001, fadeTime = 0.001, amp = 1, gain = 1, overgain = 0|
+	SynthDef("dirt_gate" ++ numChannels, { |out, in, totalDuration = 0, fadeInTime = 0.001, fadeTime = 0.001, gain = 1, overgain = 0|
 		var signal = In.ar(in, numChannels);
 		 //  doneAction: 14: free surrounding group and all nodes
 		var holdtime = totalDuration - (fadeInTime + fadeTime);
@@ -191,8 +191,8 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		var env = EnvGen.ar(Env([0, 1, 1, 0], [fadeInTime, holdtime, fadeTime], \sin), doneAction: 14);
 
 		// var env = EnvGen.ar(Env([0, 1, 1, 0], [fadeInTime, sustain + release, fadeTime], \sin), doneAction: 14);
-		amp = amp * (gain + overgain);
-		signal = signal * env * amp * DirtGateCutGroup.ar(fadeTime, doneAction: 14);
+		gain = StrudelUtils.gainCurve(gain + overgain);
+		signal = signal * env * gain * DirtGateCutGroup.ar(fadeTime, doneAction: 14);
 		// this takes the signal and offsets it so it matches precisely onto the sample
 		// as scheduled within one block (a synth is always started on the block bondary)
 		OffsetOut.ar(out, signal);

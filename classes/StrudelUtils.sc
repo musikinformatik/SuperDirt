@@ -35,6 +35,10 @@ StrudelUtils {
     *sampleGain {
         ^1.7;
     }
+	*gainCurve {|gain=1|
+		// ^gain
+	  ^pow(gain, 2)
+	}
     
 }
 

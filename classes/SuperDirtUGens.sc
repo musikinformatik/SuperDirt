@@ -193,29 +193,4 @@ DirtPause {
 	}
 }
 
-DirtEnvelope {
-	*adsr { 
-	    |attack, decay, holdtime, hold, release, envmin = 0, envmax = 1, curve = -4|
-		if (hold.isNil) {
-			if (decay.isNil) {
-                hold = envmax;
-			} {
-				hold = envmin;
-			};
-		} {
-			hold = envmin + ((envmax - envmin) * hold).clip(envmin, envmax);
-		};
-
-        ^Env.adsr(
-			attackTime: attack,
-			decayTime:decay,
-			sustainLevel: hold,
-			releaseTime: release,
-			peakLevel: envmax,
-			curve: curve,
-			bias: envmin
-        )
-	}
-}
-
 

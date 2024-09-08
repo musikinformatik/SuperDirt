@@ -1,6 +1,7 @@
 (
-        var sawfunc, supersawfunc, pulsefunc, superpulsefunc;
+        var sawfunc, supersawfunc, pulsefunc, superpulsefunc, calculateCutoff;
         var numChannels = ~dirt.numChannels;
+        
         supersawfunc = {|voices|
             {|out = 0, rate=1, decay=0, sustain=1, pan= 0, accelerate=0, freq =130.8, speed=1, spread = 0.5, detune = 0.15|
                 var basefreq = freq * DirtFreqScale.kr(speed, accelerate, sustain);
@@ -55,7 +56,7 @@
                 var moddepth = z3;
                 var phaseoffset = (((cycle / cps) * modspeed) % 1);
                 var mod = LFTri.ar(modspeed, iphase: phaseoffset).range(-0.5,0.5) * moddepth;
-                width =  clip(mod + width,0.01, 0.99);
+                width = clip(mod + width,0.01, 0.99);
         
                 if (voices < 2) {
                     panspread = 0;
@@ -64,11 +65,10 @@
                     LFPulse.ar(
                         basefreq * pow(2, StrudelUtils.getUnisonDetune(voices, freqspread, i) / 12),
                         iphase:  TRand.kr(0, 1, Impulse.kr(0)),
-                        // width: width,
                         width:width;
                     )
                 },spread: panspread, level: 1, center: 0);
-                sound = sound * 1.2;
+                sound = HPF.ar(sound, 20);
                 Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan));
             }
         };
@@ -113,14 +113,16 @@
 
         pulsefunc = {
             {|out, sustain=1, pan, accelerate, freq=130.8, speed=1, z1=0.5, z2=0, z3=0.65, cycle, cps|
+                var sound;
                 var basefreq = freq * DirtFreqScale.kr(speed, accelerate, sustain);
                 var width = z1;
                 var modspeed = z2;
                 var moddepth = z3;
                 var phaseoffset = (((cycle / cps) * modspeed) % 1) * 4;
-
                 var mod = LFTri.ar(modspeed, iphase: phaseoffset).range(-0.5,0.5) * moddepth;
-                var sound = Pulse.ar(basefreq, width: clip(mod + width,0.01, 0.99));
+               
+                width =  clip(mod + width,0.01,0.99);
+                sound = Pulse.ar(basefreq, width: width) * 0.8;
 
                 Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan));
             }
@@ -135,19 +137,6 @@
         SynthDef(\sine, {|out, rate=1, decay=0, sustain=1, pan, accelerate, freq=130.8, speed=1|
             var basefreq = freq * DirtFreqScale.kr(speed, accelerate, sustain);
             var sound = SinOsc.ar(basefreq);
-            Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan));
-        }).add;
-
-        SynthDef(\pulse, {|out, sustain=1, pan, accelerate, freq=130.8, speed=1, z1=0.5, z2=0, z3=0.65, cycle, cps|
-            var basefreq = freq * DirtFreqScale.kr(speed, accelerate, sustain);
-            var width = z1;
-            var modspeed = z2;
-            var moddepth = z3;
-            var phaseoffset = (((cycle / cps) * modspeed) % 1) * 4;
-
-            var mod = LFTri.ar(modspeed, iphase: phaseoffset).range(-0.5,0.5) * moddepth;
-            var sound = Pulse.ar(basefreq, width: clip(mod + width,0.01, 0.99));
-
             Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan));
         }).add;
 
@@ -268,8 +257,10 @@
         var signal = In.ar(out, numChannels), amp = 1;
         
 		shape = exp(shape) - 1;
+        
         // shape = min(shape, 1.0 - 4e-10); // avoid division by zero
         postgain = clip(postgain, 0.001, 1);
+        postgain = StrudelUtils.gainCurve(postgain);
 
 		signal = ((1 + shape) * signal / (1 + (shape * abs(signal)))) * postgain;
 		ReplaceOut.ar(out, signal * amp)
@@ -359,11 +350,11 @@
 		    ])
     }, { ~compressor.notNil });
 
-	SynthDef("strudel_envelope" ++ numChannels, { |out, attack, decay, hold, holdtime = 0, release, curve | 
+	SynthDef("strudel_envelope" ++ numChannels, { |out, attack, decay, hold, holdtime = 0, release, amp=0.3, curve | 
 		var signal = In.ar(out, numChannels);
         var volenv = EnvGen.ar(
 		   Env.adsr(
-			attackTime: attack, 
+			attackTime: attack.max(0.001), 
 			decayTime: decay, 
 			releaseTime: release, 
 			sustainLevel: hold,
@@ -372,7 +363,7 @@
 		   ),
 		   gate: Trig.ar(1, holdtime)
 	    );
-		signal = signal * volenv;
+		signal = signal * volenv * amp;
 		ReplaceOut.ar(out, signal);
 	}, [\ir, \ir, \ir, \ir, \ir]).add;
 
@@ -384,13 +375,14 @@
 				decay: ~decay,
 				hold: { ~hold.value ? ~decay.isNil },
 				holdtime: ~sustain,
+                amp: ~amp,
 				release: ~release,
 				curve: {~curve.value ? -2},
 				out: ~out
 		])
     }, { ~attack.notNil or: { ~release.notNil } or: { ~decay.notNil } or: { ~hold.notNil }});
 
-   ~dirt.orderModules(['sound','supersaw','dirt_gate','lpf','bpf','hpf','shape','crush','coarse','phaser','compressor','distort','envelope','postgain']);
+   ~dirt.orderModules(['sound','supersaw','superpulse','dirt_gate','lpf','bpf','hpf','shape','crush','coarse','phaser','compressor','distort','envelope','postgain']);
 
 )
 

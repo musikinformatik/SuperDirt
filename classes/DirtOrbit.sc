@@ -190,7 +190,7 @@ DirtOrbit {
 			~dry = 0.0;
 			~lock = 0; // if set to 1, syncs delay times with cps
 
-			~amp = 0.6;
+			~amp = 0.3;
 			~fadeTime = 0.001;
 
 

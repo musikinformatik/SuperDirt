@@ -117,7 +117,7 @@ DirtEventTypes {
 						schedmidi.value({ midiout.polyTouch(chan, note, val) })
 					} {
 						// match dirt_gate SynthDef amplitude scaling
-						~amp =  ~amp.value * pow(~gain.min(2) + ~overgain, 4);
+						~amp =  ~amp.value * StrudelUtils.gainCurve(~gain + ~overgain, 4);
 
 						sustain = ~sustain = ~sustain.value;
 						if(~uid.notNil and: { midiout.notNil }) {
