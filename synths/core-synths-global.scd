@@ -77,54 +77,26 @@ CORE SYNTHDEFS FOR DIRT
 
 
 
-	if(\SwitchDelay.asClass.notNil) {
-
-		SynthDef("dirt_delay" ++ numChannels, { |dryBus, effectBus, gate = 1, delaytime, delayfeedback, delaySend = 1, delayAmp = 1, lock = 0, cps = 1|
+	SynthDef("dirt_delay" ++ numChannels, { |dryBus, effectBus, gate = 1, delaytime, delayfeedback, delaySend = 1, delayAmp = 1, lock = 1, cps = 1|
 			var signal;
 			var input = In.ar(dryBus, numChannels);
 			var maxDelayTime = 4;
-
-			input = input * delaySend.lag(LFNoise1.kr(1).range(0.01, 0.02)); // regulate input
-
-			delayfeedback = delayfeedback.max(0);
 			delaytime = delaytime * if(lock, reciprocal(cps), 1);
-			delaytime = delaytime.clip(0, maxDelayTime); // just to be sure
-			// from sc3-plugins
-			signal = \SwitchDelay.asClass.ar(input, 1, 1, delaytime, delayfeedback, maxDelayTime);
-
+           	// delaytime = delaytime / cps;
+			signal = input + (LocalIn.ar(2) * delayfeedback);
+			signal = DelayC.ar(LPF.ar(signal, 10000), maxDelayTime, delaytime );
+			LocalOut.ar(signal);
 			signal = signal * EnvGen.kr(Env.asr, gate, doneAction:2);
-			signal = signal * delayAmp.lag(0.01);
+			signal = signal * StrudelUtils.gainCurve(delayAmp.lag(0.01));
+		
+			signal = Limiter.ar(signal, 0.5, 0.001);
+
 
 			DirtPause.ar(signal, graceTime:4);
 
 			Out.ar(effectBus, signal);
 
-		}, [\ir, \ir]).add;
-	} {
-		"\n\n ---- SC3-Plugins not found. This is not a problem."
-		"Note that we are using a comb delay, which may not sound the same as SwitchDelay from the plugins".postln;
-
-		SynthDef("dirt_delay" ++ numChannels, { |dryBus, effectBus, gate = 1, delaytime, delayfeedback, delayAmp = 1, lock = 0, cps = 1|
-			var signal = In.ar(dryBus, numChannels);
-			var maxDelayTime = 4;
-			var decayTime;
-
-			delayfeedback = delayfeedback.clip(0, 0.99);
-			delaytime = delaytime * if(lock, reciprocal(cps), 1);
-			delaytime = delaytime.clip(0, maxDelayTime); // just to be sure
-			decayTime = log2(-60.dbamp) / log2(delayfeedback) * delaytime;
-			decayTime = decayTime.clip(0, 20);
-
-			signal = CombL.ar(signal, maxDelayTime, delaytime.lag(1), decayTime);
-
-			signal = LeakDC.ar(signal) * delayAmp.lag(0.01) * EnvGen.kr(Env.asr, gate, doneAction:2);
-
-			DirtPause.ar(signal, graceTime:4);
-
-			Out.ar(effectBus, signal);
-		}, [\ir, \ir]).add;
-	};
-
+	}, [\ir, \ir]).add;
 
 	// thanks to Jost Muxfeld and James McCartney
 	// note that "size" is not room size, just the feed level into the room

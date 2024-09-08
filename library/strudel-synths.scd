@@ -1,7 +1,7 @@
 (
         var sawfunc, supersawfunc, pulsefunc, superpulsefunc, calculateCutoff;
         var numChannels = ~dirt.numChannels;
-        
+     
         supersawfunc = {|voices|
             {|out = 0, rate=1, decay=0, sustain=1, pan= 0, accelerate=0, freq =130.8, speed=1, spread = 0.5, detune = 0.15|
                 var basefreq = freq * DirtFreqScale.kr(speed, accelerate, sustain);
@@ -24,7 +24,7 @@
             }
         };
 
-        (2..10).do{|voices|
+        (1..10).do{|voices|
             var name = "supersaw" ++ voices;
             SynthDef.new(name, supersawfunc.value(voices)).add;
         };
@@ -69,12 +69,13 @@
                     )
                 },spread: panspread, level: 1, center: 0);
                 sound = HPF.ar(sound, 20);
+           
                 Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan));
             }
         };
 
 
-        (2..10).do{|voices|
+        (1..10).do{|voices|
             var name = "superpulse" ++ voices;
             SynthDef.new(name, superpulsefunc.value(voices)).add;
         };
@@ -108,11 +109,11 @@
             }
         };
 
-        SynthDef(\supersaw1, sawfunc.value()).add;
         SynthDef(\sawtooth, sawfunc.value()).add;
 
-        pulsefunc = {
-            {|out, sustain=1, pan, accelerate, freq=130.8, speed=1, z1=0.5, z2=0, z3=0.65, cycle, cps|
+
+
+        SynthDef(\pulse,  {|out, sustain=1, pan, accelerate, freq=130.8, speed=1, z1=0.5, z2=0, z3=0.65, cycle, cps|
                 var sound;
                 var basefreq = freq * DirtFreqScale.kr(speed, accelerate, sustain);
                 var width = z1;
@@ -120,16 +121,11 @@
                 var moddepth = z3;
                 var phaseoffset = (((cycle / cps) * modspeed) % 1) * 4;
                 var mod = LFTri.ar(modspeed, iphase: phaseoffset).range(-0.5,0.5) * moddepth;
-               
                 width =  clip(mod + width,0.01,0.99);
                 sound = Pulse.ar(basefreq, width: width) * 0.8;
 
                 Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan));
-            }
-        };
-
-        SynthDef(\superpulse1, pulsefunc.value()).add;
-        SynthDef(\pulse, pulsefunc.value()).add;
+        }).add;
 
   
 
@@ -163,7 +159,7 @@
     //EFFECTS
 
     SynthDef("gain" ++ numChannels, { |out, gain=1.0 |
-		var signal = In.ar(out, numChannels) * gain;
+		var signal = In.ar(out, numChannels) * StrudelUtils.gainCurve(gain);
 		ReplaceOut.ar(out, signal)
 	}, [\ir, \kr, \kr]).add;
 
@@ -205,7 +201,7 @@
     SynthDef("strudel_hpf" ++ numChannels, { |out, cutoff = 440, resonance = 0, attack, hold, decay, envamt = 0, anchor = 0, release, holdtime|
 		var signal = In.ar(out, numChannels);
         cutoff = StrudelUtils.calculateCutoff(cutoff,anchor, envamt, hold, holdtime, attack, decay, release, cutmax: SampleRate.ir / 2);
-		signal = RHPF.ar(signal, cutoff.abs.clip(20, SampleRate.ir / 2), resonance);
+		signal = RHPF.ar(signal, cutoff.abs.clip(20, SampleRate.ir / 2), 1 - resonance);
 		ReplaceOut.ar(out, signal)
 	}, [\ir, \kr, \kr]).add;
 

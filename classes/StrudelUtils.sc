@@ -5,7 +5,10 @@ StrudelUtils {
         ^result;
     }
 	*getUnisonDetune { | unison, detune, voiceIndex |
-        var amount = StrudelUtils.lerp(detune * -0.5, detune * 0.5, voiceIndex / (unison - 1));
+        var amount = 0;
+		if (unison > 1){
+			amount = StrudelUtils.lerp(detune * -0.5, detune * 0.5, voiceIndex / (unison - 1));
+		};
 		^amount;
 	}
     *calculateCutoff {|cutoff=440, anchor=0, envamt=0, hold=0, holdtime, attack, decay, release, cutmin=20, cutmax=20000|
