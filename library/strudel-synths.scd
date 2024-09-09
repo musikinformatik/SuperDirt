@@ -319,6 +319,7 @@
 		])
     }, { ~phaserrate.notNil });
 
+    
         SynthDef("strudel_compressor" ++ numChannels, { |out, threshold = 0, ratio = 0.25, knee = 8, attack = 0.1, release = 0.1|
         var signal = In.ar(out, numChannels), amp = 1;
         threshold = clip(threshold, 0.01, 100);

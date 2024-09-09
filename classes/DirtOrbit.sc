@@ -58,6 +58,7 @@ DirtOrbit {
 	initDefaultGlobalEffects {
 		this.globalEffects = [
 			// all global effects sleep when the input is quiet for long enough and no parameters are set.
+			GlobalDirtEffect(\dirt_shimmer, [\delaytime, \delayfeedback, \delaySend, \shimmer, \cps]),
 			GlobalDirtEffect(\dirt_delay, [\delaytime, \delayfeedback, \delaySend, \delayAmp, \lock, \cps]),
 			GlobalDirtEffect(\dirt_reverb, [\size, \room, \dry]),
 			GlobalDirtEffect(\dirt_leslie, [\leslie, \lrate, \lsize]),

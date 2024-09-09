@@ -74,6 +74,21 @@ CORE SYNTHDEFS FOR DIRT
 	dryBus and effectBus have \ir as rates (they shouldn't change at runtime)
 
 	*/
+	SynthDef("dirt_shimmer" ++ numChannels, { |dryBus, effectBus, gate = 1, delaytime, delayfeedback, shimmer = 0, lock = 1, cps = 1|
+			var signal;
+			var input = In.ar(dryBus, numChannels);
+			var maxDelayTime = 4;
+			delaytime = delaytime * if(lock, reciprocal(cps), 1);
+			signal = input + (LocalIn.ar(2) * delayfeedback);
+			signal = PitchShift.ar(signal, windowSize: 0.375 * 2, pitchRatio: 2, timeDispersion: 0.5);
+			signal = DelayC.ar(LPF.ar(signal, 10000), maxDelayTime, delaytime );		
+			LocalOut.ar(signal);
+			signal = Limiter.ar(signal, 0.5, 0.001);
+			signal = signal * EnvGen.kr(Env.asr, gate, doneAction:2);
+			signal = signal * StrudelUtils.gainCurve(shimmer.lag(0.01));
+			DirtPause.ar(signal, graceTime:4);
+			Out.ar(effectBus, signal);
+	}, [\ir, \ir]).add;
 
 
 
@@ -82,20 +97,14 @@ CORE SYNTHDEFS FOR DIRT
 			var input = In.ar(dryBus, numChannels);
 			var maxDelayTime = 4;
 			delaytime = delaytime * if(lock, reciprocal(cps), 1);
-           	// delaytime = delaytime / cps;
 			signal = input + (LocalIn.ar(2) * delayfeedback);
 			signal = DelayC.ar(LPF.ar(signal, 10000), maxDelayTime, delaytime );
 			LocalOut.ar(signal);
+			signal = Limiter.ar(signal, 0.5, 0.001);
 			signal = signal * EnvGen.kr(Env.asr, gate, doneAction:2);
 			signal = signal * StrudelUtils.gainCurve(delayAmp.lag(0.01));
-		
-			signal = Limiter.ar(signal, 0.5, 0.001);
-
-
 			DirtPause.ar(signal, graceTime:4);
-
 			Out.ar(effectBus, signal);
-
 	}, [\ir, \ir]).add;
 
 	// thanks to Jost Muxfeld and James McCartney
