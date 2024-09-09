@@ -247,6 +247,38 @@
             ])
 
     }, { ~bandf.notNil });
+    //emulation of juno 60 chorus
+    SynthDef("strudel_chorus" ++ numChannels, { |out, mix, depth, speed|
+		var input = In.ar(out, numChannels);
+        var l;
+        var r;
+        var signal;
+        var d = depth * 0.01;
+        var minD = 0.00166;
+        var mod = LFTri.kr(speed).range(-1, 1) * d;
+        var rmod = mod * -1;
+        mix = (mix * 2) - 1;
+        l = DelayC.ar(input, maxDelayTime: 1, delaytime: minD + d + mod );	
+        r = DelayC.ar(input, maxDelayTime: 1, delaytime: minD + d + rmod );	
+         signal =  Splay.ar([l, r],spread: 1, level: 1, center: 0);
+         signal = XFade2.ar(input, signal, mix);
+
+        signal = DirtPan.ar(signal, ~dirt.numChannels, 0);
+		ReplaceOut.ar(out, signal);
+	}, [\ir, \kr, \kr]).add;
+
+	~dirt.addModule('chorus',
+	{ |dirtEvent|
+		dirtEvent.sendSynth("strudel_chorus" ++ ~numChannels,
+			[
+				mix: ~chorus,
+                depth: {~chorusdepth.value ? 0.1845},
+                speed: {~chorusspeed.value ? 0.863},
+				out: ~out
+		])
+
+    }, { ~chorus.notNil });
+
 
     SynthDef("strudel_distort" ++ numChannels, { |out, shape = 0, postgain = 1|
 		
@@ -379,7 +411,7 @@
 		])
     }, { ~attack.notNil or: { ~release.notNil } or: { ~decay.notNil } or: { ~hold.notNil }});
 
-   ~dirt.orderModules(['sound','supersaw','superpulse','dirt_gate','lpf','bpf','hpf','shape','crush','coarse','phaser','compressor','distort','envelope','postgain']);
+   ~dirt.orderModules(['sound','supersaw','superpulse','dirt_gate','lpf','bpf','hpf','shape','crush','coarse','phaser','compressor','chorus','distort','envelope','postgain']);
 
 )
 
