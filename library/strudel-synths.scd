@@ -250,20 +250,22 @@
     //emulation of juno 60 chorus
     SynthDef("strudel_chorus" ++ numChannels, { |out, mix, depth, speed|
 		var input = In.ar(out, numChannels);
-        var l;
-        var r;
+        var l = input[0];
+        var r = input[1] ? l;
         var signal;
         var d = depth * 0.01;
         var minD = 0.00166;
         var mod = LFTri.kr(speed).range(-1, 1) * d;
         var rmod = mod * -1;
+ 
         mix = (mix * 2) - 1;
-        l = DelayC.ar(input, maxDelayTime: 1, delaytime: minD + d + mod );	
-        r = DelayC.ar(input, maxDelayTime: 1, delaytime: minD + d + rmod );	
+        l = DelayC.ar(l, maxDelayTime: 1, delaytime: minD + d + mod );	
+        r = DelayC.ar(r, maxDelayTime: 1, delaytime: minD + d + rmod );	
+      
          signal =  Splay.ar([l, r],spread: 1, level: 1, center: 0);
-         signal = XFade2.ar(input, signal, mix);
+         signal = LPF.ar(signal, 18000);
 
-        signal = DirtPan.ar(signal, ~dirt.numChannels, 0);
+         signal = XFade2.ar(input, signal, mix);
 		ReplaceOut.ar(out, signal);
 	}, [\ir, \kr, \kr]).add;
 

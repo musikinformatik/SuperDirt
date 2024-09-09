@@ -81,8 +81,11 @@ CORE SYNTHDEFS FOR DIRT
 			delaytime = delaytime * if(lock, reciprocal(cps), 1);
 			signal = input + (LocalIn.ar(2) * delayfeedback);
 			signal = PitchShift.ar(signal, windowSize: 0.375 * 2, pitchRatio: 2, timeDispersion: 0.5);
-			signal = DelayC.ar(LPF.ar(signal, 10000), maxDelayTime, delaytime );		
+			signal = LPF.ar(signal, 10000);
+			signal = HPF.ar(signal, 120);
+			signal = DelayC.ar(signal, maxDelayTime, delaytime );		
 			LocalOut.ar(signal);
+			
 			signal = Limiter.ar(signal, 0.5, 0.001);
 			signal = signal * EnvGen.kr(Env.asr, gate, doneAction:2);
 			signal = signal * StrudelUtils.gainCurve(shimmer.lag(0.01));
