@@ -76,11 +76,12 @@ CORE SYNTHDEFS FOR DIRT
 	*/
 	SynthDef("dirt_shimmer" ++ numChannels, { |dryBus, effectBus, gate = 1, delaytime, delayfeedback, shimmer = 0, lock = 1, cps = 1|
 			var signal;
-			var input = In.ar(dryBus, numChannels);
+			var input = In.ar(dryBus, numChannels) * StrudelUtils.gainCurve(shimmer.lag(0.01));
 			var maxDelayTime = 4;
+			var delta = 0.375 * 2;
 			delaytime = delaytime * if(lock, reciprocal(cps), 1);
 			signal = input + (LocalIn.ar(2) * delayfeedback);
-			signal = PitchShift.ar(signal, windowSize: 0.375 * 2, pitchRatio: 2, timeDispersion: 0.5);
+			signal = PitchShift.ar(signal, windowSize: delta, pitchRatio: 2, timeDispersion: delta / 2);
 			signal = LPF.ar(signal, 10000);
 			signal = HPF.ar(signal, 120);
 			signal = DelayC.ar(signal, maxDelayTime, delaytime );		
@@ -88,7 +89,7 @@ CORE SYNTHDEFS FOR DIRT
 			
 			signal = Limiter.ar(signal, 0.5, 0.001);
 			signal = signal * EnvGen.kr(Env.asr, gate, doneAction:2);
-			signal = signal * StrudelUtils.gainCurve(shimmer.lag(0.01));
+			// signal = signal * StrudelUtils.gainCurve(shimmer.lag(0.01));
 			DirtPause.ar(signal, graceTime:4);
 			Out.ar(effectBus, signal);
 	}, [\ir, \ir]).add;
@@ -97,7 +98,7 @@ CORE SYNTHDEFS FOR DIRT
 
 	SynthDef("dirt_delay" ++ numChannels, { |dryBus, effectBus, gate = 1, delaytime, delayfeedback, delaySend = 1, delayAmp = 1, lock = 1, cps = 1|
 			var signal;
-			var input = In.ar(dryBus, numChannels);
+			var input = In.ar(dryBus, numChannels) * StrudelUtils.gainCurve(delayAmp.lag(0.01));
 			var maxDelayTime = 4;
 			delaytime = delaytime * if(lock, reciprocal(cps), 1);
 			signal = input + (LocalIn.ar(2) * delayfeedback);
@@ -105,7 +106,7 @@ CORE SYNTHDEFS FOR DIRT
 			LocalOut.ar(signal);
 			signal = Limiter.ar(signal, 0.5, 0.001);
 			signal = signal * EnvGen.kr(Env.asr, gate, doneAction:2);
-			signal = signal * StrudelUtils.gainCurve(delayAmp.lag(0.01));
+			// signal = signal * StrudelUtils.gainCurve(delayAmp.lag(0.01));
 			DirtPause.ar(signal, graceTime:4);
 			Out.ar(effectBus, signal);
 	}, [\ir, \ir]).add;
@@ -113,7 +114,7 @@ CORE SYNTHDEFS FOR DIRT
 	// thanks to Jost Muxfeld and James McCartney
 	// note that "size" is not room size, just the feed level into the room
 
-	SynthDef("dirt_reverb" ++ numChannels, { |dryBus, effectBus, gate = 1, room = 0, size = 0.1, dry = 0|
+	SynthDef("dirt_reverb" ++ numChannels, { |dryBus, effectBus, gate = 1, room = 0, size = 0.1|
 		var in, snd, loop, depth;
 
 		in = In.ar(dryBus, numChannels).asArray.sum;
@@ -123,7 +124,7 @@ CORE SYNTHDEFS FOR DIRT
 		4.do { in = AllpassN.ar(in, 0.03, { Rand(0.005, 0.02) }.dup(numChannels), 1) };
 
 		depth = size.lag(0.02).linexp(0, 1, 0.01, 0.98); // change depth between 0.1 and 0.98
-		loop = LocalIn.ar(numChannels) * { depth + Rand(0, 0.05) }.dup(numChannels);
+		loop = in + LocalIn.ar(numChannels) * { depth + Rand(0, 0.05) }.dup(numChannels);
 		loop = OnePole.ar(loop, 0.5);  // 0-1
 
 		loop = AllpassN.ar(loop, 0.05, { Rand(0.01, 0.05) }.dup(numChannels), 2);
@@ -131,13 +132,13 @@ CORE SYNTHDEFS FOR DIRT
 		loop = DelayN.ar(loop, 0.3, [0.19, 0.26] + { Rand(-0.003, 0.003) }.dup(2));
 		loop = AllpassN.ar(loop, 0.05, { Rand(0.03, 0.15) }.dup(numChannels), 2);
 
-		loop = loop + in;
+		// loop = loop + in;
 		loop = LeakDC.ar(loop);
 
 		LocalOut.ar(loop);
 
 		snd = loop;
-		snd = snd * (1 - dry).lag(LFNoise1.kr(1).range(0.01, 0.02));
+		snd = snd * (1).lag(LFNoise1.kr(1).range(0.01, 0.02));
 
 		DirtPause.ar(snd, graceTime:4);
 
