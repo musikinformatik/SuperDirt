@@ -37,7 +37,7 @@ CORE SYNTHDEFS FOR DIRT
 		signal = Select.ar(limitertype,
 			[
 				signal,
-				Limiter.ar(signal, 1.0, 0.05),
+				Limiter.ar(signal, 1.0, 0.01),
 				softclip(signal * 0.5) * 2
 			]
 		);
@@ -89,7 +89,6 @@ CORE SYNTHDEFS FOR DIRT
 			
 			signal = Limiter.ar(signal, 0.5, 0.001);
 			signal = signal * EnvGen.kr(Env.asr, gate, doneAction:2);
-			// signal = signal * StrudelUtils.gainCurve(shimmer.lag(0.01));
 			DirtPause.ar(signal, graceTime:4);
 			Out.ar(effectBus, signal);
 	}, [\ir, \ir]).add;
@@ -106,7 +105,6 @@ CORE SYNTHDEFS FOR DIRT
 			LocalOut.ar(signal);
 			signal = Limiter.ar(signal, 0.5, 0.001);
 			signal = signal * EnvGen.kr(Env.asr, gate, doneAction:2);
-			// signal = signal * StrudelUtils.gainCurve(delayAmp.lag(0.01));
 			DirtPause.ar(signal, graceTime:4);
 			Out.ar(effectBus, signal);
 	}, [\ir, \ir]).add;

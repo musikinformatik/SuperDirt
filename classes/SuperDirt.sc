@@ -33,6 +33,7 @@ SuperDirt {
 	var <>controlBusses;
 	var <group;
 	var <flotsam;
+	var <outputvolume;
 
 	var <port, <senderAddr, <replyAddr, netResponders;
 	var <>receiveAction, <>warnOutOfOrbit = true, <>maxLatency = 42;
@@ -53,10 +54,14 @@ SuperDirt {
 
 	init {
 		soundLibrary = DirtSoundLibrary(server, numChannels);
+		outputvolume = server.volume;
+		outputvolume.setVolumeRange(-90, 0);
 		modules = [];
 		this.loadSynthDefs;
 		this.initVowels(\counterTenor);
 		this.initRoutingBusses;
+
+
 		group = server.nextPermNodeID;
 		flotsam = IdentityDictionary.new;
 	}

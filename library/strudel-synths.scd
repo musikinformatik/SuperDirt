@@ -18,7 +18,8 @@
                         iphase:  TRand.kr(-1, 1, Impulse.kr(0))
                     )
                 },spread: panspread, level: 1, center: 0);
-                sound = sound * 1.2;
+                sound = sound * 1.24;
+                sound = sound * StrudelUtils.synthGain;
 
                 Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan));
             }
@@ -69,6 +70,7 @@
                     )
                 },spread: panspread, level: 1, center: 0);
                 sound = HPF.ar(sound, 20);
+                sound = sound * StrudelUtils.synthGain;
            
                 Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan));
             }
@@ -104,7 +106,7 @@
         sawfunc = {
             {|out, rate=1, decay=0, sustain=1, pan, accelerate, freq = 	130.8, speed=1|
                 var basefreq = freq * DirtFreqScale.kr(speed, accelerate, sustain);
-                var sound = SawDPW.ar(freq: basefreq);
+                var sound = SawDPW.ar(freq: basefreq) * StrudelUtils.synthGain;
                 Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan));
             }
         };
@@ -123,6 +125,7 @@
                 var mod = LFTri.ar(modspeed, iphase: phaseoffset).range(-0.5,0.5) * moddepth;
                 width =  clip(mod + width,0.01,0.99);
                 sound = Pulse.ar(basefreq, width: width) * 0.8;
+                sound = sound * StrudelUtils.synthGain;
 
                 Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan));
         }).add;
@@ -133,25 +136,30 @@
         SynthDef(\sine, {|out, rate=1, decay=0, sustain=1, pan, accelerate, freq=130.8, speed=1|
             var basefreq = freq * DirtFreqScale.kr(speed, accelerate, sustain);
             var sound = SinOsc.ar(basefreq);
+              sound = sound * StrudelUtils.synthGain;
             Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan));
         }).add;
 
         SynthDef(\triangle, {|out, rate=1, decay=0, sustain=1, pan, accelerate, freq = 	130.8, speed=1|
             var basefreq = freq * DirtFreqScale.kr(speed, accelerate, sustain);
             var sound = LFTri.ar(basefreq);
+              sound = sound * StrudelUtils.synthGain;
             Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan));
         }).add;
 
         SynthDef(\white, {|out, pan|
             var sound = WhiteNoise.ar(mul:0.5);
+              sound = sound * StrudelUtils.synthGain;
             Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan));
         }).add;
         SynthDef(\brown, {|out, pan|
             var sound = BrownNoise.ar(mul:0.5);
+              sound = sound * StrudelUtils.synthGain;
             Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan));
         }).add;
         SynthDef(\pink, {|out, pan|
             var sound = PinkNoise.ar(mul:0.5);
+              sound = sound * StrudelUtils.synthGain;
             Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan));
         }).add;
 

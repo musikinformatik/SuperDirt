@@ -36,7 +36,10 @@ StrudelUtils {
     }
     //makeup gain for sample buffer
     *sampleGain {
-        ^1.7;
+        ^1;
+    }
+	*synthGain {
+        ^0.27;
     }
 	*gainCurve {|gain=1|
 		// ^gain
