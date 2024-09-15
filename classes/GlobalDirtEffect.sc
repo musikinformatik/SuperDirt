@@ -14,7 +14,7 @@ sends only OSC when an update is necessary
 GlobalDirtEffect {
 
 	var <>name, <>paramNames, <>numChannels, <state;
-	var <>alwaysRun = false;
+	var <>alwaysRun = false, <active = true;
 	var <synth, defName;
 
 	*new { |name, paramNames, numChannels|
@@ -23,11 +23,13 @@ GlobalDirtEffect {
 
 	play { |group, outBus, dryBus, effectBus, orbitIndex|
 		this.release;
-		synth = Synth.newPaused(name.asString ++ numChannels,
-			[\outBus, outBus, \dryBus, dryBus, \effectBus, effectBus, \orbitIndex, orbitIndex] ++ state.asPairs,
-			group,
-			\addAfter
-		)
+		if(active) {
+			synth = Synth.newPaused(name.asString ++ numChannels,
+				[\outBus, outBus, \dryBus, dryBus, \effectBus, effectBus, \orbitIndex, orbitIndex] ++ state.asPairs,
+				group,
+				\addAfter
+			)
+		};
 	}
 
 
@@ -52,6 +54,7 @@ GlobalDirtEffect {
 				state[key] = value;
 			}
 		};
+		"someArgsNotNil: %".format(someArgsNotNil, event).postln;
 		if(someArgsNotNil) { this.resume };
 		if(argsChanged.notNil) {
 			synth.set(*argsChanged);
@@ -59,8 +62,15 @@ GlobalDirtEffect {
 	}
 
 	resume {
-		synth.run;
-		synth.set(\resumed, 1)
+		if(active) {
+			synth.run;
+			synth.set(\resumed, 1)
+		}
+	}
+
+	active_ { |flag|
+		active = flag;
+		if(active) { this.resume }
 	}
 
 	printOn { |stream|
