@@ -48,7 +48,8 @@ CORE SYNTHDEFS FOR DIRT
 
 
 	// RMS measurement, sending back to editor
-	SynthDef("dirt_rms" ++ numChannels, { |gate = 1, dryBus, effectBus, rmsReplyRate, rmsPeakLag, orbitIndex|
+	// rmsReplyRate and rmsPeakLag are not modulatable in SendPeakRMS
+	SynthDef("dirt_rms" ++ numChannels, { |gate = 1, dryBus, effectBus, rmsReplyRate = 8, rmsPeakLag = 3, orbitIndex|
 		var drySignal = In.ar(dryBus, numChannels);
 		var wetSignal = In.ar(effectBus, numChannels);
 		var signal = wetSignal + drySignal;
