@@ -131,16 +131,16 @@
         }).add;
 
   
+      
 
-
-        SynthDef(\sine, {|out, rate=1, decay=0, sustain=1, pan, accelerate, freq=130.8, speed=1|
+        SynthDef(\sine, {|out, rate=1,  sustain=1, pan, accelerate, freq=130.8, speed=1|
             var basefreq = freq * DirtFreqScale.kr(speed, accelerate, sustain);
             var sound = SinOsc.ar(basefreq);
               sound = sound * StrudelUtils.synthGain;
             Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan));
         }).add;
 
-        SynthDef(\triangle, {|out, rate=1, decay=0, sustain=1, pan, accelerate, freq = 	130.8, speed=1|
+        SynthDef(\triangle, {|out, rate=1, sustain=1, pan, accelerate, freq = 	130.8, speed=1|
             var basefreq = freq * DirtFreqScale.kr(speed, accelerate, sustain);
             var sound = LFTri.ar(basefreq);
               sound = sound * StrudelUtils.synthGain;
@@ -162,6 +162,32 @@
               sound = sound * StrudelUtils.synthGain;
             Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan));
         }).add;
+
+
+      // PERCUSSION
+      // gabber kick
+    SynthDef(\sbd2, { |out, pan, freq = 440, z1 = 0, z2 = 0, z3 = 0, z4 = 0|
+        var sound;
+        var dec = 0.15 + z1;
+        var pitchenv = Env.perc(0.001, dec, curve: -3).ar;
+        var volenv = Env.perc(0.001, dec, curve: 2).ar;
+        var volratio = clip(z2 + 0.2, 0, 1);
+        var knockdecay = 0.01 + (z3 * 0.1);
+        var knockenv = Env.perc(0.001, knockdecay, -4).ar;
+        var fmosc =  SinOsc.ar(freq *3, 0, freq *3) ;
+        var knock = SinOsc.ar(freq + fmosc)* knockenv;
+
+	    volenv = (volenv * volratio) + (1 - volratio);  
+        freq = freq * (pitchenv * clip(48  - (z4 * 48), 1, 60)).midiratio;
+        sound = Saw.ar(freq);
+        sound = sound + knock;
+        sound = (sound * 100).tanh + ((sound.sign - sound) * -8.dbamp);
+        sound = sound * volenv * 0.3;
+
+        Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan));
+
+        // Out.ar(\out.kr(0), sound * \amp.kr(0.1));
+    }).add;
 
 
     //EFFECTS
