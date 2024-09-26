@@ -14,7 +14,7 @@ sends only OSC when an update is necessary
 GlobalDirtEffect {
 
 	var <>name, <>paramNames, <>numChannels, <state;
-	var <>alwaysRun = false;
+	var <>alwaysRun = false, <>bypass = false;
 	var <synth, defName;
 
 	*new { |name, paramNames, numChannels|
@@ -23,6 +23,7 @@ GlobalDirtEffect {
 
 	play { |group, outBus, dryBus, effectBus, orbitIndex|
 		this.release;
+
 		synth = Synth.newPaused(name.asString ++ numChannels,
 			[\outBus, outBus, \dryBus, dryBus, \effectBus, effectBus, \orbitIndex, orbitIndex] ++ state.asPairs,
 			group,
@@ -44,18 +45,31 @@ GlobalDirtEffect {
 
 	set { |event|
 		var argsChanged, someArgsNotNil = alwaysRun;
-		paramNames.do { |key|
-			var value = event[key];
-			value !? { someArgsNotNil = true };
-			if(state[key] != value) {
-				argsChanged = argsChanged.add(key).add(value);
-				state[key] = value;
-			}
-		};
-		if(someArgsNotNil) { this.resume };
-		if(argsChanged.notNil) {
-			synth.set(*argsChanged);
-		}
+
+		if (bypass == false, {
+			paramNames.do { |key|
+		    	var value = event[key];
+		    	value !? { someArgsNotNil = true };
+
+		    	if(state[key] != value) {
+		    		argsChanged = argsChanged.add(key).add(value);
+		    		state[key] = value;
+		    	}
+		    };
+
+		    if( (someArgsNotNil),
+		    	{
+		    		this.resume;
+		    		synth.set(\wet, 1);
+		    	},
+		    	{ synth.set(\wet, 0) };
+		    );
+		    if(argsChanged.notNil) {
+		    	synth.set(*argsChanged);
+		    }
+		}, {
+			synth.run(false);
+		})
 	}
 
 	resume {
