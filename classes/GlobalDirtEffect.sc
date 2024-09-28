@@ -58,6 +58,10 @@ GlobalDirtEffect {
 		}
 	}
 
+	pause {
+		if(synth.notNil) { synth.run(false) }
+	}
+
 	resume {
 		if(active) {
 			synth.run;
@@ -67,7 +71,7 @@ GlobalDirtEffect {
 
 	active_ { |flag|
 		active = flag;
-		if(active) { this.resume }
+		if(active) { this.resume } { this.pause }
 	}
 
 	printOn { |stream|
