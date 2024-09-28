@@ -23,13 +23,11 @@ GlobalDirtEffect {
 
 	play { |group, outBus, dryBus, effectBus, orbitIndex|
 		this.release;
-		if(active) {
-			synth = Synth.newPaused(name.asString ++ numChannels,
-				[\outBus, outBus, \dryBus, dryBus, \effectBus, effectBus, \orbitIndex, orbitIndex] ++ state.asPairs,
-				group,
-				\addAfter
-			)
-		};
+		synth = Synth.newPaused(name.asString ++ numChannels,
+			[\outBus, outBus, \dryBus, dryBus, \effectBus, effectBus, \orbitIndex, orbitIndex] ++ state.asPairs,
+			group,
+			\addAfter
+		)
 	}
 
 
@@ -54,9 +52,8 @@ GlobalDirtEffect {
 				state[key] = value;
 			}
 		};
-		"someArgsNotNil: %".format(someArgsNotNil, event).postln;
 		if(someArgsNotNil) { this.resume };
-		if(argsChanged.notNil) {
+		if(argsChanged.notNil and: { synth.notNil }) {
 			synth.set(*argsChanged);
 		}
 	}
