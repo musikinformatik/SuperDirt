@@ -185,8 +185,6 @@
         sound = sound * volenv * 0.3;
 
         Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan));
-
-        // Out.ar(\out.kr(0), sound * \amp.kr(0.1));
     }).add;
 
 
@@ -259,8 +257,8 @@
 
     SynthDef("strudel_bpf" ++ numChannels, { |out, cutoff=440, resonance=0, attack, hold, decay, envamt=0, anchor=0, release, holdtime|
 		var signal = In.ar(out, numChannels);
-	    cutoff = StrudelUtils.calculateCutoff(cutoff,anchor, envamt, hold, holdtime, attack, decay, release, cutmax: SampleRate.ir / 2);
-		signal = BPF.ar(signal, cutoff, 1/resonance) * max(resonance, 1.0);
+        cutoff = StrudelUtils.calculateCutoff(cutoff,anchor, envamt, hold, holdtime, attack, decay, release, cutmax: SampleRate.ir / 2);
+		signal = BPF.ar(signal, cutoff.abs.clip(20, SampleRate.ir / 2), resonance.abs.clip(0.05, 1));
 		ReplaceOut.ar(out, signal)
 	}, [\ir, \kr, \kr]).add;
 

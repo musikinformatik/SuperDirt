@@ -63,7 +63,7 @@ DirtOrbit {
 			GlobalDirtEffect(\dirt_reverb, [\size, \room, \dry]),
 			GlobalDirtEffect(\dirt_leslie, [\leslie, \lrate, \lsize]),
 			GlobalDirtEffect(\dirt_rms, [\rmsReplyRate, \rmsPeakLag]).alwaysRun_(true),
-			GlobalDirtEffect(\dirt_monitor, [\limitertype]).alwaysRun_(true),
+			GlobalDirtEffect(\dirt_monitor, [\limitertype, \outgain, \dry, \wet]).alwaysRun_(true),
 		]
 	}
 
@@ -185,7 +185,8 @@ DirtOrbit {
 			~lag = 0.0;
 			~length = 1.0;
 			~loop = 1.0;
-			~dry = 0.0;
+			~dry = 1.0;
+			~wet = 1.0;
 			~lock = 0; // if set to 1, syncs delay times with cps
 
 			~amp = 1;
@@ -193,6 +194,7 @@ DirtOrbit {
 			~delaytime = 0.1875;
 			~delayfeedback = 0.15;
 			~lock = 1;
+			~outgain = 1; // output gain that drives the final limiter
 
 
 			// values from the dirt bus

@@ -23,16 +23,15 @@ CORE SYNTHDEFS FOR DIRT
 
 	*/
 
-	SynthDef("dirt_monitor" ++ numChannels, { |dryBus, effectBus, outBus, gate = 1, limitertype = 1|
-		var drySignal = In.ar(dryBus, numChannels);
-		var wetSignal = In.ar(effectBus, numChannels);
+	SynthDef("dirt_monitor" ++ numChannels, { |dryBus, effectBus, outBus, gate = 1, limitertype = 1, outgain = 1, dry = 1, wet = 1|
+		var drySignal = In.ar(dryBus, numChannels) * StrudelUtils.gainCurve(dry);
+		var wetSignal = In.ar(effectBus, numChannels) * StrudelUtils.gainCurve(wet);
 		//var signal = XFade2.ar(wetSignal, drySignal, dry * 2 - 1);
 		var signal = wetSignal + drySignal;
 		var post = if(SuperDirt.postBadValues) { 2 } { 0 };
-
 		signal = Select.ar(CheckBadValues.ar(signal, post: post) > 0, [signal, DC.ar(0)]);
 		//remove any low frequency artifacts that can slam the limiter
-		signal =  HPF.ar(signal, 16);
+		signal =  HPF.ar(signal, 16) * StrudelUtils.gainCurve(outgain);
 
 		signal = Select.ar(limitertype,
 			[
