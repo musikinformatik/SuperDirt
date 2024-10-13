@@ -1,5 +1,21 @@
 # SuperTweak
 This is a fork of superdirt that is intended to play well with Strudel.cc
+The intention of the fork is to be temporary, as features are planned to be merged back into superdirt over time. Features: 
+- note scaling is the same as Strudel 
+- Shimmer Reverb effect ".shimmer(1)"
+- new oscillator types: supersaw, superpulse, sawtooth, triangle, pulse
+- z parameters AKA oscillator macros z/z1,z2,z3,z4
+- pwm modulation ".s("pulse").z(.5).z2(3).z3(.8)"
+- better delay effect with cycle relative timing  ".delaytime(3/16)"
+- filter envelopes for each filter type
+- distort 
+- FX bus gain behavior is improved to work like a mixing console
+- gain modules: ".gain" is pre effect ".postgain" is pre orbit effect 
+- ".dry" and ".wet" control the relative levels of effect bus so you can get a totally "wet" sound for example with ".room(1).dry(0)"
+- relative gain of synths to samples is improved and normalized
+- better sounding filters
+- improved gaincurve x^2 (as opposed to x^4 in superdirt or x in Strudel )
+- Juno 60 Chorus emulation ".chorus(.5)"
 
 SuperCollider implementation of the Dirt sampler, originally designed
 for the [TidalCycles](https://github.com/tidalcycles/tidal)
