@@ -63,6 +63,7 @@ Event.addEventType(\dirt, {
 	~latency = s.latency;
 	~delta = ~dur.value;
 	~s = ~s ? ~instrument;
+
 	d.value(currentEnvironment)
 })
 )
@@ -74,7 +75,7 @@ Pdef(\x,
 		\s, Pn(Pshuf([\bd, \hh, \cp, \imp], 5)),
 		\begin, Pn(Pseries(0, 0.002, 20)),
 		\dur, 0.1,
-		\legato, Pwhite(0.01, 0.4)
+		\clip, Pwhite(0.01, 0.4)
 	)
 ).play;
 )
@@ -88,7 +89,7 @@ Pdef(\x,
 		\begin, Pn(Pseries(0, 0.002, 20)),
 		\bandf, Pfunc { exprand(130, 10000) },
 		\dur, 0.1,
-		\legato, Pwhite(0.01, 0.4)
+		\clip, Pwhite(0.01, 0.4)
 	)
 ).play;
 )
@@ -104,7 +105,7 @@ Pdef(\x,
 		\instrument, Pn(Pshuf([\bd, \hh, \cp, \imp], 5)),
 		\begin, Pn(Pseries(0, 0.002, 20)),
 		\dur, 0.1,
-		\legato, Pwhite(0.01, 0.4)
+		\clip, Pwhite(0.01, 0.4)
 	)
 ).play;
 )
@@ -118,7 +119,7 @@ Pdef(\x,
 		\dur, 0.11,
 		\room, Pseq([0, 0, 0.5, 0, 0], inf),
 		\pan, Pseq([0, 1], inf),
-		\legato, Pwhite(0.01, 1.4) + Pwrand([0, 16], [0.9, 0.1], inf)
+		\clip, Pwhite(0.01, 1.4) + Pwrand([0, 16], [0.9, 0.1], inf)
 	)
 ).play;
 )
@@ -132,7 +133,7 @@ Pdef(\x,
 		\dur, Prand((3..5).collect{ |x| Pn(2 ** neg(x), x) }, inf),
 		\room, Pseq([0, 0, 0.5, 0, 0], inf),
 		\pan, Pseq([0, 1], inf),
-		\legato, Pwhite(0.01, 1.4) + Pwrand([0, 16], [0.9, 0.1], inf)
+		\clip, Pwhite(0.01, 1.4) + Pwrand([0, 16], [0.9, 0.1], inf)
 	)
 ).play;
 )

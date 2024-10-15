@@ -30,7 +30,6 @@ GlobalDirtEffect {
 		)
 	}
 
-
 	release { |releaseTime = 0.2|
 		if(synth.notNil) {
 			synth.server.sendBundle(nil,

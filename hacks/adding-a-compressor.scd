@@ -7,7 +7,7 @@
 		GlobalDirtEffect(\dirt_reverb, [\size, \room, \dry]),
 		GlobalDirtEffect(\dirt_leslie, [\leslie, \lrate, \lsize]),
 		GlobalDirtEffect(\dirt_rms, [\rmsReplyRate, \rmsPeakLag]).alwaysRun_(true),
-		GlobalDirtEffect(\dirt_monitor, [\limitertype]).alwaysRun_(true),
+		GlobalDirtEffect(\dirt_monitor, [\limitertype, \outgain]).alwaysRun_(true),
 	]
 };
 )

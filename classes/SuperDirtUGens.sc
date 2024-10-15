@@ -183,9 +183,7 @@ DirtGateCutGroup {
 	}
 }
 
-
 DirtPause {
-
 	*ar { | signal, graceTime = 1, pauseImmediately = 0 |
 		// immediately pause when started
 		PauseSelf.kr(Impulse.kr(0) * pauseImmediately);
@@ -193,7 +191,6 @@ DirtPause {
 		signal = signal.abs.asArray.sum + Trig1.ar(\resumed.tr(0), graceTime);
 		DetectSilence.ar(signal, time:graceTime, doneAction:1);
 	}
-
 }
 
 

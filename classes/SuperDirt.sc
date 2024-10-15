@@ -33,6 +33,7 @@ SuperDirt {
 	var <>controlBusses;
 	var <group;
 	var <flotsam;
+	var <outputvolume;
 
 	var <port, <senderAddr, <replyAddr, netResponders;
 	var <>receiveAction, <>warnOutOfOrbit = true, <>maxLatency = 42;
@@ -53,10 +54,14 @@ SuperDirt {
 
 	init {
 		soundLibrary = DirtSoundLibrary(server, numChannels);
+		outputvolume = server.volume;
+		outputvolume.setVolumeRange(-90, 6);
 		modules = [];
 		this.loadSynthDefs;
 		this.initVowels(\counterTenor);
 		this.initRoutingBusses;
+
+
 		group = server.nextPermNodeID;
 		flotsam = IdentityDictionary.new;
 	}
@@ -281,7 +286,7 @@ SuperDirt {
 
 		playFunc = { |msg, time, tidalAddr|
 			var latency = time - thisThread.seconds;
-			var event = (), orbit, index;
+			var event = (), orbit, index;		 	
 			if(dropWhen.value.not) {
 				if(latency > maxLatency) {
 					"The scheduling delay is too long. Your networks clocks may not be in sync".warn;

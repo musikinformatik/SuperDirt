@@ -43,7 +43,7 @@ Pdef(\x,
 			\modfreq, Pseq([2, Prand([3, 7], 1), 0.3, 0.4], inf),
 			\rq, Pwhite().linexp(0, 1, 0.05, 0.3),
 			\dur, 1, //1/Pseq([1, 3, 2, 1], inf),
-			\legato, 2,
+			\clip, 2,
 			\pan, 0, //Pseq([0, 1], inf)
 		)
 	])

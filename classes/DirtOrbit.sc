@@ -58,11 +58,12 @@ DirtOrbit {
 	initDefaultGlobalEffects {
 		this.globalEffects = [
 			// all global effects sleep when the input is quiet for long enough and no parameters are set.
+			GlobalDirtEffect(\dirt_shimmer, [\delaytime, \delayfeedback, \delaySend, \shimmer, \cps]),
 			GlobalDirtEffect(\dirt_delay, [\delaytime, \delayfeedback, \delaySend, \delayAmp, \lock, \cps]),
 			GlobalDirtEffect(\dirt_reverb, [\size, \room, \dry]),
 			GlobalDirtEffect(\dirt_leslie, [\leslie, \lrate, \lsize]),
 			GlobalDirtEffect(\dirt_rms, [\rmsReplyRate, \rmsPeakLag]).alwaysRun_(true),
-			GlobalDirtEffect(\dirt_monitor, [\limitertype]).alwaysRun_(true),
+			GlobalDirtEffect(\dirt_monitor, [\limitertype, \outgain, \dry, \wet]).alwaysRun_(true),
 		]
 	}
 
@@ -163,6 +164,7 @@ DirtOrbit {
 	makeDefaultParentEvent {
 		defaultParentEvent = Event.make {
 
+
 			~cps = 1.0;
 			~offset = 0.0;
 			~begin = 0.0;
@@ -173,22 +175,26 @@ DirtOrbit {
 			~overgain = 0.0;
 			~cut = 0.0;
 			~unit = \r;
-			~n = \none; // sample number or note
-			~octave = 5;
-			~midinote = #{ ~note ? ~n + (~octave * 12) };
+			~n = nil;
+			~octave = 0;
+			~midinote = #{ (~note ? ~n ? StrudelUtils.baseNote()) + (~octave * 12) };
 			~freq = #{ ~midinote.value.midicps };
 			~dur = 1.0;
 			~delta = #{ ~dur.value };
-
 			~latency = 0.0;
 			~lag = 0.0;
 			~length = 1.0;
 			~loop = 1.0;
-			~dry = 0.0;
+			~dry = 1.0;
+			~wet = 1.0;
 			~lock = 0; // if set to 1, syncs delay times with cps
 
-			~amp = 0.4;
+			~amp = 1;
 			~fadeTime = 0.001;
+			~delaytime = 0.1875;
+			~delayfeedback = 0.15;
+			~lock = 1;
+			~outgain = 1; // output gain that drives the final limiter
 
 
 			// values from the dirt bus

@@ -45,6 +45,7 @@ this may be refacored later.
 					speed: ~speed,
 					freq: ~freq * ~metaDataTuneRatio.value,
 					endSpeed: ~endSpeed,
+					totalDuration: ~totalDuration,
 					begin: ~begin,
 					end: ~end,
 					pan: ~pan,
@@ -104,27 +105,27 @@ this may be refacored later.
 
 }, { ~shape.notNil });
 
-~dirt.addModule('hpf',
-	{ |dirtEvent|
-		dirtEvent.sendSynth("dirt_hpf" ++ ~numChannels,
-			[
-				hcutoff: ~hcutoff,
-				hresonance: ~hresonance,
-				out: ~out
-		])
+// ~dirt.addModule('hpf',
+// 	{ |dirtEvent|
+// 		dirtEvent.sendSynth("dirt_hpf" ++ ~numChannels,
+// 			[
+// 				hcutoff: ~hcutoff,
+// 				hresonance: ~hresonance,
+// 				out: ~out
+// 		])
 
-}, { ~hcutoff.notNil });
+// }, { ~hcutoff.notNil });
 
-~dirt.addModule('bpf',
-	{ |dirtEvent|
-		dirtEvent.sendSynth("dirt_bpf" ++ ~numChannels,
-			[
-				bandqf: ~bandf,
-				bandq: ~bandq,
-				out: ~out
-		])
+// ~dirt.addModule('bpf',
+// 	{ |dirtEvent|
+// 		dirtEvent.sendSynth("dirt_bpf" ++ ~numChannels,
+// 			[
+// 				bandqf: ~bandf,
+// 				bandq: ~bandq,
+// 				out: ~out
+// 		])
 
-}, { ~bandf.notNil });
+// }, { ~bandf.notNil });
 
 ~dirt.addModule('crush',
 	{ |dirtEvent|
@@ -147,16 +148,22 @@ this may be refacored later.
 
 }, { ~coarse.notNil and: { ~coarse > 1 } }); // coarse == 1 => full rate
 
-~dirt.addModule('lpf',
-	{ |dirtEvent|
-		dirtEvent.sendSynth("dirt_lpf" ++ ~numChannels,
-			[
-				cutoff: ~cutoff,
-				resonance: ~resonance,
-				out: ~out
-		])
+// ~dirt.addModule('lpf',
+// 	{ |dirtEvent|
+// 		dirtEvent.sendSynth("dirt_lpf" ++ ~numChannels,
+// 			[
+// 				cutoff: ~cutoff,
+// 				resonance: ~resonance,
+// 				envamt: ~lpenv,
+// 				attack: {~lpattack.value ? ~attack.value},
+// 				decay: {~lpdecay.value ? ~decay.value},
+// 				hold: { ~lpsustain.value ? ~hold.value ? ~lpdecay.isNil},
+// 				release: {~lprelease.value ? ~release.value},
+// 				holdtime: ~sustain,
+// 				out: ~out
+// 		])
 
-}, { ~cutoff.notNil });
+// }, { ~cutoff.notNil });
 
 ~dirt.addModule('pshift',
 	{ |dirtEvent|
@@ -169,17 +176,19 @@ this may be refacored later.
 		])
 }, { ~psrate.notNil });
 
-~dirt.addModule('envelope',
-	{ |dirtEvent|
-		dirtEvent.sendSynth('dirt_envelope' ++ ~numChannels,
-			[
-				attack: ~attack,
-				hold: ~hold,
-				release: ~release,
-				curve: ~curve,
-				out: ~out
-		])
-}, { ~attack.notNil or: { ~release.notNil }});
+// ~dirt.addModule('envelope',
+// 	{ |dirtEvent|
+// 		dirtEvent.sendSynth('dirt_envelope' ++ ~numChannels,
+// 			[
+// 				attack: ~attack,
+// 				decay: ~decay,
+// 				hold: { ~hold.value ? ~decay.isNil },
+// 				holdtime: ~sustain,
+// 				release: ~release,
+// 				curve: {~curve.value ? -2},
+// 				out: ~out
+// 		])
+// }, { ~attack.notNil or: { ~release.notNil } or: { ~decay.notNil } or: { ~hold.notNil }});
 
 ~dirt.addModule('grenvelo',
 	{ |dirtEvent|
@@ -205,14 +214,14 @@ this may be refacored later.
 }, { ~tremolorate.notNil });
 
 // Phaser audio DSP effect declaration
-~dirt.addModule('phaser',
-	{ |dirtEvent|
-		dirtEvent.sendSynth('dirt_phaser' ++ ~numChannels,
-			[
-				phaserrate: ~phaserrate,
-				phaserdepth: ~phaserdepth,
-				out: ~out
-		])
-}, { ~phaserrate.notNil });
+// ~dirt.addModule('phaser',
+// 	{ |dirtEvent|
+// 		dirtEvent.sendSynth('dirt_phaser' ++ ~numChannels,
+// 			[
+// 				phaserrate: ~phaserrate,
+// 				phaserdepth: ~phaserdepth,
+// 				out: ~out
+// 		])
+// }, { ~phaserrate.notNil });
 
 );

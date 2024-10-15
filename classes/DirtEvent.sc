@@ -8,10 +8,14 @@ DirtEvent {
 	}
 
 	play {
+	
+	
 		event.parent = orbit.defaultParentEvent;
 		event.use {
+
 			// s and n stand for synth/sample and note/number
 			~s ?? { this.splitName };
+
 			// unless orbit wide diversion returns something, we proceed
 			~diversion.(this) ?? {
 				if(~s != \) { // backslash stands for do nothing
@@ -35,15 +39,27 @@ DirtEvent {
 	}
 
 	splitName {
+	
 		var s, n;
+
+
+
 		#s, n = ~sound.asString.split($:);
 		if(~bank.notNil) { s = ~bank ++ s };
 		~s = s.asSymbol;
+
+	
+
+	
 		~n = if(n.notNil) { n.asFloat } { 0.0 };
 	}
 
 	mergeSoundEvent {
-		var soundEvent = orbit.dirt.soundLibrary.getEvent(~s, ~n);
+		var soundEvent;
+
+
+		soundEvent = orbit.dirt.soundLibrary.getEvent(~s, ~n);
+			
 		if(soundEvent.isNil) {
 			// only call ~notFound if no ~diversion is given that anyhow redirects control
 			if(~diversion.isNil) { ~notFound.value }
@@ -67,6 +83,7 @@ DirtEvent {
 		var accelerate = ~accelerate.value;
 		var avgSpeed, endSpeed;
 		var useUnit;
+		~release = ~release.value ? 0.01;
 
 		~freq = ~freq.value;
 		unitDuration = ~unitDuration.value;
@@ -102,24 +119,38 @@ DirtEvent {
 		};
 
 		sustain = ~sustain.value;
+	
 		sustain = sustain ?? {
 			delta = ~delta.value;
-			if(~legato.notNil) {
-				delta * ~legato.value
-			} {
+			if (useUnit and: ~clip.isNil) {
 				unitDuration = unitDuration ? delta;
 				loop !? { unitDuration = unitDuration * loop.abs };
-			}
+			} {
+				(delta / ~cps) * (~clip.value ? 1)
+			};
+		
+			// if(~clip.notNil) {
+			// 	(delta / ~cps) * ~clip.value
+			// } {
+			// 	unitDuration = unitDuration ? delta;
+			// 	loop !? { unitDuration = unitDuration * loop.abs };
+			// }
 		};
-
+	
+		
 		// end samples if sustain exceeds buffer duration
 		// for every buffer, unitDuration is (and should be) defined.
-		if(useUnit) { sustain = min(unitDuration, sustain) };
-
-		~fadeTime = min(~fadeTime.value, sustain * 0.19098);
-		~fadeInTime = if(~begin != 0) { ~fadeTime } { 0.0 };
+		// if(useUnit) { sustain = min(unitDuration, sustain) };
+	
+	
+		// ~fadeTime = min(~fadeTime.value, sustain * 0.19098);
+		// ~fadeTime = ~fadeTime.value ? .001;
+		// ~fadeInTime = if(~begin != 0) { ~fadeTime } { 0.0 };
 		if (~timescale.notNil) {sustain = sustain * ~timescale };
-		~sustain = sustain - (~fadeTime + ~fadeInTime);
+		~totalDuration = if (useUnit) {min(unitDuration, sustain + ~release)} {sustain + ~release};
+		// ~sustain = sustain - (~fadeTime + ~fadeInTime);
+		~sustain = sustain;
+		
 		~speed = speed;
 		~endSpeed = endSpeed;
 
@@ -129,6 +160,7 @@ DirtEvent {
 		~channel !? { ~pan = ~pan.value + (~channel.value / ~numChannels) };
 		~pan = ~pan * 2 - 1; // convert unipolar (0..1) range into bipolar one (-1...1)
 		~delayAmp = ~delay ? 0.0; // for clarity
+		~z1 = ~z1 ? ~n;
 		~latency = ~latency + ~lag.value + (~offset.value * ~speed.value.abs);
 	}
 
@@ -140,14 +172,15 @@ DirtEvent {
 	sendSynth { |instrument, args|
 		var group = ~synthGroup;
 		args = args ?? { this.getMsgFunc(instrument).valueEnvir };
+	
 		args.asControlInput.flop.do { |each|
-			server.sendMsg(\s_new,
+				server.sendMsg(\s_new,
 				instrument,
 				-1, // no id
 				1, // add action: addToTail
 				group, // send to group
 				*each.asOSCArgArray // append all other args
-			)
+				)	
 		}
 	}
 
@@ -160,11 +193,12 @@ DirtEvent {
 			*[
 				in: orbit.synthBus.index, // read from synth bus, which is reused
 				out: orbit.dryBus.index, // write to orbital dry bus
-				amp: ~amp,
 				gain: ~gain,
 				overgain: ~overgain,
 				sample: ~hash, // required for the cutgroup mechanism
 				cut: ~cut.abs,
+				release: ~release,
+				totalDuration: ~totalDuration,
 				sustain: ~sustain, // after sustain, free all synths and group
 				fadeInTime: ~fadeInTime, // fade in
 				fadeTime: ~fadeTime // fade out
