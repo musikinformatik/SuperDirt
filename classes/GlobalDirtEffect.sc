@@ -42,19 +42,23 @@ GlobalDirtEffect {
 		};
 	}
 
+	// set is called for each event, If paused and active and parameters changed, it resumes the synth.
 	set { |event|
 		var argsChanged, someArgsNotNil = alwaysRun;
-		paramNames.do { |key|
-			var value = event[key];
-			value !? { someArgsNotNil = true };
-			if(state[key] != value) {
-				argsChanged = argsChanged.add(key).add(value);
-				state[key] = value;
+
+		if(active) {
+			paramNames.do { |key|
+				var value = event[key];
+				value !? { someArgsNotNil = true };
+				if(state[key] != value) {
+					argsChanged = argsChanged.add(key).add(value);
+					state[key] = value;
+				}
+			};
+			if(someArgsNotNil) { this.resume };
+			if(argsChanged.notNil and: { synth.notNil }) {
+				synth.set(*argsChanged);
 			}
-		};
-		if(someArgsNotNil) { this.resume };
-		if(argsChanged.notNil and: { synth.notNil }) {
-			synth.set(*argsChanged);
 		}
 	}
 
@@ -63,10 +67,8 @@ GlobalDirtEffect {
 	}
 
 	resume {
-		if(active) {
-			synth.run;
-			synth.set(\resumed, 1)
-		}
+		synth.run;
+		synth.set(\resumed, 1)
 	}
 
 	active_ { |flag|
