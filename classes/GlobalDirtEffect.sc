@@ -67,8 +67,10 @@ GlobalDirtEffect {
 	}
 
 	resume {
-		synth.run;
-		synth.set(\resumed, 1)
+		synth.server.sendBundle(nil,
+			['/n_run', synth.nodeID, 1]
+			['/n_set', 'resumed', 1]
+		);
 	}
 
 	active_ { |flag|
