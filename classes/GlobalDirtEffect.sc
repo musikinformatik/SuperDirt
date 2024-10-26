@@ -27,7 +27,7 @@ GlobalDirtEffect {
 			[\outBus, outBus, \dryBus, dryBus, \effectBus, effectBus, \orbitIndex, orbitIndex] ++ state.asPairs,
 			group,
 			\addAfter
-		)
+		);
 	}
 
 
@@ -69,7 +69,7 @@ GlobalDirtEffect {
 	resume {
 		synth.server.sendBundle(nil,
 			['/n_run', synth.nodeID, 1]
-			['/n_set', 'resumed', 1]
+			['/n_set', synth.nodeID, 'resumed', 1]
 		);
 	}
 
