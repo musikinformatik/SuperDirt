@@ -28,6 +28,7 @@ GlobalDirtEffect {
 			group,
 			\addAfter
 		);
+		synth.register;
 	}
 
 
