@@ -64,13 +64,16 @@ GlobalDirtEffect {
 	}
 
 	pause {
-		if(synth.notNil) { synth.run(false) }
+		synth.server.sendBundle(nil,
+			['/n_set', synth.nodeID, 'pauseImmediately', 1],
+			['/n_run', synth.nodeID, 0]
+		);
 	}
 
 	resume {
 		synth.server.sendBundle(nil,
 			['/n_run', synth.nodeID, 1]
-			['/n_set', synth.nodeID, 'resumed', 1]
+			['/n_set', synth.nodeID, 'pauseImmediately', 0, 'resumed', 1]
 		);
 	}
 
