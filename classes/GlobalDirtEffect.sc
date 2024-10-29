@@ -64,17 +64,21 @@ GlobalDirtEffect {
 	}
 
 	pause {
-		synth.server.sendBundle(synth.server.latency,
-			['/n_set', synth.nodeID, 'pauseImmediately', 1],
-			['/n_run', synth.nodeID, 0]
-		);
+		if(synth.notNil) {
+			synth.server.sendBundle(synth.server.latency,
+				['/n_set', synth.nodeID, 'pauseImmediately', 1],
+				['/n_run', synth.nodeID, 0]
+			)
+		};
 	}
 
 	resume {
-		synth.server.sendBundle(synth.server.latency,
-			['/n_run', synth.nodeID, 1]
-			['/n_set', synth.nodeID, 'pauseImmediately', 0, 'resumed', 1]
-		);
+		if(synth.notNil) {
+			synth.server.sendBundle(synth.server.latency,
+				['/n_run', synth.nodeID, 1],
+				['/n_set', synth.nodeID, 'pauseImmediately', 0, 'resumed', 1]
+			)
+		}
 	}
 
 	active_ { |flag|
