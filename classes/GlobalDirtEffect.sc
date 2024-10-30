@@ -76,7 +76,7 @@ GlobalDirtEffect {
 		if(synth.notNil) {
 			synth.server.sendBundle(synth.server.latency,
 				['/n_run', synth.nodeID, 1],
-				['/n_set', synth.nodeID, 'pauseImmediately', 0, 'resumed', 1]
+				['/n_set', synth.nodeID, 'pauseImmediately', 0, 'dirt_resumed', 1]
 			)
 		}
 	}
