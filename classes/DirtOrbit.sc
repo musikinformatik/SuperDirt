@@ -211,6 +211,7 @@ DirtOrbit {
 				"no synth or sample named '%' could be found.".format(~s).postln;
 			};
 
+			~syncableDiversions = [];
 		}
 	}
 

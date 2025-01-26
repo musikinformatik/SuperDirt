@@ -9,7 +9,7 @@ livecode DSP graphs!
 
 -- define a couple of helpers:
 
-dsp' code = pS "dsp" code # s "silence"
+dsp' code = pS "dsp" code # s "dirt_silence"
 dsp code = dsp' (pure code)
 gdsp' code = pS "gdsp" code
 gdsp code = gdsp' (pure code)
@@ -22,7 +22,7 @@ d1
   # dsp "VarSaw.ar(~freq, rrand(0.0, 1.0), rrand(0.0, 1.0))"
   # attack 0.001 # release (rangex 0.1 0.5 rand)
   # delay 0.5 # delayt (3.0/16) # lock 1 # delayfb 0.5
-  # gain 0.8 # pan rand
+  # gain 0.8 # pan (fast 1.1 rand)
 
 -- sampler fx
 d2
