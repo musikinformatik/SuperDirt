@@ -72,12 +72,12 @@ DirtLiveDsp {
 				// 'temp__0' to 'temp__511' and then loop back, so old names
 				// eventually get reused and we dont accumulate synthdefs
 				// indefinitely.
-				~dspSynthDef = SystemSynthDefs.generateTempName;
+				~dspSynthDef = SystemSynthDefs.generateTempName.asSymbol;
 				
 				// build the synthdef. this synth will run after conventional
 				// SuperDirt synths specified with 's' (e.g. dirt_sample), and
 				// can process their output!
-				SynthDef(~dspSynthDef, { |out|
+				SynthDef(~dspSynthDef, { |out, pan|
 					var in, sig;
 					// wrap the code to be interpreted in a function definition
 					// to provide two special variables:
@@ -86,12 +86,9 @@ DirtLiveDsp {
 					//   - in: input signal from the previous synth
 					//
 					// everything else is accessible via the event, e.g. ~freq.
-					//
-					// TODO: should we also do the NamedControl magic here, to
-					// enable modulation with control buses?
 					in = In.ar(out, ~numChannels);
 					sig = "{ |in, out| %\n}".format(~dsp.asString).interpret.(in, out);
-					sig = DirtPan.ar(sig, ~numChannels, ~pan);
+					sig = DirtPan.ar(sig, ~numChannels, pan);
 					ReplaceOut.ar(out, sig);
 				}).add;
 			};
@@ -127,11 +124,17 @@ DirtLiveDsp {
 
 			// define the module which will play our temporary synthdefs.
 			dirt.addModule('live-dsp', { |dirtEvent|
-				dirtEvent.sendSynth(~dspSynthDef,
-					[
-						out: ~out
-					]
-				);	
+				var args, val;
+
+				// support NamedControls (e.g. \cutoff.kr) by detecting all the
+				// controls used in the ~dsp code, and passing their values as
+				// arguments.
+				args = SynthDescLib.global[~dspSynthDef].controls.collect { |c|
+					val = currentEnvironment[c.name];
+					[c.name, val]
+				}.flatten;
+				
+				dirtEvent.sendSynth(~dspSynthDef, args);
 			}, { ~dspSynthDef.notNil });
 
 			dirt.orderModules(['sound', 'live-dsp']);

@@ -32,7 +32,7 @@ d2
 
 -- patterned synths and string concatenation
 d3 $ let
-  addFilter code = "RLPF.ar(" ++ code ++ ", exprand(400,8000), 0.2)"
+  addFilter code = "RLPF.ar(" ++ code ++ ", \\ctf.kr, 0.2)"
   synths =
     [ ("saw", pure $ addFilter "Saw.ar(~freq)")
     , ("sqr", pure $ addFilter "Pulse.ar(~freq)")
@@ -41,6 +41,7 @@ d3 $ let
   $ note ("[0@2 -12@3 0@3]*2" - 24)
   # dsp' (inhabit synths "<saw sqr!2>*8")
   # release 0.3
+  # pF "ctf" (rangex 400 8000 rand)
 
 -- global effect with patterned controls
 d4
