@@ -334,7 +334,7 @@ SuperDirt {
 		netResponders.add(
 			OSCFunc({ |msg, time, tidalAddr|
 				var args = msg.drop(1);
-				this.setControlBus(*args.postln);
+				this.setControlBus(*args);
 			}, "dirt/setControlBus", senderAddr, recvPort: port).fix
 		);
 		netResponders.add(
