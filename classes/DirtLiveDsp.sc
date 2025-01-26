@@ -1,5 +1,5 @@
 DirtLiveDsp {
-	var <dirt, <gdspSource, <>defaultGdspSynth, <>gdspDiversion, <>dspDiversion;
+	var <dirt, <gdspSource, <>defaultGdspSynth, <>gdspDiversion, <>dspDiversion, <allowDangerousRemoteCodeExecution;
 	
 	*new { |dirt|
 		^super.newCopyArgs(dirt).init
@@ -106,65 +106,85 @@ DirtLiveDsp {
 				// activate the 'live-dsp' module, defined in the 'start' method.
 			}
 		};
+
+		allowDangerousRemoteCodeExecution = false;
 	}
 
 	start {
 		var event;
-		dirt.orbits.do { |o|
-			event = o.defaultParentEvent;
-			
-			// handle ~gdsp (code for the orbit's global effect synthdef)
-			event[\syncableDiversions] = event[\syncableDiversions].add(gdspDiversion);
-
-			// handle ~dsp (code for the module synthdef)
-			event[\syncableDiversions] = event[\syncableDiversions].add(dspDiversion);
-		};
-
-		// define the module which will play our temporary synthdefs.
-		dirt.addModule('live-dsp', { |dirtEvent|
-			dirtEvent.sendSynth(~dspSynthDef,
-				[
-					out: ~out
-				]
-			);	
-		}, { ~dspSynthDef.notNil });
-
-		dirt.orderModules(['sound', 'live-dsp']);
-
-		// set up global effects
-		{
-			// even if our ~dsp code does not use an input signal, a conventional synth
-			// needs to be specified in 's', otherwise Tidal will not send the event at all.
-			// thus, it is convenient to have a silence synthdef.
-			SynthDef(\dirt_silence, {
-				FreeSelf.kr(1);
-			}).add;
-
-			// initialize livecodable global effects with the default no-effect synth
+		if(allowDangerousRemoteCodeExecution.not && { this.listeningOnLoopback.not }) { 
+			"Refusing to start DirtLiveDsp, because SuperDirt seems to listening on a non-loopback network address. This would allow anyone who can send OSC messages to SuperDirt to run arbitrary code on your system. If you really want to do this, please ensure every device on your network is trusted, and call enableDangerousRemoteCodeExecution(true)".error;
+		} {
 			dirt.orbits.do { |o|
-				// each orbit gets its own synthdef name
-				SynthDef("dirt_live_global_dsp_%_%".format(o.orbitIndex, dirt.numChannels).asSymbol, defaultGdspSynth).add;
+				event = o.defaultParentEvent;
+				
+				// handle ~gdsp (code for the orbit's global effect synthdef)
+				event[\syncableDiversions] = event[\syncableDiversions].add(gdspDiversion);
+
+				// handle ~dsp (code for the module synthdef)
+				event[\syncableDiversions] = event[\syncableDiversions].add(dspDiversion);
 			};
-			
-			// wait for synthdefs to be added
-			dirt.server.sync;
-			
-			// create effects (or recreate if they already exist)
-			dirt.orbits.do { |o|
-				var insertIx, effect;
-				o.globalEffects = o.globalEffects.reject { |fx|
-					if(fx.name.asString.beginsWith("dirt_live_global_dsp_")) {
-						"release %".format(fx).postln;
-						fx.release;
-						true;
-					} {
-						false;
-					};
+
+			// define the module which will play our temporary synthdefs.
+			dirt.addModule('live-dsp', { |dirtEvent|
+				dirtEvent.sendSynth(~dspSynthDef,
+					[
+						out: ~out
+					]
+				);	
+			}, { ~dspSynthDef.notNil });
+
+			dirt.orderModules(['sound', 'live-dsp']);
+
+			// set up global effects
+			{
+				// even if our ~dsp code does not use an input signal, a conventional synth
+				// needs to be specified in 's', otherwise Tidal will not send the event at all.
+				// thus, it is convenient to have a silence synthdef.
+				SynthDef(\dirt_silence, { |out|
+					FreeSelf.kr(1);
+					Out.ar(out, Silent.ar(dirt.numChannels));
+				}).add;
+
+				// initialize livecodable global effects with the default no-effect synth
+				dirt.orbits.do { |o|
+					// each orbit gets its own synthdef name
+					SynthDef("dirt_live_global_dsp_%_%".format(o.orbitIndex, dirt.numChannels).asSymbol, defaultGdspSynth).add;
 				};
-				effect = GlobalDirtEffect("dirt_live_global_dsp_%_".format(o.orbitIndex).asSymbol, []).alwaysRun_(true);
-				o.globalEffects = o.globalEffects.insert(0, effect);
-				o.initNodeTree;
-			};
-		}.forkIfNeeded;
+				
+				// wait for synthdefs to be added
+				dirt.server.sync;
+				
+				// create effects (or recreate if they already exist)
+				dirt.orbits.do { |o|
+					var insertIx, effect;
+					o.globalEffects = o.globalEffects.reject { |fx|
+						if(fx.name.asString.beginsWith("dirt_live_global_dsp_")) {
+							"release %".format(fx).postln;
+							fx.release;
+							true;
+						} {
+							false;
+						};
+					};
+					effect = GlobalDirtEffect("dirt_live_global_dsp_%_".format(o.orbitIndex).asSymbol, []).alwaysRun_(true);
+					o.globalEffects = o.globalEffects.insert(0, effect);
+					o.initNodeTree;
+				};
+
+				"DirtLiveDsp started".postln;
+			}.forkIfNeeded;
+		}
+	}
+
+	enableDangerousRemoteCodeExecution { |enable|
+		if(enable) {
+			"DirtLiveDsp remote code execution is enabled. This is an insecure configuration that allows anyone who can send OSC messages to SuperDirt to run arbitrary code on your system. Please ensure every device on your network is trusted.".warn;
+		};
+		allowDangerousRemoteCodeExecution = enable;
+	}
+
+	listeningOnLoopback {
+		^dirt.senderAddr.hostname == "127.0.0.1"
 	}
 }
