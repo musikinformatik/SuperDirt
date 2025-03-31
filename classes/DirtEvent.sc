@@ -37,7 +37,9 @@ DirtEvent {
 	splitName {
 		var s, n;
 		#s, n = ~sound.asString.split($:);
-		if(~bank.notNil) { s = ~bank ++ s };
+		if(~bank.notNil) {
+			s = format("%_%", ~bank, s)
+		};
 		~s = s.asSymbol;
 		~n = if(n.notNil) { n.asFloat } { 0.0 };
 	}
