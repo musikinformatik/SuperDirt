@@ -147,6 +147,11 @@ DirtSoundLibrary {
 		};
 	}
 
+	// a bank is defined simply by a naming convention
+	loadSoundFilesToBank { |paths, appendToExisting = false, bankName|
+		this.loadSoundFiles(paths, appendToExisting, { |path| bankName ++ "_" ++ path.basename })
+	}
+
 	loadSoundFiles { |paths, appendToExisting = false, namingFunction = (_.basename)| // paths are folderPaths
 		var folderPaths, memory;
 
