@@ -126,7 +126,7 @@ DirtEvent {
 				unitDuration = unitDuration ? delta;
 				loop !? { unitDuration = unitDuration * loop.abs };
 			} {
-				(delta / ~cps) * (~clip.value ? 1)
+				delta * (~clip.value ? 1)
 			};
 		
 			// if(~clip.notNil) {
