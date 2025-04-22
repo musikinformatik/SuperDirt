@@ -14,7 +14,7 @@ sends only OSC when an update is necessary
 GlobalDirtEffect {
 
 	var <>name, <>paramNames, <>numChannels, <state;
-	var <>alwaysRun = false, <>bypass = false;
+	var <>alwaysRun = false, <active = true;
 	var <synth, defName;
 
 	*new { |name, paramNames, numChannels|
@@ -28,13 +28,14 @@ GlobalDirtEffect {
 			[\outBus, outBus, \dryBus, dryBus, \effectBus, effectBus, \orbitIndex, orbitIndex] ++ state.asPairs,
 			group,
 			\addAfter
-		)
+		);
+		synth.register;
 	}
 
 
 	release { |releaseTime = 0.2|
 		if(synth.notNil) {
-			synth.server.sendBundle(nil,
+			synth.server.sendBundle(synth.server.latency,
 				['/error', -1], // surpress error, because we don't keep track of server state
 				[12, synth.nodeID, 1], // /n_run: make sure it isn't paused
 				[15, synth.nodeID, \gate, -1.0 - releaseTime], // n_set: use gate to set release time
@@ -43,38 +44,48 @@ GlobalDirtEffect {
 		};
 	}
 
+	// set is called for each event, If paused and active and parameters changed, it resumes the synth.
 	set { |event|
 		var argsChanged, someArgsNotNil = alwaysRun;
 
-		if (bypass == false, {
+
+		if(active) {
 			paramNames.do { |key|
-		    	var value = event[key];
-		    	value !? { someArgsNotNil = true };
+				var value = event[key];
+				value !? { someArgsNotNil = true };
+				if(state[key] != value) {
+					argsChanged = argsChanged.add(key).add(value);
+					state[key] = value;
+				}
+			};
+			if(someArgsNotNil) { this.resume };
+			if(argsChanged.notNil and: { synth.notNil }) {
+				synth.set(*argsChanged);
+			}
+		}
+	}
 
-		    	if(state[key] != value) {
-		    		argsChanged = argsChanged.add(key).add(value);
-		    		state[key] = value;
-		    	}
-		    };
-
-		    if( (someArgsNotNil),
-		    	{
-		    		this.resume;
-		    		synth.set(\wet, 1);
-		    	},
-		    	{ synth.set(\wet, 0) };
-		    );
-		    if(argsChanged.notNil) {
-		    	synth.set(*argsChanged);
-		    }
-		}, {
-			synth.run(false);
-		})
+	pause {
+		if(synth.notNil) {
+			synth.server.sendBundle(synth.server.latency,
+				['/n_set', synth.nodeID, 'pauseImmediately', 1],
+				['/n_run', synth.nodeID, 0]
+			)
+		};
 	}
 
 	resume {
-		synth.run;
-		synth.set(\resumed, 1)
+		if(synth.notNil) {
+			synth.server.sendBundle(synth.server.latency,
+				['/n_run', synth.nodeID, 1],
+				['/n_set', synth.nodeID, 'pauseImmediately', 0, 'dirt_resumed', 1]
+			)
+		}
+	}
+
+	active_ { |flag|
+		active = flag;
+		if(active) { this.resume } { this.pause }
 	}
 
 	printOn { |stream|

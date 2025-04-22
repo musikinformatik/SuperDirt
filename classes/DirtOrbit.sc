@@ -61,7 +61,7 @@ DirtOrbit {
 			GlobalDirtEffect(\dirt_delay, [\delaytime, \delayfeedback, \delaySend, \delayAmp, \lock, \cps]),
 			GlobalDirtEffect(\dirt_reverb, [\size, \room, \dry]),
 			GlobalDirtEffect(\dirt_leslie, [\leslie, \lrate, \lsize]),
-			GlobalDirtEffect(\dirt_rms, [\rmsReplyRate, \rmsPeakLag]).alwaysRun_(true),
+			GlobalDirtEffect(\dirt_rms, [\rmsReplyRate, \rmsPeakLag]).alwaysRun_(true).active_(false),
 			GlobalDirtEffect(\dirt_monitor, [\limitertype]).alwaysRun_(true),
 		]
 	}
@@ -117,6 +117,14 @@ DirtOrbit {
 		globalEffects.do { |x| x.set(event) };
 	}
 
+	getGlobalEffect { |name|
+		var effect = globalEffects.detect { |x| x.name == name };
+		if(effect.isNil) {
+			Error("No global effect with this name: '%'".format(name)).throw;
+		};
+		^effect
+	}
+
 	amp_ { |val|
 		this.set(\amp, val)
 	}
@@ -141,13 +149,12 @@ DirtOrbit {
 	}
 
 	startSendRMS { |rmsReplyRate = 8, rmsPeakLag = 3|
-		this.setGlobalEffects(\rmsReplyRate, rmsReplyRate, \rmsPeakLag, rmsPeakLag);
-		this.initNodeTree; // for now, we need this. check later why.
+		this.getGlobalEffect(\dirt_rms).set((rmsReplyRate: rmsReplyRate, rmsPeakLag: rmsPeakLag)).active_(true);
+		this.initNodeTree; // we need this because the reply rate can't be modulated
 	}
 
 	stopSendRMS {
-		this.setGlobalEffects(\rmsReplyRate, 0, \rmsPeakLag, 0);
-		this.initNodeTree;
+		this.getGlobalEffect(\dirt_rms).active_(false)
 	}
 
 	free {

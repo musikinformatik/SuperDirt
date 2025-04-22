@@ -190,8 +190,8 @@ DirtPause {
 		// immediately pause when started
 		PauseSelf.kr(Impulse.kr(0) * pauseImmediately);
 		// when resumed and no sound is coming in, wait a while before ending again
-		signal = signal.abs.asArray.sum + Trig1.ar(\resumed.tr(0), graceTime);
-		DetectSilence.ar(signal, time:graceTime, doneAction:1);
+		signal = signal.asArray.abs.sum + Trig1.ar(\dirt_resumed.tr(0), graceTime);
+		DetectSilence.ar(signal, time:graceTime, doneAction:Done.pauseSelf);
 	}
 
 }
