@@ -23,7 +23,6 @@ GlobalDirtEffect {
 
 	play { |group, outBus, dryBus, effectBus, orbitIndex|
 		this.release;
-
 		synth = Synth.newPaused(name.asString ++ numChannels,
 			[\outBus, outBus, \dryBus, dryBus, \effectBus, effectBus, \orbitIndex, orbitIndex] ++ state.asPairs,
 			group,
@@ -47,7 +46,6 @@ GlobalDirtEffect {
 	// set is called for each event, If paused and active and parameters changed, it resumes the synth.
 	set { |event|
 		var argsChanged, someArgsNotNil = alwaysRun;
-
 
 		if(active) {
 			paramNames.do { |key|
