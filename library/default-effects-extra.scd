@@ -412,5 +412,70 @@ DEFAULT EFFECTS EXTRA
 			hpfCutoffFreq
 		);
 		ReplaceOut.ar(out, signal)
-}, [\ir]).add;
+    }, [\ir]).add;
+
+
+    ~dirt.addModule('compressor', { |dirtEvent|
+	    var cRatio = ~cRatio ?? 4;
+    	dirtEvent.sendSynth('compressor' ++ ~dirt.numChannels,
+	    	// OPTIONAL
+		    // passing this array of parameters could be left out,
+		    // but it makes it clear what happens
+	    	[
+	    		cThresh: ~cThresh,
+			    cRatio: cRatio,
+	    		out: ~out
+	    	]
+	    )
+    }, { ~cThresh.notNil }); // play synth only if at least one of the two was given
+
+
+    SynthDef("compressor" ++ ~dirt.numChannels, { |out, cThresh, cRatio=4 |
+
+    	var local, signal, signalAmplitude, in, t, o, r, gainReduction, e, cLookaheadDelay, compressedSound, makeupGain;
+    	var cKneelag;
+
+	    var cAttack = 0.01;
+    	var cRelease = 0.1;
+    	var cTrim = 0;
+    	var cHpf = 50;
+    	var cKnee = 0;
+
+    	signal = In.ar(out, ~dirt.numChannels);
+
+    	signalAmplitude = Amplitude.ar(signal, 0.001, 1.0);
+
+    	in = signal * cTrim.dbamp;
+    	e = in.mean;
+	    e = HPF.ar(e, cHpf);
+	    e = EnvDetect.ar(e, cAttack, cRelease);
+
+	    o = e.ampdb.excess(cThresh.ampdb);
+
+    	r = cRatio;
+
+    	gainReduction = (max(o, 0.0)) * (r.reciprocal - 1);
+    	cKneelag = cAttack * cKnee;
+
+	    gainReduction = gainReduction.lag(cKneelag);
+    	gainReduction = gainReduction.dbamp;
+
+    	cLookaheadDelay = DelayC.ar(in, 0.5, (cAttack + cRelease + cKneelag).lag(0.4));
+
+	    compressedSound = cLookaheadDelay * gainReduction;
+
+	    makeupGain = (cThresh.ampdb * (1 - (1 / cRatio))).neg.dbamp;
+	    in = compressedSound * makeupGain;
+
+	    // Do a softclip, when clipping
+    	in = (in + K2A.ar(0)).softclip;
+	    // Alternatively:
+    	//   var cBias = 0;
+    	//   var cSaturate
+    	//   in = Select.ar(cSaturate, [in, (in + K2A.ar(cpBias)).softclip - cBias]);
+    	in = LeakDC.ar(in);
+
+    	ReplaceOut.ar(out, in);
+    }, [\ir]).add;
+
 )
