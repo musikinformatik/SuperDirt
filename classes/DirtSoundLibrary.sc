@@ -147,10 +147,11 @@ DirtSoundLibrary {
 		};
 	}
 
-	loadSoundFilesToBank { |paths, appendToExisting = false, bankName|
+	loadSoundFilesToBank { |paths, appendToExisting = false, bankName, namingFunction|
 		var form = "%_%";
-		var namingFunc = if(bankName.isNil) { Error("to load into a bank, you have to give a bank name").throw };
-		this.loadSoundFiles(paths, appendToExisting, { |path| format(form, bankName, path.basename) })
+		if(bankName.isNil) { Error("to load into a bank, you have to give a bank name").throw };
+		namingFunc = namingFunc ?? { { |path| format(form, bankName, path.basename) } };
+		this.loadSoundFiles(paths, appendToExisting, namingFunc)
 	}
 
 	loadSoundFiles { |paths, appendToExisting = false, namingFunction = (_.basename)| // paths are folderPaths
