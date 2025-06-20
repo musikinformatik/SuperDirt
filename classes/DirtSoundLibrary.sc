@@ -150,8 +150,8 @@ DirtSoundLibrary {
 	loadSoundFilesToBank { |paths, appendToExisting = false, bankName, namingFunction|
 		var form = "%_%";
 		if(bankName.isNil) { Error("to load into a bank, you have to give a bank name").throw };
-		namingFunc = namingFunc ?? { { |path| format(form, bankName, path.basename) } };
-		this.loadSoundFiles(paths, appendToExisting, namingFunc)
+		namingFunction = namingFunction ?? { { |path| format(form, bankName, path.basename) } };
+		this.loadSoundFiles(paths, appendToExisting, namingFunction)
 	}
 
 	loadSoundFiles { |paths, appendToExisting = false, namingFunction = (_.basename)| // paths are folderPaths
