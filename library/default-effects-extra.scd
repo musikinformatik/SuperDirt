@@ -456,25 +456,25 @@ DEFAULT EFFECTS EXTRA
 
     	in = signal * cTrim.dbamp;
     	e = in.mean;
-	    e = HPF.ar(e, cHpf);
-	    e = Amplitude.ar(e, cAttack, cRelease);
+        e = HPF.ar(e, cHpf);
+        e = Amplitude.ar(e, cAttack, cRelease);
 
-	    o = e.ampdb.excess(cThresh.ampdb);
+        o = e.ampdb.excess(cThresh.ampdb);
 
     	r = cRatio;
 
     	gainReduction = (max(o, 0.0)) * (r.reciprocal - 1);
     	cKneelag = cAttack * cKnee;
 
-	    gainReduction = gainReduction.lag(cKneelag);
+        gainReduction = gainReduction.lag(cKneelag);
     	gainReduction = gainReduction.dbamp;
 
     	cLookaheadDelay = DelayC.ar(in, 0.5, (cAttack + cRelease + cKneelag).lag(0.4));
 
-	    compressedSound = cLookaheadDelay * gainReduction;
+        compressedSound = cLookaheadDelay * gainReduction;
 
-	    makeupGain = (cThresh.ampdb * (1 - (1 / cRatio))).neg.dbamp;
-	    in = compressedSound * makeupGain;
+        makeupGain = (cThresh.ampdb * (1 - (1 / cRatio))).neg.dbamp;
+        in = compressedSound * makeupGain;
 
     	in = in.softclip;
     	in = LeakDC.ar(in);
