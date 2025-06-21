@@ -414,9 +414,13 @@ DEFAULT EFFECTS EXTRA
 		ReplaceOut.ar(out, signal)
     }, [\ir]).add;
 
-
     ~dirt.addModule('compressor', { |dirtEvent|
-        var cRatio = ~cRatio ?? 4;
+	    var cRatio = ~cRatio ? 4;
+	    var cAttack = ~cAttack ? 0.01;
+	    var cRelease = ~cRelease ? 0.1;
+	    var cTrim = ~cTrim ? 0;
+	    var cHpf = ~cHpf ? 50;
+	    var cKnee = ~cKnee ? 0;
     	dirtEvent.sendSynth('compressor' ++ ~dirt.numChannels,
 	    	// OPTIONAL
 		    // passing this array of parameters could be left out,
@@ -424,22 +428,27 @@ DEFAULT EFFECTS EXTRA
 	    	[
 	    		cThresh: ~cThresh,
 			    cRatio: cRatio,
+			    cAttack: cAttack,
+			    cRelease: cRelease,
+			    cTrim: cTrim,
+			    cHpf: cHpf,
+			    cKnee: cKnee,
 	    		out: ~out
 	    	]
 	    )
     }, { ~cThresh.notNil }); // play synth only if at least one of the two was given
 
 
-    SynthDef("compressor" ++ ~dirt.numChannels, { |out, cThresh, cRatio=4 |
+    // Compressor
+    // Original NDef version: https://github.com/alikthename/Musical-Design-in-Supercollider/blob/master/16_compression.sc
+	// First ported for the SuperDirtMixer: https://github.com/thgrund/SuperDirtMixer/blob/main/synths/synth.scd#L24-L67
+    // Optimized for livecoding. To make the compressor run adjust the cThresh value something between 0.00001 and 1. Smaller values will affect quieter parts of your audio signal.
+    //
+    // The other parameters will affect the sound of the compressor result.
+    SynthDef("compressor" ++ ~dirt.numChannels, { |out, cThresh, cRatio=4, cAttack = 0.01, cRelease = 0.1, cTrim = 0, cHpf = 50, cKnee = 0|
 
     	var local, signal, signalAmplitude, in, t, o, r, gainReduction, e, cLookaheadDelay, compressedSound, makeupGain;
     	var cKneelag;
-
-        var cAttack = 0.01;
-    	var cRelease = 0.1;
-    	var cTrim = 0;
-    	var cHpf = 50;
-    	var cKnee = 0;
 
     	signal = In.ar(out, ~dirt.numChannels);
 
@@ -447,32 +456,27 @@ DEFAULT EFFECTS EXTRA
 
     	in = signal * cTrim.dbamp;
     	e = in.mean;
-        e = HPF.ar(e, cHpf);
-        e = EnvDetect.ar(e, cAttack, cRelease);
+	    e = HPF.ar(e, cHpf);
+	    e = Amplitude.ar(e, cAttack, cRelease);
 
-        o = e.ampdb.excess(cThresh.ampdb);
+	    o = e.ampdb.excess(cThresh.ampdb);
 
     	r = cRatio;
 
     	gainReduction = (max(o, 0.0)) * (r.reciprocal - 1);
     	cKneelag = cAttack * cKnee;
 
-        gainReduction = gainReduction.lag(cKneelag);
+	    gainReduction = gainReduction.lag(cKneelag);
     	gainReduction = gainReduction.dbamp;
 
     	cLookaheadDelay = DelayC.ar(in, 0.5, (cAttack + cRelease + cKneelag).lag(0.4));
 
-        compressedSound = cLookaheadDelay * gainReduction;
+	    compressedSound = cLookaheadDelay * gainReduction;
 
-        makeupGain = (cThresh.ampdb * (1 - (1 / cRatio))).neg.dbamp;
-        in = compressedSound * makeupGain;
+	    makeupGain = (cThresh.ampdb * (1 - (1 / cRatio))).neg.dbamp;
+	    in = compressedSound * makeupGain;
 
-        // Do a softclip, when clipping
-    	in = (in + K2A.ar(0)).softclip;
-        // Alternatively:
-    	//   var cBias = 0;
-    	//   var cSaturate
-    	//   in = Select.ar(cSaturate, [in, (in + K2A.ar(cpBias)).softclip - cBias]);
+    	in = in.softclip;
     	in = LeakDC.ar(in);
 
     	ReplaceOut.ar(out, in);
