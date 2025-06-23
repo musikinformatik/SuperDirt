@@ -421,8 +421,12 @@ DEFAULT EFFECTS EXTRA
     var cTrim = ~cTrim ? 0;
     var cHpf = ~cHpf ? 50;
     var cKnee = ~cKnee ? 0;
+    var cGain = ~cGain ? 1;
 
     dirtEvent.sendSynth('compressor' ++ ~dirt.numChannels,
+        // OPTIONAL
+        // passing this array of parameters could be left out,
+        // but it makes it clear what happens
         [
             cThresh: ~cThresh,
             cRatio: cRatio,
@@ -431,24 +435,26 @@ DEFAULT EFFECTS EXTRA
             cTrim: cTrim,
             cHpf: cHpf,
             cKnee: cKnee,
+            cGain: cGain,
             out: ~out
         ]
     )
 }, { ~cThresh.notNil }); // play synth only if at least one of the two was given
 
+    // Compressor
+    // Original NDef version: https://github.com/alikthename/Musical-Design-in-Supercollider/blob/master/16_compression.sc
+	// First ported for the SuperDirtMixer: https://github.com/thgrund/SuperDirtMixer/blob/main/synths/synth.scd#L24-L67
+    // Optimized for livecoding. To make the compressor run adjust the cThresh value something between 0.00001 and 1. Smaller values will affect quieter parts of your audio signal.
+    //
+    // The other parameters will affect the sound of the compressor result.
+SynthDef("compressor" ++ ~dirt.numChannels, { |out, cThresh, cRatio=4, cAttack = 0.01, cRelease = 0.1, cTrim = 0, cHpf = 50, cKnee = 0, cGain = 0|
 
-// Compressor
-// Original NDef version: https://github.com/alikthename/Musical-Design-in-Supercollider/blob/master/16_compression.sc
-// First ported for the SuperDirtMixer: https://github.com/thgrund/SuperDirtMixer/blob/main/synths/synth.scd#L24-L67
-// Optimized for livecoding. To make the compressor run adjust the cThresh value something between 0.00001 and 1. Smaller values will affect quieter parts of your audio signal.
-//
-// The other parameters will affect the sound of the compressor result.
-SynthDef("compressor" ++ ~dirt.numChannels, { |out, cThresh, cRatio=4, cAttack = 0.01, cRelease = 0.1, cTrim = 0, cHpf = 50, cKnee = 0|
-
-    var local, signal, in, t, o, r, e, cLookaheadDelay, compressedSound, makeupGain;
+    var local, signal, signalAmplitude, in, t, o, r, gainReduction, e, cLookaheadDelay, compressedSound, makeupGain;
     var cKneelag;
 
     signal = In.ar(out, ~dirt.numChannels);
+
+    signalAmplitude = Amplitude.ar(signal, 0.001, 1.0);
 
     in = signal * cTrim.dbamp;
     e = in.mean;
@@ -472,9 +478,10 @@ SynthDef("compressor" ++ ~dirt.numChannels, { |out, cThresh, cRatio=4, cAttack =
     makeupGain = (cThresh.ampdb * (1 - (1 / cRatio))).neg.dbamp;
     in = compressedSound * makeupGain;
 
-    in = in.softclip;
+    in = in.softclip * cGain;
     in = LeakDC.ar(in);
 
     ReplaceOut.ar(out, in);
 }, [\ir]).add;
+
 )
