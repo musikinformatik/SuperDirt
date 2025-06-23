@@ -449,12 +449,10 @@ DEFAULT EFFECTS EXTRA
     // The other parameters will affect the sound of the compressor result.
 SynthDef("compressor" ++ ~dirt.numChannels, { |out, cThresh, cRatio=4, cAttack = 0.01, cRelease = 0.1, cTrim = 0, cHpf = 50, cKnee = 0, cGain = 0|
 
-    var local, signal, signalAmplitude, in, t, o, r, gainReduction, e, cLookaheadDelay, compressedSound, makeupGain;
+    var local, signal, in, t, o, r, gainReduction, e, cLookaheadDelay, compressedSound, makeupGain;
     var cKneelag;
 
     signal = In.ar(out, ~dirt.numChannels);
-
-    signalAmplitude = Amplitude.ar(signal, 0.001, 1.0);
 
     in = signal * cTrim.dbamp;
     e = in.mean;
