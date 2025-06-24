@@ -424,9 +424,6 @@ DEFAULT EFFECTS EXTRA
     var cGain = ~cGain ? 1;
 
     dirtEvent.sendSynth('compressor' ++ ~dirt.numChannels,
-        // OPTIONAL
-        // passing this array of parameters could be left out,
-        // but it makes it clear what happens
         [
             cThresh: ~cThresh,
             cRatio: cRatio,
@@ -443,7 +440,7 @@ DEFAULT EFFECTS EXTRA
 
     // Compressor
     // Original NDef version: https://github.com/alikthename/Musical-Design-in-Supercollider/blob/master/16_compression.sc
-	// First ported for the SuperDirtMixer: https://github.com/thgrund/SuperDirtMixer/blob/main/synths/synth.scd#L24-L67
+    // First ported for the SuperDirtMixer: https://github.com/thgrund/SuperDirtMixer/blob/main/synths/synth.scd#L24-L67
     // Optimized for livecoding. To make the compressor run adjust the cThresh value something between 0.00001 and 1. Smaller values will affect quieter parts of your audio signal.
     //
     // The other parameters will affect the sound of the compressor result.
