@@ -45,7 +45,7 @@ DirtEvent {
 			sound = format("%_%", ~bank, sound)
 		};
 		~s = sound.asSymbol;
-		~n = if(note.notNil) { note.asFloat } { 0.0 };
+		~n = if(note.notNil) { note.asFloat } { ~n };
 	}
 
 	mergeSoundEvent {
