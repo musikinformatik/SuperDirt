@@ -54,6 +54,7 @@ SuperDirt {
 	init {
 		soundLibrary = DirtSoundLibrary(server, numChannels);
 		modules = [];
+		this.checkServerMemory(50 * 1024);
 		this.loadSynthDefs;
 		this.initVowels(\counterTenor);
 		this.initRoutingBusses;
@@ -85,6 +86,23 @@ SuperDirt {
 	initRoutingBusses {
 		audioRoutingBusses = { Bus.audio(server, numChannels) }.dup(numRoutingBusses);
 		controlBusses = { Bus.control(server, 1) }.dup(numControlBusses);
+	}
+
+	checkServerMemory { |required|
+		if(server.respondsTo(\rtMemoryStatus).not) {
+			"No realtime memory check possible, use a supercollider version >= 3.14".warn;
+			^this
+		};
+		server.rtMemoryStatus { |freeBytes|
+			// note that this function runs async after a server reply
+			var freeKilobytes = freeBytes div: 1024;
+			if (freeKilobytes < required) {
+				Error(
+					"SuperDirt: not enough free memory to start."
+					"Set s.options.memSize to at least %"
+				).format(required).throw
+			} { "Enough realtime memory found (% kB)".format(freeKilobytes).postln }
+		}
 	}
 
 	set { |...pairs|
