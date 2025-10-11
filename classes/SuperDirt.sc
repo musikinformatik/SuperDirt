@@ -145,12 +145,16 @@ SuperDirt {
 		soundLibrary.loadOnly(names, path, appendToExisting )
 	}
 
-	loadSoundFileFolder { |folderPath, name, appendToExisting = false, sortFiles = true|
-		soundLibrary.loadSoundFileFolder(folderPath, name, appendToExisting, sortFiles)
-	}
-
 	loadSoundFiles { |paths, appendToExisting = false, namingFunction|
 		soundLibrary.loadSoundFiles(paths, appendToExisting = false, namingFunction)
+	}
+
+	loadSoundFilesToBank { |paths, appendToExisting = false, bankName|
+		soundLibrary.loadSoundFilesToBank(paths, appendToExisting = false, bankName)
+	}
+
+	loadSoundFileFolder { |folderPath, name, appendToExisting = false, sortFiles = true|
+		soundLibrary.loadSoundFileFolder(folderPath, name, appendToExisting, sortFiles)
 	}
 
 	loadSoundFile { |path, name, appendToExisting = false|

@@ -10,8 +10,7 @@ DirtEvent {
 	play {
 		event.parent = orbit.defaultParentEvent;
 		event.use {
-			// s and n stand for synth/sample and note/number
-			~s ?? { this.splitName };
+			this.splitName;
 			// unless orbit wide diversion returns something, we proceed
 			~diversion.(this) ?? {
 				if(~s != \) { // backslash stands for do nothing
@@ -34,12 +33,19 @@ DirtEvent {
 		orbit.server.makeBundle(~latency, func)
 	}
 
+	// s and n stand for synth/sample and note/number
 	splitName {
-		var s, n;
-		#s, n = ~sound.asString.split($:);
-		if(~bank.notNil) { s = ~bank ++ s };
-		~s = s.asSymbol;
-		~n = if(n.notNil) { n.asFloat } { 0.0 };
+		var sound, note;
+		if(~s.isNil) {
+			#sound, note = ~sound.asString.split($:);
+		} {
+			sound = ~s;
+		};
+		if(~bank.notNil) {
+			sound = format("%_%", ~bank, sound)
+		};
+		~s = sound.asSymbol;
+		~n = if(note.notNil) { note.asFloat } { ~n };
 	}
 
 	mergeSoundEvent {
