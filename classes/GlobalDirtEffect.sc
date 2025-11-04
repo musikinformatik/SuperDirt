@@ -31,7 +31,6 @@ GlobalDirtEffect {
 		synth.register;
 	}
 
-
 	release { |releaseTime = 0.2|
 		if(synth.notNil) {
 			synth.server.sendBundle(synth.server.latency,

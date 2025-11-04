@@ -47,7 +47,8 @@ let degree = pF "degree"
 	var scale, tuning;
 	pitchEvent.use {
 		~freq = {
-			if(~n != 0) { ~note = ~n }; // interpret n as note (might be also degree)
+			if(~n.notNil) { ~note = ~n }; // interpret n as note (might be also degree)
+			// if(~n != 0) { ~note = ~n }; // interpret n as note (might be also degree)
 			~scaleName !? {
 				scale = Scale.at(~scaleName);
 				scale !? {

@@ -44,7 +44,8 @@ DirtEventTypes {
 				var freq, lag, sustain;
 				var args, midiout, hasGate, midicmd, latency, chan;
 				var sendNRPN, schedmidi, schedmidicmd, donecmd;
-				var hasNote = (~n != \none or: {~note.notNil});
+				// var hasNote = (~n != \none or: {~note.notNil});
+			    var hasNote = (~n.notNil or: {~note.notNil});
 				var midiCommandPending = ~midicmd.notNil;
 				var nrpnMSB, nrpnLSB, valMSB, valLSB;
 				var ctlNum, control, num, val, note;
@@ -108,7 +109,7 @@ DirtEventTypes {
 
 				if (hasNote) {
 					freq = ~freq.value;
-					~midinote = (freq.cpsmidi).round(1).asInteger;
+					~midinote = ((freq.cpsmidi).round(1) ? 0).asInteger;
 					// Assume aftertouch means no noteOn, for now..
 					if(~polyTouch.notNil) {
 						val = ~polyTouch;
@@ -116,7 +117,7 @@ DirtEventTypes {
 						schedmidi.value({ midiout.polyTouch(chan, note, val) })
 					} {
 						// match dirt_gate SynthDef amplitude scaling
-						~amp =  ~amp.value * pow(~gain.min(2) + ~overgain, 4);
+						~amp =  ~amp.value * StrudelUtils.gainCurve(~gain + ~overgain, 4);
 
 						sustain = ~sustain = ~sustain.value;
 						if(~uid.notNil and: { midiout.notNil }) {

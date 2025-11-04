@@ -11,25 +11,27 @@ Their name and parameter names shouldn't be changed. Parameter names can be adde
 live coding them requires that you have your SuperDirt instance in an environment variable called ~dirt.
 
 */
+	
 
 (
 {
 	var numChannels = ~dirt.numChannels;
-
-
-
+	
 	// write variants for different sample buffer sizes
 	(1..SuperDirt.maxSampleNumChannels).do { |sampleNumChannels|
 
 		var name = format("dirt_sample_%_%", sampleNumChannels, numChannels);
 
-		SynthDef(name, { |out, bufnum, sustain = 1, begin = 0, end = 1, speed = 1, endSpeed = 1, freq = 440, pan = 0|
+		SynthDef(name, { |out, bufnum, totalDuration = 0, begin = 0, end = 1, speed = 1, endSpeed = 1, freq = 440, pan = 0|
 
 			var sound, rate, phase, sawrate, numFrames;
+	        
 
 			// playback speed
-			rate = Line.kr(speed, endSpeed, sustain) * (freq / 60.midicps);
+		
+			rate = Line.kr(speed, endSpeed, totalDuration) * (freq / StrudelUtils.baseNote().midicps);
 
+        
 			// sample phase
 			// BufSampleRate adjusts the rate if the sound file doesn't have the same rate as the soundcard
 
@@ -46,6 +48,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 				loop: 0,
 				interpolation: 4 // cubic interpolation
 			);
+			sound = sound * StrudelUtils.sampleGain();
 
 			sound = DirtPan.ar(sound, numChannels, pan);
 
@@ -62,13 +65,15 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 		var name = format("dirt_sample_long_%_%", sampleNumChannels, numChannels);
 
-		SynthDef(name, { |out, bufnum, sustain = 1, begin = 0, end = 1, speed = 1, endSpeed = 1, freq = 440, pan = 0|
+		SynthDef(name, { |out, bufnum, totalDuration = 1, begin = 0, end = 1, speed = 1, endSpeed = 1, freq = 440, pan = 0|
 
 			var sound, rate,  env, startPos, numFrames;
 
 			// playback speed
-			rate = Line.kr(speed, endSpeed, sustain) * (freq / 60.midicps);
+			rate = Line.kr(speed, endSpeed, totalDuration) * (freq / StrudelUtils.baseNote().midicps);
 
+
+				
 			// sample phase
 			// BufSampleRate adjusts the rate if the sound file doesn't have the same rate as the soundcard
 			//phase =  Sweep.ar(1, rate * BufSampleRate.ir(bufnum)) + (BufFrames.ir(bufnum) * begin);
@@ -88,9 +93,10 @@ live coding them requires that you have your SuperDirt instance in an environmen
 				loop: 0
 			);
 
-			env = EnvGen.kr(Env.linen(0, sustain, 0)); // todo: check if control rate smoothens (shouldn't)
+			env = EnvGen.kr(Env.linen(0, totalDuration, 0)); // todo: check if control rate smoothens (shouldn't)
 
 			sound = sound * env;
+			sound = sound * StrudelUtils.sampleGain();
 
 			sound = DirtPan.ar(sound, numChannels, pan);
 
@@ -105,13 +111,15 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 		var name = format("dirt_stretchsample_%_%", sampleNumChannels, numChannels);
 
-		SynthDef(name, { |out, bufnum, sustain = 1, begin = 0, end = 1, speed = 1, endSpeed = 1, freq = 440, pan = 0, timescale = 1, timescalewin = 1|
+		SynthDef(name, { |out, bufnum, totalDuration, begin = 0, end = 1, speed = 1, endSpeed = 1, freq = 440, pan = 0, timescale = 1, timescalewin = 1|
 
 			var sound, rate, phase, sawrate, numFrames, index, windowIndex, window, timescaleStep;
 			var sound0, sound1, windowSize, nSteps;
 
 			// playback speed
-			rate = Line.kr(speed, endSpeed, sustain) * (freq / 60.midicps);
+			rate = Line.kr(speed, endSpeed, totalDuration) * (freq / StrudelUtils.baseNote().midicps);
+
+
 
 			// sample phase
 			// BufSampleRate adjusts the rate if the sound file doesn't have the same rate as the soundcard
@@ -155,6 +163,7 @@ live coding them requires that you have your SuperDirt instance in an environmen
 				interpolation: 4 // cubic interpolation
 			);
 			sound = (sound0 + sound1) / window.sum;
+			sound = sound * StrudelUtils.sampleGain();
 
 			sound = DirtPan.ar(sound, numChannels, pan);
 
@@ -174,12 +183,16 @@ live coding them requires that you have your SuperDirt instance in an environmen
 	// the monitor does the mixing and zeroing of the busses for each sample grain
 	// so that they can all play in one bus
 
-	SynthDef("dirt_gate" ++ numChannels, { |out, in, sustain = 1, fadeInTime = 0.001, fadeTime = 0.001, amp = 1, gain = 1, overgain = 0|
+	SynthDef("dirt_gate" ++ numChannels, { |out, in, totalDuration = 0, fadeInTime = 0.001, fadeTime = 0.001, gain = 1, overgain = 0|
 		var signal = In.ar(in, numChannels);
 		 //  doneAction: 14: free surrounding group and all nodes
-		var env = EnvGen.ar(Env([0, 1, 1, 0], [fadeInTime, sustain, fadeTime], \sin), doneAction: 14);
-		amp = amp * pow(gain.min(2) + overgain, 4);
-		signal = signal * env * amp * DirtGateCutGroup.ar(fadeTime, doneAction: 14);
+		var holdtime = totalDuration - (fadeInTime + fadeTime);
+	
+		var env = EnvGen.ar(Env([0, 1, 1, 0], [fadeInTime, holdtime, fadeTime], \sin), doneAction: 14);
+
+		// var env = EnvGen.ar(Env([0, 1, 1, 0], [fadeInTime, sustain + release, fadeTime], \sin), doneAction: 14);
+		gain = StrudelUtils.gainCurve(gain + overgain);
+		signal = signal * env * gain * DirtGateCutGroup.ar(fadeTime, doneAction: 14);
 		// this takes the signal and offsets it so it matches precisely onto the sample
 		// as scheduled within one block (a synth is always started on the block bondary)
 		OffsetOut.ar(out, signal);
@@ -193,9 +206,9 @@ live coding them requires that you have your SuperDirt instance in an environmen
 
 	*/
 
-	SynthDef("dirt_out" ++ numChannels, { |out, to, sustain = 1, fadeInTime = 0.001, fadeTime = 0.001, through = 0, amp = 1|
+	SynthDef("dirt_out" ++ numChannels, { |out, to, totalDuration, fadeInTime = 0.001, fadeTime = 0.001, through = 0, amp = 1|
 		var signal = In.ar(out, numChannels);
-		var env = EnvGen.ar(Env([0, 1, 1, 0], [fadeInTime, sustain, fadeTime], \sin));
+		var env = EnvGen.ar(Env([0, 1, 1, 0], [fadeInTime, totalDuration - (fadeInTime + fadeTime), fadeTime], \sin));
 		Out.ar(to, signal * env * amp);
 		ReplaceOut.ar(out, signal * through);
 	}, [\ir, \ir, \ir, \ir, \ir, \ir, \kr]).add;  // amp can be modulated
@@ -264,15 +277,27 @@ live coding them requires that you have your SuperDirt instance in an environmen
 		ReplaceOut.ar(out, signal * amp)
 	}, [\ir, \kr]).add;
 
-	SynthDef("dirt_lpf" ++ numChannels, { |out, cutoff = 440, resonance = 0|
+	SynthDef("dirt_lpf" ++ numChannels, { |out, cutoff = 440, resonance = 0, attack, hold, decay, envamt = 0, anchor = 0, release, holdtime |
 		var signal = In.ar(out, numChannels);
-		signal = RLPF.ar(signal, cutoff.abs.clip(20, SampleRate.ir / 2), resonance.linexp(0, 1, 1, 0.001));
+		cutoff = StrudelUtils.calculateCutoff(cutoff,anchor, envamt, hold, holdtime, attack, decay, release, cutmax: SampleRate.ir / 2);
+		signal = IIRFilter.ar(signal, cutoff, resonance);
 		ReplaceOut.ar(out, signal)
 	}, [\ir, \kr, \kr]).add;
 
-	SynthDef("dirt_envelope" ++ numChannels, { |out, attack = 0, hold = 0, release = inf, curve = -3 |
+	SynthDef("dirt_envelope" ++ numChannels, { |out, attack, decay, hold, holdtime = 0, release, curve | 
 		var signal = In.ar(out, numChannels);
-		signal = signal * EnvGen.ar(Env.linen(attack, hold, release, 1, curve: curve));
+        var volenv = EnvGen.ar(
+		   Env.adsr(
+			attackTime: attack, 
+			decayTime: decay, 
+			releaseTime: release, 
+			sustainLevel: hold,
+			peakLevel:  1, 
+			curve: curve
+		   ),
+		   gate: Trig.ar(1, holdtime)
+	    );
+		signal = signal * volenv;
 		ReplaceOut.ar(out, signal);
 	}, [\ir, \ir, \ir, \ir, \ir]).add;
 

@@ -152,14 +152,14 @@ DEFAULT EFFECTS EXTRA
 	}, [\ir]).add;
 
 	// A crunchy distortion with a lot of high harmonics, the only parameter is `distort`
-	~dirt.addModule('distort', { |dirtEvent|
+	~dirt.addModule('distort2', { |dirtEvent|
 		dirtEvent.sendSynth("dirt_distort" ++ ~dirt.numChannels,
 			[
-				distort: ~distort,
+				distort: ~distort2,
 				out: ~out
 			]
 		)
-	}, { ~distort.notNil });
+	}, { ~distort2.notNil });
 
 	SynthDef("dirt_distort" ++ ~dirt.numChannels, { |out, distort = 0|
 		var signal, mod;

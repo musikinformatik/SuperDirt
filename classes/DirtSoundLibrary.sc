@@ -31,6 +31,27 @@ DirtSoundLibrary {
 		synthEvents.clear;
 		this.freeAllSoundFiles;
 	}
+	// extractParts { |str|
+    // // Regex to split the string into numeric and non-numeric parts
+    //   str.collect { |part|
+    //     part.isNumber ifTrue: { part.asInteger } ifFalse: { part }
+    // 	};
+	// }
+
+	// sortStringsAlphanumerically  { |stringArray|
+	// 	stringArray.sort { |a, b|
+	// 		var partsA = this.extractParts.(a);
+	// 		var partsB = this.extractParts.(b);
+			
+	// 		partsA.zip(partsB).detect { |pair|
+	// 			var (partA, partB) = pair;
+	// 			partA < partB ifTrue: { ^-1 };
+	// 			partA > partB ifTrue: { ^1 };
+	// 		};
+			
+	// 		0 // They are equal
+	// 	};
+	// }
 
 	addBuffer { |name, buffer, appendToExisting = false, metaData|
 		var event, index;
@@ -51,6 +72,7 @@ DirtSoundLibrary {
 	}
 
 	addSynth { |name, event, appendToExisting = false, useSynthDefSustain = false, metaData|
+
 		if(bufferEvents[name].notNil) {
 			"a sample buffer with that name already exists: %\nSkipping...".format(name).warn;
 			^this
@@ -107,6 +129,8 @@ DirtSoundLibrary {
 
 	set { |name, indices ... pairs|
 		var allEvents = this.at(name);
+		
+
 		if(allEvents.isNil) {
 			"set: no events found with this name: %\n".format(name).warn
 		} {
@@ -186,7 +210,9 @@ DirtSoundLibrary {
 		};
 
 		files = pathMatch(folderPath.standardizePath +/+ "*"); // dependent on operating system
-		if(sortFiles) { files.sort };
+		if(sortFiles) { 
+			 files.sort;	
+		 };
 
 		if(files.notEmpty) {
 			name = name.asSymbol;
@@ -202,7 +228,9 @@ DirtSoundLibrary {
 
 		filePaths.do { |filepath|
 			try {
+			
 				var buf, metaData;
+			
 				buf = this.readSoundFile(filepath);
 				if(buf.notNil) {
 					metaData = this.readMetaData(filepath);
@@ -290,6 +318,7 @@ DirtSoundLibrary {
 
 		var allEvents = this.at(name);
 		var event;
+		
 
 		if(allEvents.isNil) {
 			// first look up buffers, then synths
@@ -305,8 +334,7 @@ DirtSoundLibrary {
 			^event
 
 		} {
-			// the index may be \none (a Symbol), but this converts it to 0
-			event = allEvents.wrapAt(index.asInteger);
+			event = allEvents.wrapAt((index ? 0).asInteger);
 		};
 
 		if(doNotReadYet and: { event.notNil and: { event[\notYetRead] ? false } }) {
@@ -327,8 +355,9 @@ DirtSoundLibrary {
 	}
 
 	makeEventForBuffer { |buffer, metaData|
-		var baseFreq = 60.midicps;
+		var baseFreq = StrudelUtils.baseNote().midicps;
 		var baseFreqToMetaFreqRatio = metaData !? _[\baseFreqToMetaFreqRatio] ? 1.0;
+
 		^(
 			buffer: buffer.bufnum,
 			bufferObject: buffer,
@@ -347,7 +376,7 @@ DirtSoundLibrary {
 			},
 			unitDuration: { buffer.duration * baseFreq / (~freq.value * ~metaDataTuneRatio.value) },
 			hash: buffer.identityHash,
-			note: 0
+			note: StrudelUtils.baseNote()
 		)
 	}
 

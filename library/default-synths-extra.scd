@@ -101,6 +101,7 @@
 		env = EnvGen.ar(Env.linen(0.01, 0, 0.3, 1, -3), timeScale:sustain, doneAction:2);
 		freq = 2000 * DirtFreqScale.kr(speed, accelerate, sustain) * (n/5 + 1).wrap(0.5,2);
 		sound = HPF.ar(LPF.ar(WhiteNoise.ar(1), 3*freq), freq);
+		
 		Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env))
 	}).add
 );
@@ -116,6 +117,7 @@
 		var freq = 100 * DirtFreqScale.kr(speed, accelerate, sustain) * (n/5+1).wrap(0.5,2);
 		var sound = LPF.ar(Pulse.ar(freq), Line.ar(1030, 30, 0.2*sustain))
 			+ (BPF.ar(HPF.ar(WhiteNoise.ar(1), 500), 1500) * Line.ar(1, 0, 0.2*decay));
+			sound = sound * StrudelUtils.synthGain;
 		Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env))
 	}).add
 );
@@ -179,6 +181,7 @@
 			SinOsc.ar(basefreq/64*rate, 0).range(lfof1,lfof2),
 			resonance*4);
 		sound = sound.tanh * 2;
+		sound = sound * StrudelUtils.synthGain;
 		Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
 	}).add
 );
@@ -187,17 +190,19 @@
 // a moog-inspired sawtooth synth; slightly detuned saws with triangle harmonics, filter frequency modulated by LFO
 // "voice" controls a relative phase and detune amount
 (
-	SynthDef(\supersaw, {|out, rate=1, decay=0, sustain=1, pan, accelerate, freq,
+	SynthDef(\supersawold, {|out, rate=1, decay=0, sustain=1, pan, accelerate, freq,
 		voice=0.5, semitone=12, resonance=0.2, lfo=1, pitch1=1, speed=1|
 		var env = EnvGen.ar(Env.pairs([[0,0],[0.05,1],[0.2,1-decay],[0.95,1-decay],[1,0]], -3), timeScale:sustain, doneAction:2);
 		var basefreq = freq * DirtFreqScale.kr(speed, accelerate, sustain);
 		var basefreq2 = basefreq * (2**(semitone/12));
 		var lfof1 = min(basefreq*10*pitch1, 22000);
 		var lfof2 = min(lfof1 * (lfo + 1), 22000);
-		var sound = MoogFF.ar(
-			(0.5 * Mix.arFill(3, {|i|  SawDPW.ar(basefreq * ((i-1)*voice/50+1), 0)})) + (0.5 * LFTri.ar(basefreq2, voice)),
-			LFTri.ar(basefreq/64*rate, 0.5).range(lfof1,lfof2),
-			resonance*4);
+		var sound = Mix.arFill(3, {|n|  SawDPW.ar(basefreq * ((n-1)*voice/50+1), 0)});
+		// var sound = MoogFF.ar(
+		// 	(0.5 * Mix.arFill(3, {|i|  SawDPW.ar(basefreq * ((i-1)*voice/50+1), 0)})) + (0.5 * LFTri.ar(basefreq2, voice)),
+		// 	LFTri.ar(basefreq/64*rate, 0.5).range(lfof1,lfof2),
+		// 	resonance*4);
+
 		sound = sound.tanh*2;
 		Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
 	}).add
@@ -220,6 +225,7 @@
 		sound = MoogFF.ar(sound, SinOsc.ar(basefreq/32*rate, 0).range(lfof1,lfof2), resonance*4);
 		sound = MoogFF.ar(sound, min(env2*lfof2*1.1, 22000), 3);
 		sound = sound.tanh*5;
+		sound = sound * StrudelUtils.synthGain;
 		Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
 	}).add
 );
@@ -239,6 +245,7 @@
 			sound,
 			pitch1 * 4 * basefreq + SinOsc.ar(basefreq/64*rate, 0, lfo*basefreq/2) + LFNoise2.ar(1,lfo*basefreq),
 			LFNoise2.ar(0,0.1,4*resonance));
+		sound = sound * StrudelUtils.synthGain;
 		Out.ar(out, DirtPan.ar(0.5*sound, ~dirt.numChannels, pan, env));
 	}).add
 );
@@ -261,6 +268,7 @@
 		sound= AY.ar( AY.freqtotone(basefreq), AY.freqtotone(pitch2*basefreq), AY.freqtotone(pitch3*basefreq),
 			vola:va, volb:vb, volc:vc)/2;
 		sound = tanh(sound)*2;
+		sound = sound * StrudelUtils.synthGain;
 		Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
 	}).add
 );
@@ -285,6 +293,7 @@
 			2*voice-1);
 		sound = HPF.ar(BMoog.ar(sound, ffreq, resonance, 3), 20);
 		sound = clip(sound, -1,1) * 0.3;
+		sound = sound * StrudelUtils.synthGain;
 		Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
 	}).add
 );
@@ -340,6 +349,7 @@ SynthDef(\superhammond, {|out, sustain=1, decay=0, pan, freq, vibrato=0.5, vrate
 	sound = 0.5 * Mix.ar( SinOsc.ar(freqs*(2*click+1), (2pi ! 9).rand, amps/amps.sum) );
 	sound = perc * 0.5 * SinOsc.ar(freq*percf, 2pi.rand) * XLine.ar(1,1e-6,2*decay+1) + sound;
 	sound = sound + BAllPass.ar(sound, 1000*LFTri.kr(vrate,0,vibrato/2,1));
+	sound = sound * StrudelUtils.synthGain;
 	Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
 }).add
 );
@@ -391,6 +401,7 @@ SynthDef(\superhoover, {|out, sustain=1, decay=0, pan, freq, accelerate=0, slide
 	mix = BPeakEQ.ar(mix, 6000, 1, 3);
 	mix = BPeakEQ.ar(mix, 3500, 1, 6);
 	mix = mix.dup + CombC.ar(mix.dup, 1/200, SinOsc.kr(3, [0.5pi, 1.5pi]).range(1/300, 1/200), 0);
+	mix = mix * StrudelUtils.synthGain;
 	Out.ar(out, DirtPan.ar(1.4*mix, ~dirt.numChannels, pan, env));
 }).add
 );
@@ -409,6 +420,7 @@ SynthDef(\superzow, {|out, sustain=1, pan, accelerate, freq, decay=0, slide=1, d
 	var sound3 = VarSaw.ar(basefreq*(-1*detune/100+1), 0, Line.ar(0,0.5,sustain*20/slide));
 	sound = sound - DelayN.ar(sound2,0.2, Line.ar(0,1,5*sustain/slide)/basefreq)
 	  + DelayN.ar(sound3,0.2, Line.ar(0,1,20*sustain/slide)/basefreq);
+	sound = sound * StrudelUtils.synthGain;
 	Out.ar(out, DirtPan.ar(sound/2, ~dirt.numChannels, pan, env));
 }).add
 );
@@ -422,6 +434,7 @@ SynthDef(\superstatic, {|out, sustain=1, pan, freq, accelerate=0, speed=1 |
 	freq = freq * DirtFreqScale.kr(speed, accelerate, sustain);
 	sound = Dust.ar(freq*40) > 0.5;
 	sound = Pulse.ar(freq*sound*4,0.5,0.5);
+	sound = sound * StrudelUtils.synthGain;
 	Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env))
 }).add
 );
@@ -445,6 +458,8 @@ SynthDef(\supergrind, {|out, pan, freq, sustain, accelerate, detune=0, voice=0, 
 	LocalOut.ar(LeakDC.ar(loop).tanh);
 	loop = loop + DelayC.ar(loop, 0.2, SinOsc.ar(1, 0, 1e-3, 0.1));
 	loop = GVerb.ar(sin(loop + (8*trig)*4)).sin + loop;
+	loop = loop * StrudelUtils.synthGain;
+
 	Out.ar(out, DirtPan.ar(0.3*loop, ~dirt.numChannels, pan, env));
 }).add;
 );
@@ -467,6 +482,7 @@ SynthDef(\superprimes, {|out, pan, freq, sustain, accelerate, rate=1, detune=0, 
     	* LPF.ar(Decay.ar(trig, (primes+3)*sustain/10), voice.linexp(0,2,30,18000));
 	sound = GVerb.ar(sound.softclip, 10*voice.linexp(0,5,1,0.01), 10).tanh;
 	sound = SplayAz.ar(primes.size, sound.flat, center:LFNoise2.kr(sustain).range(0,primes.size-1));
+	sound = sound * StrudelUtils.synthGain;
 	Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
 }).add;
 );
@@ -488,6 +504,7 @@ SynthDef(\superwavemechanics, {|out, pan, freq, sustain, accelerate, detune=0, v
 	d = Rand(1.6*i - detune, 1.7*i + detune).round(0.25);
 	sound = Resonz.ar(WhiteNoise.ar(0.5), freq * r * d, 0.01 + voice.linexp(0,1,1e-3,1));
 	sound = HPF.ar(Limiter.ar(55 * GVerb.ar(sound, resonance.linexp(0,1,99,0.1),10) ), 30).sanitize;
+	sound = sound * StrudelUtils.synthGain;
 	Out.ar(out, DirtPan.ar(sound.flat, ~dirt.numChannels, pan, env));
 }).add;
 );
@@ -503,6 +520,7 @@ SynthDef(\supertron, {|out, pan, freq, sustain, voice, detune, accelerate, speed
 	sound = LocalIn.ar(1);
 	sound = Mix.ar( Pulse.ar(freq+[1+detune,-1-detune], RLPF.ar(sound, freq/6.1, 1.5).range(0,1-(voice/1.5))) );
 	sound = LeakDC.ar(sound);
+	sound = sound * StrudelUtils.synthGain;
 	LocalOut.ar(sound);
 	Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, aenv))
 }).add;
@@ -521,6 +539,7 @@ SynthDef(\superreese,  {|out, pan, freq, sustain, accelerate, detune=0, voice=0,
 	sound = RLPF.ar(sound, freq*10, 1.0/q1);
 	sound = sound.clip2(1.0/5.0)* 5.0;
 	sound = 0.35*RLPF.ar(sound, freq*20, 1.0/q2);
+	sound = sound * StrudelUtils.synthGain;
 	Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
 }).add;
 );
@@ -634,6 +653,7 @@ SynthDef(\superfm, {
 
 	var sound = FM7.ar(ctls, presets[5]) * amps;
 	sound = Mix.ar(sound) * (-15.dbamp);
+	sound = sound * StrudelUtils.synthGain;
 	Out.ar(out, DirtPan.ar(sound, ~dirt.numChannels, pan, env));
 }).add;
 );

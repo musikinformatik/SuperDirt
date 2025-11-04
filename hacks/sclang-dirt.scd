@@ -39,7 +39,7 @@ Pdef(\x,
 		\n, Pwhite(0, 20, inf),
 		\speed, Pbrown(1, 1.2, 0.01),
 		\amp, Pwhite().linexp(0, 1, 0.001, 0.3),
-		\legato, 2,
+		\clip, 2,
 		\dur, 1 / 32 * Pshuf([1, 1/2, 1, 2, 2, 1/2], inf),
 		\room, Pwrand([0, 0.8], [0.9, 0.1], inf),
 	)

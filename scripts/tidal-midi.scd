@@ -45,7 +45,7 @@ d1 $ ccn "28*16" # ccv 127 # s "midi" # midichan 9
 // note: parameter names may change in the future!
 
 // In supercollider terms, the following midicmds and their parameters are supported
-// (the usual note/freq and legato/sustain parameters are taken into account)
+// (the usual note/freq and clip/sustain parameters are taken into account)
 
 polyTouch: midichan, midinote, polyTouch
 program: midichan, progNum
