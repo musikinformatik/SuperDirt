@@ -123,6 +123,26 @@ CORE SYNTHDEFS FOR DIRT
 		}, [\ir, \ir]).add;
 	};
 
+	if(\Resonator.asClass.notNil) {
+		// Needs MKPlugins, see https://github.com/madskjeldgaard/portedplugins
+		SynthDef("dirt_res" ++ numChannels, { |dryBus, effectBus, gate = 1, res = 0, resn = 0, resd = 0.5, ress=0.2, lock = 0|
+			var in, signal;
+			in = In.ar(dryBus, numChannels);
+			ReplaceOut.ar(dryBus, in * (1 - res));
+
+			signal = in.asArray.collect { |sig|
+				Resonator.ar(sig, freq: (resn + 60).midicps, position: 0.001, resolution: 12, structure: 0.2, brightness: 0.03, damping: resd);
+			};
+
+			// in = if(numChannels > 2) { in.clump(2).sum } { in.dup };
+
+			// signal = Resonator.ar(in, freq: (resn + 60).midicps, position: 0.001, resolution: 12, structure: 0.2, brightness: 0.03, damping: resd);
+			signal = signal * EnvGen.kr(Env.asr, gate, doneAction:2) * res;
+
+			DirtPause.ar(signal, graceTime:4);
+			Out.ar(effectBus, signal);
+		}, [\ir, \ir]).add;
+	} {};
 
 	// thanks to Jost Muxfeld and James McCartney
 	// note that "size" is not room size, just the feed level into the room
