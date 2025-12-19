@@ -8,6 +8,7 @@ DirtEvent {
 	}
 
 	play {
+		var play;
 		event.parent = orbit.defaultParentEvent;
 		event.use {
 			this.splitName;
@@ -20,8 +21,19 @@ DirtEvent {
 					this.calcTimeSpan; // ~sustain is calculated here
 					if(~sustain >= orbit.minSustain.value or: { ~play.notNil }) {
 						this.finaliseParameters;
-						// unless event diversion returns something, we proceed
-						~play.(this) ?? { this.playSynths };
+						play = {
+							// unless event diversion returns something, we proceed
+							~play.(this) ?? { this.playSynths };
+						};
+						if(~syncableDiversions.notEmpty) {
+							// run in a routine so we can wait for server sync
+							Routine {
+								runSyncableDiversions(this);
+								play.();
+							}.()
+						} {
+							play.();
+						}
 					} // otherwise drop the event.
 				}
 			}
@@ -224,6 +236,27 @@ DirtEvent {
 
 	}
 
+	runSyncableDiversions { |dirtEvent|
+		var postSyncCallbacks;
+		// call all the diversions, gathering all the resulting post-sync
+		// functions.
+		postSyncCallbacks = ~syncableDiversions.collect { |div|
+			div.(orbit, this);
+		}.select { |cb| cb.notNil };
 
+		if(postSyncCallbacks.notEmpty) {
+			// wait for the server to finish adding the synthdef(s). this will
+			// eat into the time buffer provided by our latency setting, but
+			// it should be fine with typical latency settings.
+			server.sync;
+
+			// adjust the latency value to compensate for the time spent
+			// syncing.
+			~latency = ~timeStamp - thisThread.seconds;
+
+			// run all the post-sync functions
+			postSyncCallbacks.do { |cb| cb.() };
+		};
+	}
 }
 

@@ -1,0 +1,58 @@
+{-
+
+livecode DSP graphs!
+
+(see livecoding-dsp.scd for the corresponding SuperCollider code)
+
+-}
+
+
+-- define a couple of helpers:
+
+dsp' code = pS "dsp" code # s "dirt_silence"
+dsp code = dsp' (pure code)
+gdsp' code = pS "gdsp" code
+gdsp code = gdsp' (pure code)
+
+-- and write some patterns:
+
+-- basic synth with some sclang randomness
+d1
+  $ note "<<7 <10 5>> <3!2 -5> 2 0>*<8!3 16 16>*16"
+  # dsp "VarSaw.ar(~freq, rrand(0.0, 1.0), rrand(0.0, 1.0))"
+  # attack 0.001 # release (rangex 0.1 0.5 rand)
+  # delay 0.5 # delayt (3.0/16) # lock 1 # delayfb 0.5
+  # gain 0.8 # pan (fast 1.1 rand)
+
+-- sampler fx
+d2
+  $ n "0@2 1@2 2@2 3 4 5 6 7 8 2@2 10 4"
+  # dsp "(in + DelayC.ar(in, 0.01, (~cycle % 2pi).sin.linexp(-1, 1, 0.001, 0.01)) * 3).scurve"
+  # s "amencutup" -- needs to go after dsp or it will be overridden by the default "silence"
+
+-- patterned synths and string concatenation
+d3 $ let
+  addFilter code = "RLPF.ar(" ++ code ++ ", \\ctf.kr, 0.2)"
+  synths =
+    [ ("saw", pure $ addFilter "Saw.ar(~freq)")
+    , ("sqr", pure $ addFilter "Pulse.ar(~freq)")
+    ]
+  in id
+  $ note ("[0@2 -12@3 0@3]*2" - 24)
+  # dsp' (inhabit synths "<saw sqr!2>*8")
+  # release 0.3
+  # pF "ctf" (rangex 400 8000 rand)
+
+-- global effect with patterned controls
+d4
+  $ ply (choose [1,2])
+  $ n "<0 1 2 3 1 2 3>*8"
+  # s "dr55"
+  # speed (rangex 1.5 3 $ fast 1.5 rand)
+  # gdsp "in + (RHPF.ar(CombC.ar(in * \\delAmt.kr, 1, Saw.ar(SinOsc.ar(0.1).exprange(0.2, 9)).exprange(0.07, 0.01), \\delDecay.kr) * 0.5, \\delHpf.kr, 0.5))"
+  # pF "delAmt" rand
+  # pF "delDecay" (range 1 5 $ fast 1.1 rand)
+  # pF "delHpf" (rangex 150 400 $ fast 1.2 rand)
+  # pan (fast 1.3 rand)
+  # shape 0.8
+  
