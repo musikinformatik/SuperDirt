@@ -61,6 +61,7 @@ DirtOrbit {
 			GlobalDirtEffect(\dirt_delay, [\delaytime, \delayfeedback, \delaySend, \delayAmp, \lock, \cps]),
 			GlobalDirtEffect(\dirt_reverb, [\size, \room, \dry]),
 			GlobalDirtEffect(\dirt_leslie, [\leslie, \lrate, \lsize]),
+			GlobalDirtEffect(\dirt_res, [\res, \resd, \ress, \resn, \resb]),
 			GlobalDirtEffect(\dirt_rms, [\rmsReplyRate, \rmsPeakLag]).alwaysRun_(true).active_(false),
 			GlobalDirtEffect(\dirt_monitor, [\limitertype]).alwaysRun_(true),
 		]
