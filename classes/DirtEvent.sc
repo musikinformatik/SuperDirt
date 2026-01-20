@@ -213,11 +213,15 @@ DirtEvent {
 			});
 		};
 
+
+		// this implements module order directly. In the next major version we can use a dictionary.
+		~fxs !? { modules = ~fxs.collect { |name| ~fxs.detect { |m| m.name == name } } };
+
 		server.makeBundle(~latency, { // use this to build a bundle
 
 			orbit.globalEffects.do { |x| x.set(currentEnvironment) };
 			this.prepareSynthGroup(orbit.group);
-			modules.do(_.value(this));
+			modules.do(_.value(this)); // in the modules all the synths are instantiated
 			this.sendGateSynth; // this one needs to be last
 
 		});
