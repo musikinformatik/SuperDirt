@@ -12,7 +12,7 @@
 		server.options.memSize = 8192 * 16;
 		server.options.maxNodes = 1024 * 32;
 		// boot the server and start SuperDirt
-		server.waitForBoot {
+		server.reboot {
 			~dirt = SuperDirt(numChannels, server);
 			~dirt.loadSoundFiles(path);   // load samples (path can be passed in)
 			server.sync;

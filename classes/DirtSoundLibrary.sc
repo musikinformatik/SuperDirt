@@ -171,6 +171,13 @@ DirtSoundLibrary {
 		};
 	}
 
+	loadSoundFilesToBank { |paths, appendToExisting = false, bankName, namingFunction|
+		var form = "%_%";
+		if(bankName.isNil) { Error("to load into a bank, you have to give a bank name").throw };
+		namingFunction = namingFunction ?? { { |path| format(form, bankName, path.basename) } };
+		this.loadSoundFiles(paths, appendToExisting, namingFunction)
+	}
+
 	loadSoundFiles { |paths, appendToExisting = false, namingFunction = (_.basename)| // paths are folderPaths
 		var folderPaths, memory;
 

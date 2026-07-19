@@ -25,7 +25,9 @@ and locally from the SuperCollider language. SuperDirt is also
 used by [Sardine](https://sardine.raphaelforment.fr), a live coding
 environment for Python 3.10+. 
 
-(C) 2015-2023 Julian Rohrhuber, Alex McLean and contributors
+(C) 2015-2025 Julian Rohrhuber, Alex McLean and [contributors](https://github.com/musikinformatik/SuperDirt/graphs/contributors). Partially a port of 
+[dirt](https://codeberg.org/uzu/dirt)/datadirt by Alex McLean (2005) which was heavily based on [MSG](https://cors.slab.org/MSG-1.10.tar.gz) by 
+Adrian Ward (2001).
 
 SuperDirt is free software: you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the

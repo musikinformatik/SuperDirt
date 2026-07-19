@@ -57,6 +57,7 @@ SuperDirt {
 		outputvolume = server.volume;
 		outputvolume.setVolumeRange(-90, 6);
 		modules = [];
+		this.checkServerMemory(50 * 1024);
 		this.loadSynthDefs;
 		this.initVowels(\counterTenor);
 		this.initRoutingBusses;
@@ -90,6 +91,23 @@ SuperDirt {
 	initRoutingBusses {
 		audioRoutingBusses = { Bus.audio(server, numChannels) }.dup(numRoutingBusses);
 		controlBusses = { Bus.control(server, 1) }.dup(numControlBusses);
+	}
+
+	checkServerMemory { |required|
+		if(server.respondsTo(\rtMemoryStatus).not) {
+			"No realtime memory check possible, use a supercollider version >= 3.14".warn;
+			^this
+		};
+		server.rtMemoryStatus { |freeBytes|
+			// note that this function runs async after a server reply
+			var freeKilobytes = freeBytes div: 1024;
+			if (freeKilobytes < required) {
+				Error(
+					"SuperDirt: not enough free memory to start."
+					"Set s.options.memSize to at least %"
+				).format(required).throw
+			} { "Enough realtime memory found (% kB)".format(freeKilobytes).postln }
+		}
 	}
 
 	set { |...pairs|
@@ -132,12 +150,16 @@ SuperDirt {
 		soundLibrary.loadOnly(names, path, appendToExisting )
 	}
 
-	loadSoundFileFolder { |folderPath, name, appendToExisting = false, sortFiles = true|
-		soundLibrary.loadSoundFileFolder(folderPath, name, appendToExisting, sortFiles)
-	}
-
 	loadSoundFiles { |paths, appendToExisting = false, namingFunction|
 		soundLibrary.loadSoundFiles(paths, appendToExisting = false, namingFunction)
+	}
+
+	loadSoundFilesToBank { |paths, appendToExisting = false, bankName|
+		soundLibrary.loadSoundFilesToBank(paths, appendToExisting = false, bankName)
+	}
+
+	loadSoundFileFolder { |folderPath, name, appendToExisting = false, sortFiles = true|
+		soundLibrary.loadSoundFileFolder(folderPath, name, appendToExisting, sortFiles)
 	}
 
 	loadSoundFile { |path, name, appendToExisting = false|
@@ -294,6 +316,7 @@ SuperDirt {
 				};
 				replyAddr = tidalAddr; // collect tidal reply address
 				event[\latency] = latency;
+				event[\timeStamp] = time;
 				event.putPairs(msg[1..]);
 				receiveAction.value(event);
 				index = event[\orbit] ? 0;
